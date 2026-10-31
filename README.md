@@ -130,3 +130,4 @@ this Mac's page gets. The server re-checks every action: it only quits running n
 processes, closes tabs it can see, moves to the Trash only files and apps it listed (via Finder, so you can put them
 back), removes only your own launch agents, and runs only its own whitelisted maintenance commands.
 # diskmap
+# diskmap
