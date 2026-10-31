@@ -1,0 +1,8 @@
+# personal data: disk scans, history, settings, logs — never commit these
+data/
+reports/
+# build output and caches
+macapp/build/
+__pycache__/
+*.pyc
+.DS_Store

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>diskmap widget</title>
+<style>
+:root{--fg:#fff;--mut:rgba(255,255,255,.62);--bar:rgba(255,255,255,.16)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:transparent;color:var(--fg);font:12px/1.3 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui;-webkit-font-smoothing:antialiased;overflow:hidden;user-select:none;cursor:default}
+.w{position:absolute;inset:0;border-radius:22px;overflow:hidden;padding:14px 16px;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#0b1430 0%,#1b1f4a 55%,#3a2552 100%)}
+.w::after{content:"";position:absolute;inset:0;border-radius:22px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);pointer-events:none}
+svg.sky{position:absolute;left:0;right:0;bottom:0;width:100%;height:58%;pointer-events:none;opacity:.95}
+.top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
+.top b{font-size:12px;letter-spacing:.02em}
+.top span{font-size:11px;color:var(--mut)}
+.big{display:flex;gap:16px;margin-top:8px;position:relative;z-index:1}
+.big div{min-width:0}
+.big .n{font:600 24px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:-.02em}
+.big .n small{font-size:12px;font-weight:500;margin-left:1px;color:var(--mut)}
+.big .l{font-size:10.5px;color:var(--mut);margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
+.rows{margin-top:auto;position:relative;z-index:1;display:grid;gap:6px}
+.r{display:grid;grid-template-columns:54px 1fr auto;gap:8px;align-items:center;font-size:11px}
+.r .t{height:5px;border-radius:3px;background:var(--bar);overflow:hidden}
+.r .t i{display:block;height:100%;border-radius:3px;width:0;transition:width .6s}
+.r .v{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--mut);min-width:54px;text-align:right}
+.alert{position:relative;z-index:1;margin-top:6px;font-size:11px;background:rgba(255,184,77,.18);color:#ffd59a;border-radius:8px;padding:4px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.small .rows .r:nth-child(n+3),.small .alert{display:none}
+.small .r{grid-template-columns:50px 1fr}
+.small .r .v{display:none}
+.xl{display:none}
+.large .xl{display:grid}
+.large .big .n{font-size:30px}
+.large .rows{gap:9px}
+</style>
+</head>
+<body>
+<div class="w" id="w">
+  <svg class="sky" viewBox="0 0 360 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2552"/><stop offset="1" stop-color="#0a0f26"/></linearGradient></defs>
+    <path fill="url(#g)" opacity=".75" d="M0 120 V86 h14 v-10 h10 v14 h12 V70 h8 v-8 h6 v8 h8 v26 h10 V60 h4 v-16 h3 v16 h4 v30 h12 V78 h16 v12 h10 V66 h14 v24 h8 V52 l6 -10 l6 10 V90 h12 V74 h10 v16 h14 V58 h6 v-6 h6 v6 h6 v32 h10 V80 h18 v10 h12 V64 h10 v-12 h4 v-14 h2 v14 h4 v12 h10 v38 h14 V76 h12 v14 h16 V84 h8 V120Z"/>
+    <path fill="#070b1e" d="M0 120 V100 h20 v-6 h14 v10 h18 V88 h10 v-10 h4 v-14 h2 v-10 h1 v10 h2 v14 h4 v10 h10 v18 h16 V92 h22 v14 h14 V80 l10 -6 l10 6 v26 h20 V96 h16 v10 h24 V86 h12 v-8 h6 v8 h12 v20 h18 V98 h20 v8 h22 V90 h14 v16 h20 V100 h22 V120Z"/>
+    <g id="win" fill="#ffd27a"></g>
+  </svg>
+  <div class="top"><b>diskmap</b><span id="when">…</span></div>
+  <div class="big">
+    <div><div class="n" id="cpu">–</div><div class="l">CPU</div></div>
+    <div><div class="n" id="temp">–</div><div class="l">Temp</div></div>
+    <div><div class="n" id="free">–</div><div class="l">Free</div></div>
+  </div>
+  <div class="rows">
+    <div class="r"><span>Memory</span><span class="t"><i id="mb" style="background:#a99bff"></i></span><span class="v" id="mv">–</span></div>
+    <div class="r"><span>Battery</span><span class="t"><i id="bb" style="background:#5fd39a"></i></span><span class="v" id="bv">–</span></div>
+    <div class="r"><span>Power</span><span class="t"><i id="pb" style="background:#ffb84d"></i></span><span class="v" id="pv">–</span></div>
+    <div class="r xl"><span>GPU</span><span class="t"><i id="gb" style="background:#ff8fb8"></i></span><span class="v" id="gv">–</span></div>
+    <div class="r xl"><span>Network</span><span class="t"><i id="nb" style="background:#7dc4ff"></i></span><span class="v" id="nv">–</span></div>
+    <div class="r xl"><span>Disk</span><span class="t"><i id="db" style="background:#e7ecf5"></i></span><span class="v" id="dv">–</span></div>
+  </div>
+  <div class="alert" id="alert" hidden></div>
+</div>
+<script>
+(function(){
+  const T = "__TOKEN__", $ = id => document.getElementById(id);
+  const fmt = b => b >= 1e12 ? (b / 1e12).toFixed(1) + "T" : b >= 1e9 ? (b / 1e9).toFixed(0) + "G" : (b / 1e6).toFixed(0) + "M";
+  if (innerWidth < 260) document.body.classList.add("small");
+  if (innerHeight > 260) document.body.classList.add("large");
+  // a few lit windows in the little skyline
+  const g = $("win"); let h = "";
+  for (let i = 0; i < 46; i++){ const x = 6 + Math.random() * 348, y = 70 + Math.random() * 44; h += `<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="1.6" height="2.2" opacity="${(.35 + Math.random() * .6).toFixed(2)}"/>`; }
+  g.innerHTML = h;
+  async function tick(){
+    try {
+      const s = await (await fetch("/api/summary?t=" + T)).json();
+      $("cpu").innerHTML = s.cpu != null ? Math.round(s.cpu) + "<small>%</small>" : "–";
+      $("temp").innerHTML = s.temp != null ? Math.round(s.temp) + "<small>°</small>" : "–";
+      $("free").innerHTML = s.disk_free != null ? fmt(s.disk_free) : "–";
+      const mp = s.mem_total ? s.mem_used / s.mem_total * 100 : 0;
+      $("mb").style.width = mp.toFixed(0) + "%"; $("mv").textContent = s.mem_used ? fmt(s.mem_used) + " / " + fmt(s.mem_total) : "–";
+      $("mb").style.background = s.pressure === "critical" ? "#ff7a6b" : s.pressure === "warning" ? "#ffb84d" : "#a99bff";
+      if (s.battery != null){ $("bb").style.width = s.battery + "%"; $("bv").textContent = Math.round(s.battery) + "%" + (s.charging ? " ⚡" : ""); }
+      else { $("bv").textContent = "—"; }
+      if (s.power != null){ $("pb").style.width = Math.min(100, s.power / 80 * 100) + "%"; $("pv").textContent = s.power.toFixed(0) + " W"; }
+      if (s.gpu != null){ $("gb").style.width = s.gpu + "%"; $("gv").textContent = Math.round(s.gpu) + "%"; }
+      if (s.net_down != null){ $("nb").style.width = Math.min(100, Math.log10(1 + s.net_down / 1e3) / 5 * 100) + "%"; $("nv").textContent = "↓ " + fmt(s.net_down) + "/s"; }
+      if (s.disk_free != null){ $("db").style.width = "100%"; $("dv").textContent = fmt(s.disk_free) + " free"; }
+      const a = (s.top || [])[0];
+      $("alert").hidden = !a; if (a) $("alert").textContent = "⚠︎ " + a;
+      $("when").textContent = new Date().toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+    } catch(e){ $("when").textContent = "offline"; }
+  }
+  tick(); setInterval(tick, 3000);
+})();
+</script>
+</body>
+</html>

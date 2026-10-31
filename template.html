@@ -1,0 +1,1876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>diskmap</title>
+<style>
+:root{
+  --bg:#f6f6f4; --panel:#ffffff; --line:#e7e7e3; --line2:#efefec; --text:#1b1b19; --muted:#7a7a74; --faint:#a6a6a0;
+  --chip:#f2f2ef; --btn:#1b1b19; --btnText:#fff; --shadow:0 1px 2px rgba(0,0,0,.04);
+  --green:#1f9254; --greenBg:#e5f4ea; --amber:#c27412; --amberBg:#fcf0de; --red:#c8382c; --redBg:#fbe7e4; --blue:#2f6fc4; --blueBg:#e6eefa;
+  --media-bg:#fbede2; --media-bd:#efc8a6; --media-tx:#9a5a24;
+  --other-bg:#f0f0ee; --other-bd:#d8d8d3; --other-tx:#6c6c66;
+  --code-bg:#ecebfc; --code-bd:#c8c3f1; --code-tx:#5b4fc4;
+  --sdk-bg:#e3eff7; --sdk-bd:#b3d0e5; --sdk-tx:#2f6c96;
+  --ai-bg:#fbe6ee; --ai-bd:#efbacd; --ai-tx:#a33d64;
+  --cache-bg:#e6ebf8; --cache-bd:#bcc8ec; --cache-tx:#3c56a8;
+  --hatch:rgba(31,146,84,.38); --hatchR:rgba(194,116,18,.38); --candBd:#7cc49b; --candBdR:#e2b06c;
+  --m-app:#5b4fc4; --m-wired:#c27412; --m-comp:#a33d64; --m-cache:#b3d0e5;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121211; --panel:#1b1b1a; --line:#2c2c2a; --line2:#242422; --text:#ececea; --muted:#9a9a94; --faint:#6c6c67;
+    --chip:#262624; --btn:#ececea; --btnText:#121211; --shadow:none;
+    --green:#4cc285; --greenBg:#173326; --amber:#e7a24a; --amberBg:#3a2a14; --red:#f07468; --redBg:#3d1d1a; --blue:#7fb0f5; --blueBg:#1b2b42;
+    --media-bg:#3a2a1e; --media-bd:#6b4a30; --media-tx:#f0b98a;
+    --other-bg:#262624; --other-bd:#3d3d3a; --other-tx:#a8a8a2;
+    --code-bg:#272442; --code-bd:#4a4380; --code-tx:#b9b1ff;
+    --sdk-bg:#1c2e3b; --sdk-bd:#335a75; --sdk-tx:#8cc3e8;
+    --ai-bg:#3a1f2a; --ai-bd:#6e3a50; --ai-tx:#f3a3c1;
+    --cache-bg:#1f2640; --cache-bd:#3c4a7c; --cache-tx:#a5b6f2;
+    --hatch:rgba(76,194,133,.35); --hatchR:rgba(231,162,74,.35); --candBd:#3f8a62; --candBdR:#8a6431;
+    --m-app:#9d93ff; --m-wired:#e7a24a; --m-comp:#f3a3c1; --m-cache:#335a75;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font:13px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.mono{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace}
+button{font:inherit;color:inherit}
+.wrap{max-width:1360px;margin:0 auto;padding:20px 20px 40px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 14px;flex-wrap:wrap}
+header.top h1{font-size:15px;margin:0;font-weight:650;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+header.top h1 .host{color:var(--muted);font-weight:450}
+.livepill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:550;padding:2px 9px;border-radius:999px;background:var(--greenBg);color:var(--green)}
+.livepill i{width:6px;height:6px;border-radius:50%;background:currentColor;animation:pulse 2s infinite}
+.livepill.off{background:var(--chip);color:var(--muted)}
+.livepill.off i{animation:none}
+@keyframes pulse{50%{opacity:.3}}
+header.top .meta{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+header.top .warn{color:var(--amber);cursor:pointer;text-decoration:underline dotted}
+.spin{width:10px;height:10px;border:1.5px solid var(--faint);border-top-color:var(--text);border-radius:50%;display:inline-block;animation:sp .8s linear infinite;vertical-align:-1px}
+@keyframes sp{to{transform:rotate(360deg)}}
+h2.sec{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin:26px 2px 10px}
+h2.sec:first-of-type{margin-top:0}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.card h3{font-size:13px;margin:0;font-weight:650}
+.sub{color:var(--muted);font-size:11.5px;margin-top:2px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);margin-bottom:14px;overflow:hidden}
+.stat{padding:14px 18px;border-left:1px solid var(--line);min-width:0}
+.stat:first-child{border-left:0}
+.stat .lbl{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex:none}
+.stat .val{margin-top:6px;font-size:20px;font-weight:650;letter-spacing:-.01em;white-space:nowrap}
+.stat .val small{font-size:11px;font-weight:450;color:var(--muted);margin-left:6px}
+.stat .val small.up{color:var(--green)}
+.stat .foot2{font-size:11px;color:var(--muted);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat.click{cursor:pointer}
+.stat.click:hover{background:var(--chip)}
+.stat .more{margin-left:auto;font-size:11px;color:var(--faint)}
+.spark{display:block;width:100%;height:34px;margin-top:8px}
+.spark path.a{fill:currentColor;opacity:.12}
+.spark path.l{fill:none;stroke:currentColor;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.pill{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:550;white-space:nowrap}
+.pill.safe,.pill.normal{background:var(--greenBg);color:var(--green)}
+.pill.review,.pill.warning{background:var(--amberBg);color:var(--amber)}
+.pill.critical{background:var(--redBg);color:var(--red)}
+.membar{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--line2);margin-top:10px;gap:1px}
+.membar i{display:block;height:100%}
+.mleg{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:10.5px;color:var(--muted);margin-top:6px}
+.mleg i{display:inline-block;width:6px;height:6px;border-radius:2px;margin-right:4px}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:14px}
+.panel{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--line2)}
+.pbody{overflow:auto;max-height:420px}
+.count{font-size:11px;color:var(--muted);background:var(--chip);border-radius:999px;padding:1px 7px;margin-left:6px;font-weight:550}
+
+.sg{display:grid;grid-template-columns:8px minmax(0,1fr) auto;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line2);align-items:start}
+.sg:last-child{border-bottom:0}
+.sg .dot{margin-top:6px;width:8px;height:8px}
+.sev-high{background:var(--red)} .sev-med{background:var(--amber)} .sev-low{background:var(--blue)} .sev-info{background:var(--faint)}
+.sg .t{font-weight:600;font-size:12.5px}
+.sg .s{font-size:12px;color:var(--muted);margin-top:2px}
+.sg .acts{display:flex;gap:6px;align-items:center}
+.x{border:0;background:none;color:var(--faint);cursor:pointer;width:22px;height:22px;border-radius:5px;font-size:15px;line-height:1}
+.x:hover{background:var(--chip);color:var(--text)}
+.okstate{padding:28px 16px;text-align:center;color:var(--muted);font-size:12.5px}
+.okstate b{display:block;color:var(--green);font-size:13px;margin-bottom:2px}
+
+table.t{width:100%;border-collapse:collapse;font-size:12px}
+table.t td,table.t th{padding:7px 10px;border-bottom:1px solid var(--line2);text-align:left;white-space:nowrap}
+table.t th{font-size:11px;color:var(--muted);font-weight:500;position:sticky;top:0;background:var(--panel);z-index:1}
+table.t td:first-child,table.t th:first-child{padding-left:16px}
+table.t td:last-child,table.t th:last-child{padding-right:16px;text-align:right}
+table.t tr:last-child td{border-bottom:0}
+table.t .num{text-align:right;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.appn{display:flex;align-items:center;gap:10px;min-width:0;max-width:280px}
+.appn .ic{width:22px;height:22px;border-radius:5px;flex:none;display:grid;place-items:center;font-size:11px;font-weight:650;color:var(--muted);background:var(--chip)}
+.appn img.ic{background:none}
+.appn .nm{overflow:hidden;text-overflow:ellipsis;font-weight:550}
+.appn .sm{font-size:10.5px;color:var(--faint);overflow:hidden;text-overflow:ellipsis}
+.cpub{display:inline-block;width:38px;height:4px;border-radius:2px;background:var(--line2);vertical-align:middle;margin-left:8px;overflow:hidden}
+.cpub i{display:block;height:100%;background:var(--text);opacity:.6}
+.tag{font-size:10px;padding:1px 6px;border-radius:4px;background:var(--chip);color:var(--muted);margin-left:6px;font-weight:550;vertical-align:1px}
+.tag.dup{background:var(--amberBg);color:var(--amber)}
+.tag.heavy{background:var(--blueBg);color:var(--blue)}
+.tag.lan{background:var(--redBg);color:var(--red)}
+.more-row{padding:10px 16px;text-align:center}
+.linkbtn{border:0;background:none;color:var(--muted);cursor:pointer;font-size:12px;text-decoration:underline;text-underline-offset:2px}
+
+.bhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--chip);font-size:12px;position:sticky;top:0;z-index:1}
+.bhead b{font-weight:600}
+.tab{display:grid;grid-template-columns:20px minmax(0,1fr) auto 22px;gap:10px;align-items:center;padding:6px 16px;border-bottom:1px solid var(--line2);font-size:12px}
+.tab .fav{width:18px;height:18px;border-radius:4px;background:var(--line);display:grid;place-items:center;font-size:10px;font-weight:650;color:var(--muted)}
+.tab .tt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab .dm{font-size:10.5px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note{padding:12px 16px;font-size:12px;color:var(--muted)}
+.subh{padding:12px 16px 4px;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+.main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px}
+.explorer{padding:16px 16px 12px;display:flex;flex-direction:column;min-width:0}
+.ex-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.seg{display:inline-flex;background:var(--chip);border-radius:8px;padding:2px;flex:none}
+.seg button{border:0;background:transparent;padding:4px 10px;border-radius:6px;font-size:12px;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--panel);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.crumbs{display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px;font-size:12px;color:var(--muted);gap:10px}
+.crumbs nav{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-width:0}
+.crumbs a{color:var(--muted);cursor:pointer;text-decoration:none;white-space:nowrap}
+.crumbs a:hover{color:var(--text)}
+.crumbs a.cur{color:var(--text);font-weight:550;cursor:default}
+.crumbs .sep{color:var(--faint)}
+#map{position:relative;height:clamp(420px,64vh,700px);border-radius:8px;overflow:hidden;user-select:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:11.5px;color:var(--muted)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:0}
+.tile{position:absolute;border:1px solid;border-radius:5px;overflow:hidden;cursor:pointer;transition:filter .12s, opacity .15s, outline-color .12s, width .4s, height .4s, left .4s, top .4s;outline:2px solid transparent;outline-offset:-1px}
+.tile:hover{filter:brightness(.97)}
+@media (prefers-color-scheme: dark){.tile:hover{filter:brightness(1.12)}}
+.tile .nm{position:absolute;left:7px;top:5px;right:7px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.tile .hd{position:absolute;left:7px;right:7px;top:4px;display:flex;justify-content:space-between;gap:6px;font-size:11px;pointer-events:none}
+.tile .hd b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .hd span{opacity:.75;white-space:nowrap}
+.tile .sz{position:absolute;left:7px;bottom:5px;font-weight:650;pointer-events:none;white-space:nowrap}
+.tile.flat{cursor:default}
+.k-media{background:var(--media-bg);border-color:var(--media-bd);color:var(--media-tx)}
+.k-other{background:var(--other-bg);border-color:var(--other-bd);color:var(--other-tx)}
+.k-code{background:var(--code-bg);border-color:var(--code-bd);color:var(--code-tx)}
+.k-sdk{background:var(--sdk-bg);border-color:var(--sdk-bd);color:var(--sdk-tx)}
+.k-ai{background:var(--ai-bg);border-color:var(--ai-bd);color:var(--ai-tx)}
+.k-cache{background:var(--cache-bg);border-color:var(--cache-bd);color:var(--cache-tx)}
+.tile.cand{border-color:var(--candBd);background-image:repeating-linear-gradient(135deg,var(--hatch) 0 1px,transparent 1px 7px)}
+.tile.cand.review{border-color:var(--candBdR);background-image:repeating-linear-gradient(135deg,var(--hatchR) 0 1px,transparent 1px 7px)}
+.tile.cand.sel{border-width:1.5px}
+.tile.cand.inh,.v-cleanup .tile.cand.inh{background-image:none!important;border-color:transparent;background-color:transparent!important}
+.tile.hl{outline-color:var(--text);z-index:3}
+.v-cleanup .tile:not(.cand){background:var(--other-bg);border-color:var(--line);color:var(--faint)}
+.v-cleanup .tile.cand{color:var(--green);background-color:var(--greenBg)}
+.v-cleanup .tile.cand.review{color:var(--amber);background-color:var(--amberBg)}
+.v-cleanup .tile.cand:not(.sel){opacity:.55}
+.v-cleanup .tile.cand.sel{background-image:repeating-linear-gradient(135deg,var(--hatch) 0 2px,transparent 2px 6px)}
+.v-cleanup .tile.cand.review.sel{background-image:repeating-linear-gradient(135deg,var(--hatchR) 0 2px,transparent 2px 6px)}
+
+.recs{display:flex;flex-direction:column;height:calc(clamp(420px,64vh,700px) + 120px);min-height:0}
+.recs .rh{padding:16px 16px 10px;border-bottom:1px solid var(--line2)}
+.list{overflow:auto;flex:1;min-height:0;padding:4px 0}
+.grp{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 6px}
+.grp .tot{font-size:11.5px;color:var(--muted)}
+.rec{border-bottom:1px solid var(--line2)}
+.rec:last-child{border-bottom:0}
+.row{display:grid;grid-template-columns:20px minmax(0,1fr) auto 18px;gap:10px;align-items:center;padding:10px 16px;cursor:pointer}
+.row:hover{background:var(--chip)}
+.row .t{font-weight:550;font-size:12.5px}
+.row .p{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.row .s{font-size:12px;font-weight:600;white-space:nowrap}
+.chev{border:0;background:none;color:var(--faint);cursor:pointer;padding:0;width:18px;height:18px;display:grid;place-items:center;border-radius:4px;transition:transform .15s}
+.rec.open .chev{transform:rotate(90deg)}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:0;border:1.5px solid var(--faint);border-radius:4px;display:grid;place-items:center;cursor:pointer;background:var(--panel)}
+input[type=checkbox]:checked,input[type=checkbox]:indeterminate{background:var(--text);border-color:var(--text)}
+input[type=checkbox]:checked::after{content:"";width:8px;height:4px;border:2px solid var(--panel);border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg)}
+input[type=checkbox]:indeterminate::after{content:"";width:8px;height:2px;background:var(--panel);border-radius:1px}
+.det{display:none;padding:0 16px 12px 46px;font-size:12px}
+.rec.open .det{display:block}
+.det .note2{color:var(--muted);margin-bottom:8px}
+.it{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;align-items:center;padding:4px 0}
+.it .l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .ip{font-size:10.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it .is{font-size:11.5px;color:var(--muted)}
+.cmd{margin-top:8px;background:var(--chip);border-radius:6px;padding:7px 9px;font-size:11px;white-space:pre-wrap;word-break:break-all;color:var(--muted)}
+.foot{border-top:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.foot .selinfo{font-size:12px;color:var(--muted)}
+.foot .selinfo b{color:var(--text)}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel);padding:6px 11px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:550;white-space:nowrap}
+.btn:hover{background:var(--chip)}
+.btn.sm{padding:3px 9px;font-size:11.5px;border-radius:6px}
+.btn.dark{background:var(--btn);color:var(--btnText);border-color:var(--btn)}
+.btn.dark:hover{opacity:.88}
+.btn.armed{background:var(--red);border-color:var(--red);color:#fff}
+.btn.busy{opacity:.55;pointer-events:none}
+.btn:disabled{opacity:.4;cursor:default}
+
+#tip{position:fixed;pointer-events:none;z-index:50;background:var(--text);color:var(--bg);padding:7px 10px;border-radius:7px;font-size:11.5px;max-width:340px;opacity:0;transition:opacity .08s}
+#tip .tp{opacity:.7;word-break:break-all}
+#tip .tr{margin-top:3px}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:10px 14px;border-radius:9px;font-size:12.5px;opacity:0;transition:all .2s;z-index:60;max-width:calc(100% - 32px)}
+#toast.on{opacity:1;transform:translateX(-50%)}
+#toast code{opacity:.8}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:70;padding:16px}
+.modal.on{display:flex}
+.modal .card{width:min(820px,100%);max-height:86vh;display:flex;flex-direction:column}
+.modal .mh{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.modal pre{margin:0;padding:14px 16px;overflow:auto;font-size:11.5px;line-height:1.55;flex:1}
+.modal .mf{padding:12px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.modal .mf .sub{margin:0}
+.orow{padding:9px 16px}
+.orow .top{display:flex;justify-content:space-between;gap:12px;font-size:12.5px}
+.orow .top b{font-weight:550}
+.orow .pp{font-size:11px;color:var(--muted);margin-top:1px}
+.orow .bar{height:4px;border-radius:2px;background:var(--line2);margin-top:6px;overflow:hidden}
+.orow .bar i{display:block;height:100%;background:var(--muted);border-radius:2px}
+.orow.rest .bar i{background:var(--amber)}
+#onote p{margin:0 0 6px;font-size:12px;color:var(--muted)}
+#onote p:last-child{margin:0}
+#onote code{font-size:11px;background:var(--chip);padding:1px 5px;border-radius:4px;color:var(--text)}
+.empty{padding:60px 20px;text-align:center;color:var(--muted)}
+.unread{display:none;margin:-4px 0 14px;padding:12px 16px;font-size:12px}
+.unread.on{display:block}
+.unread ul{margin:6px 0 0;padding-left:18px;max-height:140px;overflow:auto;color:var(--muted)}
+.ro .act{display:none}
+.stats8{grid-template-columns:repeat(4,1fr)}
+:root{--c1:#2f6fc4;--c2:#c27412}
+@media (prefers-color-scheme: dark){:root{--c1:#5b95e6;--c2:#c47e22}}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;margin:0 0 16px;padding:3px;background:var(--chip);border-radius:10px;scrollbar-width:none;position:sticky;top:8px;z-index:20;box-shadow:0 0 0 6px var(--bg)}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs a{flex:none;text-decoration:none;color:var(--muted);font-size:12.5px;font-weight:550;padding:6px 9px;border-radius:8px;white-space:nowrap;display:flex;align-items:center;gap:5px}
+nav.tabs a:hover{color:var(--text)}
+nav.tabs a.on{background:var(--panel);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+nav.tabs a svg{width:14px;height:14px;opacity:.75;flex:none}
+nav.tabs a.on svg{opacity:1;color:#7c70f0}
+nav.tabs .nsep{flex:none;width:1px;margin:7px 4px;background:var(--line)}
+.card{border-radius:14px;transition:border-color .15s}
+.ph{padding:15px 18px 11px}
+.card h3{letter-spacing:-.005em}
+.btn{transition:background .12s,transform .08s}
+.btn:active{transform:scale(.97)}
+.hc{border-radius:12px;transition:transform .15s,border-color .15s}
+.hc:hover{transform:translateY(-1px);border-color:var(--faint)}
+.badge{font-size:10px;font-weight:650;border-radius:999px;padding:0 6px;line-height:16px;display:none}
+.badge.on{display:inline-block}
+.badge.warn{background:var(--amberBg);color:var(--amber)}
+.badge.bad{background:var(--redBg);color:var(--red)}
+.badge.ok{background:var(--greenBg);color:var(--green)}
+.view{display:none}
+.view.on{display:block}
+.health{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:14px}
+.hc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;text-decoration:none;color:inherit;display:block}
+.hc:hover{background:var(--chip)}
+.hc .l{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.hc .n{font-size:15px;font-weight:650;margin-top:3px}
+.hc .d{font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ptools input{font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--text);width:260px;max-width:100%}
+table.t tr.click{cursor:pointer}
+table.t tr.click:hover td{background:var(--chip)}
+table.t td.wrap{white-space:normal;word-break:break-all;font-size:11px;color:var(--muted)}
+table.t th.sortable{cursor:pointer;user-select:none}
+table.t th.sortable.on{color:var(--text)}
+.hhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.chart{padding:14px 16px 10px}
+.chart .ct{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.chart .ct h3{font-size:12.5px}
+.chart .ct .now{font-size:12px;color:var(--muted)}
+.chart .ct .now b{color:var(--text);font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.chart svg{display:block;width:100%;height:150px;margin-top:8px;overflow:visible}
+.chart .grid line{stroke:var(--line2);stroke-width:1}
+.chart .ax text{fill:var(--faint);font-size:10px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.chart .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .ar{opacity:.1}
+.chart .xh{stroke:var(--faint);stroke-width:1;stroke-dasharray:3 3}
+.chart .lg{display:flex;gap:12px;font-size:11px;color:var(--muted);margin-top:4px}
+.chart .lg i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:2px}
+.chart .empty2{height:150px;display:grid;place-items:center;color:var(--faint);font-size:12px}
+.sec-row{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line2);align-items:start}
+.sec-row:last-child{border-bottom:0}
+.sec-row .ic2{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;color:#fff;margin-top:1px}
+.ic2.ok{background:var(--green)} .ic2.warn{background:var(--amber)} .ic2.bad{background:var(--red)} .ic2.info{background:var(--blue)} .ic2.unknown{background:var(--faint)}
+.sec-row .t{font-weight:600;font-size:12.5px}
+.sec-row .s{font-size:12px;color:var(--muted);margin-top:2px}
+.sec-row .st{font-size:12px;font-weight:550;text-align:right}
+.score{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--line2)}
+.score .ring{width:54px;height:54px}
+.score b{font-size:22px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+pre.out{margin:0;padding:12px 16px;font-size:11px;line-height:1.5;max-height:260px;overflow:auto;background:var(--chip);border-top:1px solid var(--line2);white-space:pre-wrap;word-break:break-all}
+.taskgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;padding:12px 16px}
+.taskgrid .tk{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.taskgrid .tk b{font-size:12.5px;font-weight:600}
+.taskgrid .tk code{font-size:10.5px;color:var(--muted);word-break:break-all}
+.form{padding:6px 16px 14px}
+.frow{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:12.5px}
+.frow:last-child{border-bottom:0}
+.frow .fs{font-size:11.5px;color:var(--muted);margin-top:2px}
+.frow input[type=number]{width:80px;font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--text);text-align:right}
+.tab.dupr{grid-template-columns:20px minmax(0,1fr) auto}
+input[type=checkbox].tgl{appearance:none;-webkit-appearance:none;width:34px;height:20px;border:0;border-radius:999px;background:var(--line);position:relative;cursor:pointer;transition:background .15s;flex:none;display:inline-block}
+input[type=checkbox].tgl::after,input[type=checkbox].tgl:checked::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border:0;border-radius:50%;background:#fff;transform:none;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+input[type=checkbox].tgl:checked{background:var(--green)}
+input[type=checkbox].tgl:checked::after{left:16px}
+.tree{padding:4px 16px 14px;font-size:12px}
+.tree details{border-bottom:1px solid var(--line2);padding:6px 0}
+.tree details:last-child{border-bottom:0}
+.tree summary{cursor:pointer;font-weight:600;font-size:12.5px;list-style:none;display:flex;justify-content:space-between}
+.tree summary::after{content:"›";color:var(--faint);transition:transform .15s}
+.tree details[open] > summary::after{transform:rotate(90deg)}
+.tree .kv{padding:3px 0}
+.tree .nest{padding-left:12px;border-left:2px solid var(--line2);margin:4px 0 4px 2px}
+.tree .nest > b{display:block;font-size:11.5px;margin:6px 0 2px}
+.loading{padding:22px 16px;color:var(--muted);font-size:12px;display:flex;align-items:center;gap:8px}
+@media (max-width: 860px){ .charts{grid-template-columns:1fr} }
+.cmdk{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-start;justify-content:center;z-index:80;padding:12vh 16px 16px}
+.cmdk.on{display:flex}
+.cmdk .box{width:min(640px,100%);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.cmdk input{width:100%;border:0;border-bottom:1px solid var(--line);padding:16px 18px;font:inherit;font-size:15px;background:transparent;color:var(--text);outline:none}
+.cmdk .res{max-height:52vh;overflow:auto;padding:6px}
+.cmdk .it2{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px}
+.cmdk .it2 .g{font-size:11px;color:var(--faint)}
+.cmdk .it2.on{background:var(--chip)}
+.cmdk .it2 .dz{color:var(--red)}
+.cmdk .hint{padding:8px 14px;border-top:1px solid var(--line2);font-size:11px;color:var(--faint);display:flex;gap:14px}
+.kbd{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;border:1px solid var(--line);border-radius:4px;padding:0 4px;color:var(--muted)}
+.cmdbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:4px 10px;font-size:12px;color:var(--muted);cursor:pointer}
+.cmdbtn:hover{color:var(--text)}
+.seg.theme button{padding:3px 8px;font-size:12px;line-height:1.2}
+h1 .logo{width:18px;height:18px;border-radius:5px;display:inline-block;background:linear-gradient(135deg,#7c70f0 0 50%,#f0a060 50% 75%,#4cc285 75%);margin-right:2px}
+.appmodal .card{width:min(980px,100%);max-height:90vh;overflow:auto}
+.appmodal .head{display:flex;align-items:center;gap:14px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.appmodal .head img,.appmodal .head .ic{width:40px;height:40px;border-radius:9px;font-size:18px}
+.appmodal .head h3{font-size:16px}
+.appmodal .charts{padding:14px 16px 16px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.appmodal .chart{border:1px solid var(--line);border-radius:10px;padding:12px}
+.appmodal .chart svg{height:120px}
+@media (max-width: 860px){ .appmodal .charts{grid-template-columns:1fr} }
+tr.drill{cursor:pointer}
+tr.drill:hover td{background:var(--chip)}
+.diag-sum{display:flex;gap:10px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line2);align-items:center}
+.diag-sum .pill{font-size:12px;padding:3px 10px}
+.pill.fail{background:var(--redBg);color:var(--red)}
+.pill.unknown,.pill.info{background:var(--chip);color:var(--muted)}
+.errlog{font-size:11px;padding:10px 16px;max-height:220px;overflow:auto;white-space:pre-wrap;word-break:break-all;color:var(--muted)}
+.stats8 .stat:nth-child(4n+1){border-left:0}
+.stats8 .stat:nth-child(n+5){border-top:1px solid var(--line)}
+.val .unit{font-size:13px;font-weight:550;margin-left:1px}
+.duo{display:flex;gap:14px;align-items:baseline}
+.duo span{font-size:11px;color:var(--muted);font-weight:450}
+.kvs{padding:6px 16px 12px}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line2);font-size:12px}
+.kv:last-child{border-bottom:0}
+.kv span{color:var(--muted);white-space:nowrap}
+.kv b{font-weight:550;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pbody.hwb{max-height:580px}
+.hbar{display:grid;grid-template-columns:minmax(90px,1.1fr) 2fr minmax(64px,auto);gap:10px;align-items:center;padding:5px 16px;font-size:12px}
+.hbar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .tr{height:6px;border-radius:3px;background:var(--line2);overflow:hidden}
+.hbar .tr i{display:block;height:100%;border-radius:3px}
+.hbar .v{text-align:right;white-space:nowrap;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px}
+.cores{display:grid;grid-template-columns:repeat(auto-fill,minmax(22px,1fr));gap:5px;padding:8px 16px 4px}
+.core{display:flex;flex-direction:column;align-items:center;gap:4px}
+.core .col{width:100%;height:64px;border-radius:4px;background:var(--line2);position:relative;overflow:hidden}
+.core .col i{position:absolute;left:0;right:0;bottom:0;display:block}
+.core small{font-size:9.5px;color:var(--faint);font-family:ui-monospace,Menlo,monospace}
+.core.p small{color:var(--muted)}
+.minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;padding:8px 16px 12px}
+.mini{background:var(--chip);border-radius:8px;padding:8px 10px}
+.mini .l{font-size:11px;color:var(--muted)}
+.mini .n{font-size:15px;font-weight:650;font-family:ui-monospace,"SF Mono",Menlo,monospace;margin-top:2px}
+.mini .n small{font-size:10.5px;color:var(--muted);font-weight:450;margin-left:3px}
+.chipline{display:flex;flex-wrap:wrap;gap:6px;padding:4px 16px 12px}
+.chipline span{font-size:11.5px;background:var(--chip);border-radius:6px;padding:3px 8px}
+.bigpct{font-size:26px;font-weight:650;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.batt{display:flex;align-items:center;gap:14px;padding:12px 16px 4px}
+.batt .shell{flex:1;height:14px;border-radius:4px;border:1.5px solid var(--faint);padding:2px;position:relative}
+.batt .shell i{display:block;height:100%;border-radius:2px}
+@media (max-width: 860px){ .stats8{grid-template-columns:repeat(2,1fr)} .stats8 .stat:nth-child(odd){border-left:0} .stats8 .stat:nth-child(n+3){border-top:1px solid var(--line)} .hide-n{display:none} }
+
+@media (max-width: 1080px){ .grid2{grid-template-columns:1fr} }
+@media (max-width: 980px){
+  .main{grid-template-columns:1fr}
+  .recs{height:auto;max-height:none}
+  .list{max-height:60vh}
+}
+@media (max-width: 640px){
+  .wrap{padding:16px}
+  .stats{grid-template-columns:1fr 1fr}
+  .stat:nth-child(odd){border-left:0}
+  .stat:nth-child(n+3){border-top:1px solid var(--line)}
+  #map{height:420px}
+  .stat{overflow:hidden;padding:12px 14px}
+  .stat .val{white-space:normal;font-size:18px}
+  .stat .val small,.duo span{display:block;margin:2px 0 0}
+  .duo{display:block}
+  .appn{max-width:150px}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div id="tip"></div>
+<div id="toast"></div>
+<div class="modal" id="modal">
+  <div class="card">
+    <div class="mh"><h3>Cleanup script</h3><button class="btn" data-act="close">Close</button></div>
+    <pre class="mono" id="script"></pre>
+    <div class="mf"><p class="sub">Nothing runs until you paste it into Terminal. It asks before deleting.</p>
+      <div class="btns"><button class="btn" data-act="download">Download .sh</button><button class="btn dark" data-act="copy">Copy script</button></div></div>
+  </div>
+</div>
+<div class="modal" id="omodal">
+  <div class="card" style="width:min(640px,100%)">
+    <div class="mh"><h3>Outside your home folder</h3><button class="btn" data-act="close">Close</button></div>
+    <div id="olist" style="overflow:auto;padding:6px 0"></div>
+    <div class="mf" id="onote" style="display:block"></div>
+  </div>
+</div>
+
+<script id="data" type="application/json">/*__DISKMAP_DATA__*/null</script>
+<script id="live" type="application/json">/*__DISKMAP_LIVE__*/null</script>
+<script>
+(function(){
+"use strict";
+const parse = id => { try { return JSON.parse(document.getElementById(id).textContent); } catch(e) { return null; } };
+let D = parse("data");
+const LIVE = parse("live");
+const RO = !!(LIVE && LIVE.readonly);
+const app = document.getElementById("app");
+if (!D && !LIVE){ app.innerHTML = '<div class="card empty">No scan data. Run <code class="mono">python3 server.py</code> for the live dashboard, or <code class="mono">python3 diskmap.py</code> for a one-off report.</div>'; return; }
+if (RO) document.body.classList.add("ro");
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function fmt(b){
+  if (b >= 1e12) return (b/1e12).toFixed(2)+" TB";
+  if (b >= 1e9) return (b/1e9).toFixed(1)+" GB";
+  if (b >= 1e7) return Math.round(b/1e6)+" MB";
+  if (b >= 1e6) return (b/1e6).toFixed(1)+" MB";
+  return Math.max(0, Math.round(b/1e3))+" KB";
+}
+function ago(t){
+  const s = Math.max(0, (Date.now()/1000) - t);
+  if (s < 90) return "just now";
+  if (s < 3600) return Math.round(s/60) + " min ago";
+  if (s < 86400) return Math.round(s/3600) + " h ago";
+  return Math.round(s/86400) + " d ago";
+}
+function dur(s){ if (!s) return ""; const d = Math.floor(s/86400), h = Math.floor(s%86400/3600); return d ? `${d}d ${h}h` : `${h}h ${Math.floor(s%3600/60)}m`; }
+let toastT;
+function toast(html, ms){
+  const t = $("toast"); t.innerHTML = html; t.classList.add("on");
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("on"), ms || 5200);
+}
+const api = (path) => path + (path.includes("?") ? "&" : "?") + "t=" + encodeURIComponent(LIVE ? LIVE.token : "");
+async function post(body){
+  const r = await fetch("/api/action", {method:"POST", headers:{"Content-Type":"application/json","X-Token":LIVE.token}, body:JSON.stringify(body)});
+  const j = await r.json().catch(() => ({ok:false, error:"Bad response"}));
+  if (!j.ok) throw new Error(j.error || "Failed");
+  return j.msg;
+}
+function spark(vals, max, color){
+  const n = vals.length; if (n < 2) return `<svg class="spark"></svg>`;
+  const N = 150, w = 300, h = 34, dx = w / (N - 1), off = (N - n) * dx;
+  const pts = vals.map((v, i) => [off + i*dx, h - 2 - Math.min(1, Math.max(0, v / max)) * (h - 4)]);
+  const line = "M" + pts.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L");
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="color:${color}"><path class="a" d="${line} L${w} ${h} L${off} ${h} Z"/><path class="l" d="${line}"/></svg>`;
+}
+
+const VIEWS = [["city","City"],["home","Today"],["overview","Live"],["processes","Processes"],["hardware","Hardware"],["network","Network"],["storage","Storage"],
+  ["software","Software"],["security","Security"],["developer","Developer"],["history","History"],["logs","Logs"],["diagnostics","Diagnostics"],["settings","Settings"]];
+const NAVI = {
+  city: '<path d="M3 21h18M5 21V10l4-2v13M9 21V4h6v17M15 21v-9h4v9"/>',
+  home: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  overview: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+  processes: '<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+  hardware: '<rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/>',
+  network: '<path d="M2.5 9a14 14 0 0 1 19 0M5.8 12.4a9.5 9.5 0 0 1 12.4 0M9.2 15.8a5 5 0 0 1 5.6 0"/><circle cx="12" cy="19.2" r=".8"/>',
+  storage: '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  software: '<path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/>',
+  security: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  developer: '<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 4l-4 16"/>',
+  history: '<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+  logs: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h6"/>',
+  diagnostics: '<path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 12 0V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 12 0v-4"/><circle cx="20" cy="10" r="2"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+};
+// ---------- page skeleton ----------
+app.innerHTML = `
+<header class="top">
+  <h1><span class="logo"></span>diskmap <span class="host" id="host"></span> ${LIVE ? '<span class="livepill" id="lp"><i></i>Live</span>' : '<span class="livepill off"><i></i>Snapshot</span>'}</h1>
+  <div class="meta"><span id="meta"></span>${LIVE ? '<button class="cmdbtn" id="cmdk-btn" title="Command bar">Search & actions <span class="kbd">⌘K</span></button>' : ""}
+    <div class="seg theme" id="theme" title="Appearance"><button data-t="light" title="Light">Light</button><button data-t="auto" title="Follow macOS">Auto</button><button data-t="dark" title="Dark">Dark</button></div></div>
+</header>
+${LIVE ? `
+<nav class="tabs" id="nav">
+  ${VIEWS.map(([k, l]) => `${["processes", "software", "history"].includes(k) ? '<i class="nsep"></i>' : ""}<a href="#/${k}" data-v="${k}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${NAVI[k] || ""}</svg>${l}<span class="badge" id="b-${k}"></span></a>`).join("")}
+</nav>
+<div class="view" data-view="city"><div id="city-root"></div></div>
+<div class="view" data-view="home"><div id="home-root"></div></div>
+<div class="view" data-view="overview">
+  <section class="card stats stats8" id="sys">
+    <div class="stat" id="c-cpu"><div class="lbl">CPU</div><div class="val mono">–</div></div>
+    <div class="stat" id="c-gpu"><div class="lbl">GPU</div><div class="val mono">–</div></div>
+    <div class="stat" id="c-mem"><div class="lbl">Memory</div><div class="val mono">–</div></div>
+    <div class="stat" id="c-disk"><div class="lbl">Disk</div><div class="val mono">–</div></div>
+    <div class="stat" id="c-temp"><div class="lbl">Temperature</div><div class="val mono">–</div></div>
+    <div class="stat" id="c-pow"><div class="lbl">Power</div><div class="val mono">–</div></div>
+    <div class="stat" id="c-net"><div class="lbl">Network</div><div class="val mono">–</div></div>
+    <div class="stat" id="c-io"><div class="lbl">Disk activity</div><div class="val mono">–</div></div>
+  </section>
+  <div class="health" id="health"></div>
+  <div class="grid2">
+    <section class="card panel"><div class="ph"><div><h3>Suggested actions<span class="count" id="sgc">0</span></h3><div class="sub">Live, plus findings from every other tab. Nothing happens until you click.</div></div></div>
+      <div class="pbody" id="sg" style="max-height:600px"></div></section>
+    <section class="card panel"><div class="ph"><div><h3>Apps</h3><div class="sub" id="apps-sub">What's using CPU and memory</div></div>
+      <div class="seg" id="appsort"><button data-v="mem" class="on">Memory</button><button data-v="cpu">CPU</button><button data-v="power">Energy</button></div></div>
+      <div class="pbody" id="apps" style="max-height:600px"></div></section>
+  </div>
+</div>
+<div class="view" data-view="processes">
+  <section class="card panel"><div class="ph"><div><h3>All processes</h3><div class="sub" id="procs-sub">Everything running, refreshed every 3 seconds</div></div>
+    <div class="ptools"><input id="psearch" type="search" placeholder="Filter by name, PID, user or command" autocomplete="off">
+    <div class="seg" id="pscope"><button data-v="all" class="on">All</button><button data-v="mine">Mine</button><button data-v="system">System</button></div></div></div>
+    <div class="pbody" id="procs" style="max-height:640px"></div></section>
+  <div class="grid2">
+    <section class="card panel" id="tabs-card"><div class="ph"><div><h3>Browser tabs</h3><div class="sub">Duplicates and heavy pages first</div></div>
+      <div class="seg" id="tabfilter"><button data-v="flag" class="on">Flagged</button><button data-v="all">All</button></div></div>
+      <div class="pbody" id="tabs"></div></section>
+    <section class="card panel" id="p0"><div class="ph"><div><h3>Keeping the Mac awake</h3><div class="sub" id="sleepb-sub">Power assertions right now</div></div></div><div class="pbody hwb" id="sleepb"></div></section>
+  </div>
+</div>
+<div class="view" data-view="hardware">
+  <div class="grid2" style="margin-top:0">
+    <section class="card panel" id="p1"><div class="ph"><div><h3>CPU, power &amp; fans</h3><div class="sub" id="hw-cpu-sub">Per-core load and where the watts go</div></div></div><div class="pbody hwb" id="hw-cpu"></div></section>
+    <section class="card panel" id="p2"><div class="ph"><div><h3>Temperatures</h3><div class="sub" id="hw-temp-sub">Every sensor macOS exposes</div></div></div><div class="pbody hwb" id="hw-temp"></div></section>
+  </div>
+  <div class="grid2">
+    <section class="card panel" id="p3"><div class="ph"><div><h3>Battery &amp; devices</h3><div class="sub" id="hw-bat-sub">Charge, health, adapter, Bluetooth, USB</div></div></div><div class="pbody hwb" id="hw-bat"></div></section>
+    <section class="card panel" id="p4"><div class="ph"><div><h3>System</h3><div class="sub" id="hw-sys-sub">This Mac, processes, memory paging, displays</div></div></div><div class="pbody hwb" id="hw-sys"></div></section>
+  </div>
+  <div style="margin-top:14px"><section class="card panel" id="p5"><div class="ph"><div><h3>Full hardware inventory</h3><div class="sub" id="inv-hw-sub">Everything System Information knows (serials masked)</div></div><button class="btn sm act" data-a="{&quot;kind&quot;: &quot;refresh&quot;, &quot;sections&quot;: [&quot;hardware&quot;], &quot;label&quot;: &quot;Refresh&quot;}">Refresh</button></div><div class="pbody" id="inv-hw"></div></section></div>
+</div>
+<div class="view" data-view="network">
+  <div class="grid2" style="margin-top:0">
+    <section class="card panel" id="p6"><div class="ph"><div><h3>Network</h3><div class="sub" id="hw-net-sub">Wi-Fi, interfaces, latency and who's using it</div></div></div><div class="pbody hwb" id="hw-net"></div></section>
+    <section class="card panel" id="p7"><div class="ph"><div><h3>Connections &amp; DNS</h3><div class="sub" id="inv-net-sub">Open connections per app, DNS, VPN</div></div></div><div class="pbody hwb" id="inv-net"></div></section>
+  </div>
+  <div class="grid2">
+    <section class="card panel" id="dev-card"><div class="ph"><div><h3>Listening ports</h3><div class="sub" id="dev-sub">Servers you're running on this Mac</div></div></div><div class="pbody hwb" id="dev"></div></section>
+    <section class="card panel" id="p8"><div class="ph"><div><h3>Sharing services</h3><div class="sub" id="inv-share-sub">What other devices can connect to</div></div></div><div class="pbody hwb" id="inv-share"></div></section>
+  </div>
+</div>
+<div class="view" data-view="storage">
+  <div class="grid2" style="margin-top:0">
+    <section class="card panel" id="p9"><div class="ph"><div><h3>Storage</h3><div class="sub" id="hw-sto-sub">Read / write activity, volumes, backups</div></div></div><div class="pbody hwb" id="hw-sto"></div></section>
+    <section class="card panel" id="p10"><div class="ph"><div><h3>Biggest files</h3><div class="sub" id="bigf-sub">Files over 50 MB in your home folder</div></div></div><div class="pbody hwb" id="bigf"></div></section>
+  </div>
+  <div style="margin-top:14px"><section class="card panel" id="p11"><div class="ph"><div><h3>Likely duplicates</h3><div class="sub" id="dups-sub">Same size and same sampled content. Keep one copy.</div></div></div><div class="pbody" id="dups"></div></section></div>
+  <h2 class="sec" id="disk-sec">Disk map</h2>
+  <div id="disk"></div>
+</div>
+<div class="view" data-view="software">
+  <section class="card panel" id="p12"><div class="ph"><div><h3>Installed apps</h3><div class="sub" id="inv-apps-sub">Size, version, last opened, Apple silicon support</div></div><div class="seg" id="appfilter"><button data-v="all" class="on">All</button><button data-v="unused">Unused</button><button data-v="intel">Intel-only</button><button data-v="store">App Store</button></div></div><div class="pbody" id="inv-apps"></div></section>
+  <div class="grid2">
+    <section class="card panel" id="p13"><div class="ph"><div><h3>Updates</h3><div class="sub" id="inv-upd-sub">macOS and Homebrew</div></div></div><div class="pbody hwb" id="inv-upd"></div></section>
+    <section class="card panel" id="p14"><div class="ph"><div><h3>Login &amp; background items</h3><div class="sub" id="inv-bg-sub">What starts on its own</div></div></div><div class="pbody hwb" id="inv-bg"></div></section>
+  </div>
+</div>
+<div class="view" data-view="security">
+  <div class="grid2" style="margin-top:0">
+    <section class="card panel" id="p15"><div class="ph"><div><h3>Security checklist</h3><div class="sub" id="inv-sec-sub">macOS protections on this Mac</div></div><button class="btn sm act" data-a="{&quot;kind&quot;: &quot;refresh&quot;, &quot;sections&quot;: [&quot;security&quot;], &quot;label&quot;: &quot;Recheck&quot;}">Recheck</button></div><div class="pbody hwb" id="inv-sec"></div></section>
+    <section class="card panel" id="p16"><div class="ph"><div><h3>Open ports</h3><div class="sub" id="inv-ports-sub">Everything listening, from every user</div></div></div><div class="pbody hwb" id="inv-ports"></div></section>
+  </div>
+</div>
+<div class="view" data-view="developer">
+  <div class="grid2" style="margin-top:0">
+    <section class="card panel" id="p17"><div class="ph"><div><h3>Git repos</h3><div class="sub" id="inv-repos-sub">Uncommitted and unpushed work across your projects</div></div><button class="btn sm act" data-a="{&quot;kind&quot;: &quot;task&quot;, &quot;task&quot;: &quot;repos_fetch&quot;, &quot;label&quot;: &quot;Fetch all&quot;}">Fetch all</button></div><div class="pbody hwb" id="inv-repos"></div></section>
+    <section class="card panel" id="p18"><div class="ph"><div><h3>Toolchain</h3><div class="sub" id="inv-tools-sub">Versions of everything on your PATH</div></div></div><div class="pbody hwb" id="inv-tools"></div></section>
+  </div>
+  <div class="grid2">
+    <section class="card panel" id="p19"><div class="ph"><div><h3>Docker</h3><div class="sub" id="inv-docker-sub">Disk use and containers</div></div></div><div class="pbody hwb" id="inv-docker"></div></section>
+    <section class="card panel" id="p20"><div class="ph"><div><h3>Local AI models</h3><div class="sub" id="inv-ai-sub">Ollama models on disk and in memory</div></div></div><div class="pbody hwb" id="inv-ai"></div></section>
+  </div>
+  <div style="margin-top:14px"><section class="card panel" id="p21"><div class="ph"><div><h3>Maintenance tasks</h3><div class="sub" id="tasks-sub">One-click jobs; output streams here</div></div></div><div class="pbody" id="tasks"></div></section></div>
+</div>
+<div class="view" data-view="history">
+  <div class="hhead"><div class="seg" id="hrange"><button data-v="1h" class="on">1 hour</button><button data-v="6h">6 hours</button><button data-v="24h">24 hours</button><button data-v="7d">7 days</button><button data-v="30d">30 days</button></div><span class="sub" id="hist-sub"></span></div>
+  <div class="charts" id="charts"></div>
+  <div class="grid2">
+    <section class="card panel" id="p22"><div class="ph"><div><h3>Busiest apps in this period</h3><div class="sub" id="hist-apps-sub">Average and peak CPU, memory</div></div></div><div class="pbody hwb" id="hist-apps"></div></section>
+    <section class="card panel" id="p23"><div class="ph"><div><h3>Events</h3><div class="sub" id="hist-ev-sub">Alerts and cleanups</div></div></div><div class="pbody hwb" id="hist-ev"></div></section>
+  </div>
+</div>
+<div class="view" data-view="logs">
+  <div class="grid2" style="margin-top:0">
+    <section class="card panel" id="p24"><div class="ph"><div><h3>Crashes &amp; hangs</h3><div class="sub" id="inv-crash-sub">Diagnostic reports</div></div><button class="btn sm act" data-a="{&quot;kind&quot;: &quot;open_app&quot;, &quot;app&quot;: &quot;Console&quot;, &quot;label&quot;: &quot;Open Console&quot;}">Open Console</button></div><div class="pbody hwb" id="inv-crash"></div></section>
+    <section class="card panel" id="p25"><div class="ph"><div><h3>Sleep, wake &amp; restarts</h3><div class="sub" id="inv-sleep-sub">Recent power events</div></div></div><div class="pbody hwb" id="inv-sleep"></div></section>
+  </div>
+</div>
+<div class="view" data-view="diagnostics">
+  <section class="card panel"><div class="ph"><div><h3>Diagnostics</h3><div class="sub">Everything diskmap needs, checked on this Mac. Fix buttons open the right setting.</div></div>
+    <div class="btns"><button class="btn sm" id="diag-copy">Copy report</button><button class="btn sm" id="diag-run">Run again</button></div></div>
+    <div id="diag"></div></section>
+</div>
+<div class="view" data-view="settings">
+  <section class="card panel" id="p26"><div class="ph"><div><h3>Settings</h3><div class="sub" id="settings-sub">Stored in the data folder next to the app</div></div></div><div class="pbody" id="settings" style="max-height:none"></div></section>
+</div>` : `<div id="disk"></div>`}`;
+
+// ---------- action buttons (shared) ----------
+function actBtn(a, cls){
+  if (RO || !LIVE) return "";
+  return `<button class="btn sm act ${cls || ""}" data-a="${esc(JSON.stringify(a))}">${esc(a.label)}</button>`;
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest(".act"); if (!b) return;
+  const a = JSON.parse(b.dataset.a);
+  if (a.kind === "scroll"){ location.hash = "#/" + ({disk:"storage", tabs:"processes", dev:"network"}[a.target] || a.target); return; }
+  if (a.confirm && !b.classList.contains("armed")){
+    b.classList.add("armed"); b.dataset.orig = b.textContent; b.textContent = "Confirm";
+    setTimeout(() => { if (b.isConnected && b.classList.contains("armed")){ b.classList.remove("armed"); b.textContent = b.dataset.orig; } }, 3500);
+    return;
+  }
+  b.classList.remove("armed"); b.classList.add("busy");
+  try { toast(esc(await post(a))); }
+  catch(err){ toast("⚠︎ " + esc(err.message), 7000); }
+  finally { b.classList.remove("busy"); if (b.dataset.orig) b.textContent = b.dataset.orig; }
+});
+
+// ---------- live rendering ----------
+let S = null, appSort = "mem", appAll = false, tabMode = "flag";
+const dismissed = {};
+try { Object.assign(dismissed, JSON.parse(localStorage.getItem("dm-dismissed") || "{}")); } catch(e){}
+function dismiss(id){ dismissed[id] = Date.now() + 30*60*1000; try { localStorage.setItem("dm-dismissed", JSON.stringify(dismissed)); } catch(e){} renderSuggestions(); }
+
+function renderLive(s){
+  S = s;
+  const c = s.cpu, m = s.mem, d = s.disk;
+  $("c-cpu").innerHTML = `<div class="lbl">CPU<span class="more">${c.cores} cores</span></div>
+    <div class="val mono">${Math.round(c.total)}%<small>load ${c.load[0].toFixed(1)}</small></div>
+    ${spark(c.hist, 100, "var(--m-app)")}
+    <div class="foot2">${c.user != null ? `user ${Math.round(c.user)}% · system ${Math.round(c.sys)}% · ` : ""}${s.procs} processes</div>`;
+  if (s.gpu){
+    $("c-gpu").innerHTML = `<div class="lbl">GPU</div><div class="val mono">${s.gpu.util}%${s.gpu.mem ? `<small>${fmt(s.gpu.mem)} in use</small>` : ""}</div>
+      ${spark(s.gpu.hist, 100, "var(--m-comp)")}<div class="foot2">${s.uptime ? "Up " + dur(s.uptime) : ""}</div>`;
+  } else {
+    $("c-gpu").innerHTML = `<div class="lbl">Uptime</div><div class="val mono">${dur(s.uptime) || "–"}</div><div class="foot2">GPU stats need macOS</div>`;
+  }
+  const seg = (v, col, l) => v > 0 ? `<i style="width:${(v / m.total * 100).toFixed(2)}%;background:${col}" title="${l} ${fmt(v)}"></i>` : "";
+  $("c-mem").innerHTML = `<div class="lbl">Memory<span class="pill ${m.pressure}" style="margin-left:auto">${m.pressure === "normal" ? "No pressure" : m.pressure === "warning" ? "Pressure" : "Critical"}</span></div>
+    <div class="val mono">${fmt(m.used)}<small>of ${fmt(m.total)}</small></div>
+    <div class="membar">${seg(m.app, "var(--m-app)", "App")}${seg(m.wired, "var(--m-wired)", "Wired")}${seg(m.compressed, "var(--m-comp)", "Compressed")}${seg(m.cached, "var(--m-cache)", "Cached")}</div>
+    <div class="mleg"><span><i style="background:var(--m-app)"></i>App ${fmt(m.app)}</span><span><i style="background:var(--m-wired)"></i>Wired ${fmt(m.wired)}</span>${m.compressed ? `<span><i style="background:var(--m-comp)"></i>Compressed ${fmt(m.compressed)}</span>` : ""}<span>Swap ${fmt(m.swap)}</span></div>`;
+  const usedPct = d.used / d.total * 100;
+  const sel = D ? totalSel() : 0;
+  $("c-disk").innerHTML = `<div class="lbl">Disk<span class="more">${Math.round(usedPct)}% full</span></div>
+    <div class="val mono">${fmt(d.free)}<small>free of ${fmt(d.total)}</small></div>
+    <div class="membar"><i style="width:${usedPct.toFixed(1)}%;background:${usedPct > 92 ? "var(--red)" : usedPct > 85 ? "var(--amber)" : "var(--text)"};opacity:.75"></i></div>
+    <div class="foot2">${sel ? `<span style="color:var(--green)">+${fmt(sel)}</span> if you clean what's selected below` : "Select items below to free space"}</div>`;
+  renderSuggestions(); renderApps(); renderTabs(); renderDev();
+  if (window.DM_onLive) try { window.DM_onLive(s); } catch(err){ console.error(err); }
+  (window.DM_hooks || []).forEach(f => { try { f(s); } catch(err){ console.error(err); } });
+  try { renderHW(s); } catch(err){ console.error(err); }
+  if (D) syncFree();
+}
+
+function renderSuggestions(){
+  if (!S) return;
+  const now = Date.now();
+  const list = S.suggestions.concat(infoSuggestions()).filter(x => !(dismissed[x.id] > now));
+  list.sort((a, b) => ({high:0, med:1, low:2, info:3}[a.sev] - {high:0, med:1, low:2, info:3}[b.sev]));
+  $("sgc").textContent = list.length;
+  $("sg").innerHTML = list.length ? list.map(x => `
+    <div class="sg"><span class="dot sev-${x.sev}"></span>
+      <div style="min-width:0"><div class="t">${esc(x.title)}</div><div class="s">${esc(x.sub)}</div></div>
+      <div class="acts">${x.actions.map((a, i) => actBtn(a, i === 0 && x.sev !== "info" ? "dark" : "")).join("")}<button class="x" data-dismiss="${esc(x.id)}" title="Hide for 30 minutes">×</button></div>
+    </div>`).join("")
+    : `<div class="okstate"><b>All good</b>Nothing needs your attention right now.</div>`;
+}
+$("sg") && $("sg").addEventListener("click", e => { const b = e.target.closest("[data-dismiss]"); if (b) dismiss(b.dataset.dismiss); });
+
+const badIcon = new Set();
+window.__dmBadIcon = (img) => { badIcon.add(img.dataset.app); img.replaceWith(Object.assign(document.createElement("span"), {className:"ic", textContent:img.dataset.l})); };
+const icon = (a) => a.app && !badIcon.has(a.app) ? `<img class="ic" src="/api/icon?p=${encodeURIComponent(a.app)}" alt="" data-app="${esc(a.app)}" data-l="${esc((a.name[0] || "?").toUpperCase())}" onerror="__dmBadIcon(this)">`
+                         : `<span class="ic">${esc((a.name[0] || "?").toUpperCase())}</span>`;
+function renderApps(){
+  const apps = S.apps.slice().sort((a, b) => appSort === "cpu" ? b.cpu - a.cpu : appSort === "power" ? (b.power || 0) - (a.power || 0) : b.mem - a.mem);
+  const shown = appAll ? apps : apps.slice(0, 12);
+  const maxc = Math.max(100, ...apps.map(a => a.cpu));
+  $("apps").innerHTML = `<table class="t"><thead><tr><th>App</th><th class="num">CPU</th><th class="num">Memory</th><th class="num hide-n" title="Threads">Thr</th><th class="num hide-n" title="Energy impact">Energy</th><th></th></tr></thead><tbody>` +
+    shown.map(a => {
+      let action = "";
+      if (!a.protected && a.kind === "app") action = actBtn({label:"Quit", kind:"quit_app", app:a.app, confirm:`Quit ${a.name}?`});
+      else if (!a.protected && a.mine) action = actBtn({label:"Stop", kind:"stop_group", key:a.key, confirm:`Stop ${a.name}?`});
+      const sub = [a.n > 1 ? a.n + " processes" : "", a.front ? "in use" : "", a.explain || (a.system ? "macOS" : "")].filter(Boolean).join(" · ");
+      return `<tr class="drill" data-app="${esc(a.name)}" title="${esc(a.explain || a.app || a.name)}">
+        <td><div class="appn">${icon(a)}<div style="min-width:0"><div class="nm">${esc(a.name)}</div>${sub ? `<div class="sm">${esc(sub)}</div>` : ""}</div></div></td>
+        <td class="num">${a.cpu.toFixed(1)}%<span class="cpub"><i style="width:${Math.min(100, a.cpu / maxc * 100)}%"></i></span></td>
+        <td class="num">${fmt(a.mem)}</td><td class="num hide-n">${a.th || ""}</td><td class="num hide-n">${a.power ? a.power.toFixed(1) : ""}</td><td>${action}</td></tr>`;
+    }).join("") + `</tbody></table>` +
+    (apps.length > 12 ? `<div class="more-row"><button class="linkbtn" id="appall">${appAll ? "Show fewer" : "Show all " + apps.length}</button></div>` : "");
+  const t = S.apps.reduce((x, a) => x + a.mem, 0);
+  $("apps-sub").textContent = `${S.apps.length} apps & processes`;
+}
+$("apps") && $("apps").addEventListener("click", e => { if (e.target.id === "appall"){ appAll = !appAll; renderApps(); } });
+$("appsort") && ($("appsort").onclick = e => { const b = e.target.closest("button"); if (!b) return; appSort = b.dataset.v; $("appsort").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); renderApps(); });
+
+function renderTabs(){
+  const entries = Object.entries(S.tabs || {});
+  if (!entries.length){ $("tabs").innerHTML = `<div class="note">No supported browser is open (Chrome, Brave, Edge, Arc, Vivaldi, Safari).</div>`; return; }
+  $("tabs").innerHTML = entries.map(([b, info]) => {
+    const g = S.apps.find(a => a.name === b);
+    if (info.status === "denied") return `<div class="bhead"><b>${esc(b)}</b></div><div class="note">To list tabs, allow your terminal app to control ${esc(b)}: System Settings › Privacy &amp; Security › Automation.</div>`;
+    if (info.status !== "ok") return `<div class="bhead"><b>${esc(b)}</b></div><div class="note">Couldn't read tabs${info.error ? ": " + esc(info.error) : ""}.</div>`;
+    const tabs = info.tabs, dups = tabs.filter(t => t.dup), heavy = tabs.filter(t => t.heavy && !t.dup);
+    const list = tabMode === "all" ? tabs : tabs.filter(t => t.dup || t.heavy);
+    const pick = ts => ts.map(t => ({win:t.win, id:t.id, url:t.url}));
+    return `<div class="bhead"><span><b>${esc(b)}</b> · ${info.count || tabs.length} tabs${g ? " · " + fmt(g.mem) : ""}</span>
+      <span class="btns">${dups.length ? actBtn({label:`Close ${dups.length} duplicates`, kind:"close_tabs", browser:b, tabs:pick(dups)}) : ""}
+      ${heavy.length > 1 ? actBtn({label:`Close ${heavy.length} heavy`, kind:"close_tabs", browser:b, tabs:pick(heavy), confirm:`Close ${heavy.length} tabs?`}) : ""}</span></div>` +
+      (list.length ? list.slice(0, 150).map(t => `<div class="tab" title="${esc(t.url)}"><span class="fav">${esc((t.domain[0] || "·").toUpperCase())}</span>
+        <div style="min-width:0"><div class="tt">${esc(t.title)}</div><div class="dm">${esc(t.domain || t.url)}</div></div>
+        <span>${t.dup ? '<span class="tag dup">duplicate</span>' : ""}${t.heavy ? '<span class="tag heavy">heavy</span>' : ""}</span>
+        ${RO ? "<span></span>" : `<button class="x act" title="Close tab" data-a="${esc(JSON.stringify({label:"×", kind:"close_tabs", browser:b, tabs:pick([t])}))}">×</button>`}</div>`).join("")
+       : `<div class="note">No duplicate or heavy tabs.</div>`);
+  }).join("");
+}
+$("tabfilter") && ($("tabfilter").onclick = e => { const b = e.target.closest("button"); if (!b) return; tabMode = b.dataset.v; $("tabfilter").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); renderTabs(); });
+
+function renderDev(){
+  const L = S.listeners || [], M = S.models || [];
+  let h = `<div class="subh">Listening ports</div>`;
+  h += L.length ? `<table class="t"><tbody>` + L.map(l => `<tr>
+      <td class="mono">:${l.ports.join(", :")}${l.lan ? '<span class="tag lan" title="Reachable from your network">LAN</span>' : ""}</td>
+      <td><div class="appn"><div style="min-width:0"><div class="nm">${esc(l.app ? l.name : l.cmd)}</div><div class="sm mono">${esc(l.cwd || "")}</div></div></div></td>
+      <td class="num">${fmt(l.mem)}</td>
+      <td>${l.app ? "" : actBtn({label:"Stop", kind:"stop_pid", pid:l.pid, confirm:`Stop ${l.cmd} on :${l.ports[0]}?`})}</td></tr>`).join("") + `</tbody></table>`
+    : `<div class="note">Nothing is listening.</div>`;
+  h += `<div class="subh">Ollama</div>`;
+  h += M.length ? `<table class="t"><tbody>` + M.map(m => `<tr><td><div class="appn"><div class="nm">${esc(m.name)}</div></div></td>
+      <td class="num">${fmt(m.size)}</td><td>${actBtn({label:"Unload", kind:"unload_model", model:m.name})}</td></tr>`).join("") + `</tbody></table>`
+    : `<div class="note">No models loaded in memory.</div>`;
+  if (S.docker != null) h += `<div class="subh">Docker</div><div class="note">${S.docker} container${S.docker === 1 ? "" : "s"} running.</div>`;
+  $("dev").innerHTML = h;
+}
+
+// ---------- hardware ----------
+const rate = b => fmt(b || 0) + "/s";
+const heat = c => c == null ? "var(--faint)" : c < 60 ? "var(--green)" : c < 80 ? "var(--amber)" : "var(--red)";
+const kv = rows => `<div class="kvs">${rows.filter(r => r && r[1] != null && r[1] !== "").map(([l, v]) => `<div class="kv"><span>${esc(l)}</span><b>${v}</b></div>`).join("")}</div>`;
+const sub = t => `<div class="subh">${esc(t)}</div>`;
+const hbar = (name, v, max, label, color) => `<div class="hbar"><span class="nm" title="${esc(name)}">${esc(name)}</span><span class="tr"><i style="width:${Math.max(0, Math.min(100, v / (max || 1) * 100)).toFixed(1)}%;background:${color || "var(--text)"}"></i></span><span class="v">${label}</span></div>`;
+let tempAll = false;
+document.addEventListener("click", e => { if (e.target.dataset && e.target.dataset.tempall){ tempAll = true; S && renderHW(S); } });
+const na = (msg) => `<div class="note">${esc(msg)}</div>`;
+function renderHW(s){
+  const hw = s.hw || {}, hs = s.hw_slow || {}, sy = s.sys || {};
+  const T = hw.temps;
+  // stat cards
+  $("c-temp").innerHTML = T ? `<div class="lbl">Temperature<span class="more">${esc(hw.thermal || "")}${hw.thermal && hw.thermal !== "nominal" ? " ⚠︎" : ""}</span></div>
+      <div class="val mono" style="color:${heat(T.cpu_max)}">${T.cpu_max != null ? Math.round(T.cpu_max) : "–"}<span class="unit">°C</span><small>CPU hottest · avg ${T.cpu_avg != null ? Math.round(T.cpu_avg) + "°" : "–"}</small></div>
+      ${spark(T.hist || [], 110, heat(T.cpu_max))}
+      <div class="foot2">${[T.gpu != null ? "GPU " + Math.round(T.gpu) + "°" : "", T.ssd != null ? "SSD " + Math.round(T.ssd) + "°" : "", T.battery != null ? "Battery " + Math.round(T.battery) + "°" : "", (hw.fans || []).length ? (hw.fans || []).map(f => f.rpm + " rpm").join(" · ") : ""].filter(Boolean).join(" · ")}</div>`
+    : `<div class="lbl">Temperature</div><div class="val mono">–</div><div class="foot2">${s.hw ? "No temperature sensors found" : "Needs macOS"}</div>`;
+  const P = hw.power, B = hw.battery;
+  $("c-pow").innerHTML = `<div class="lbl">Power${B ? `<span class="more">${B.plugged ? (B.charging ? "charging" : "on power") : "on battery"}</span>` : ""}</div>
+      <div class="val mono">${hw.sys_power != null ? hw.sys_power.toFixed(1) : "–"}<span class="unit">W</span><small>${B && B.percent != null ? "battery " + B.percent + "%" : "system"}</small></div>
+      ${spark(hw.power_hist || [], Math.max(20, ...(hw.power_hist || [0])) * 1.1, "var(--amber)")}
+      <div class="foot2">${P ? `CPU ${P.cpu.toFixed(1)} W · GPU ${P.gpu.toFixed(1)} W${P.ane > 0.05 ? " · ANE " + P.ane.toFixed(1) + " W" : ""}${P.dram ? " · DRAM " + P.dram.toFixed(1) + " W" : ""}` : "Per-chip power needs macOS on Apple silicon"}</div>`;
+  const N = hw.net;
+  $("c-net").innerHTML = N ? `<div class="lbl">Network<span class="more">${hs.ping_internet != null ? "ping " + Math.round(hs.ping_internet) + " ms" : ""}</span></div>
+      <div class="val mono duo">↓${rate(N.down)}<span>↑${rate(N.up)}</span></div>
+      ${spark(N.hist_down || [], Math.max(1e5, ...(N.hist_down || [0])) * 1.1, "var(--blue)")}
+      <div class="foot2">${hs.wifi && hs.wifi.ssid ? "Wi-Fi " + esc(hs.wifi.ssid) + (hs.wifi.signal ? " · " + hs.wifi.signal + " dBm" : "") : Object.values(hs.ifaces || {}).map(i => esc(i.name)).join(" · ") || "&nbsp;"}</div>`
+    : `<div class="lbl">Network</div><div class="val mono">–</div>`;
+  const IO = hw.io;
+  $("c-io").innerHTML = IO ? `<div class="lbl">Disk activity<span class="more">${Math.round(IO.riops + IO.wiops)} IOPS</span></div>
+      <div class="val mono duo">R ${rate(IO.read)}<span>W ${rate(IO.write)}</span></div>
+      ${spark(IO.hist_r || [], Math.max(1e6, ...(IO.hist_r || [0]), ...(IO.hist_w || [0])) * 1.1, "var(--green)")}
+      <div class="foot2">Since boot: ${fmt(IO.total_read)} read · ${fmt(IO.total_write)} written</div>`
+    : `<div class="lbl">Disk activity</div><div class="val mono">–</div><div class="foot2">Warming up…</div>`;
+
+  // CPU, power & fans
+  let h = "";
+  const C = hw.cores;
+  if (C && C.length){
+    h += sub(`Cores${sy.cores_p ? ` · ${sy.cores_p} performance + ${sy.cores_e} efficiency` : ""}`);
+    h += `<div class="cores">${C.map(c => `<div class="core ${c.k === "P" ? "p" : ""}" title="Core ${c.i}${c.k ? " (" + (c.k === "P" ? "performance" : "efficiency") + ")" : ""}: ${c.u}% user, ${c.s}% system">
+      <div class="col"><i style="height:${Math.min(100, c.u + c.s)}%;background:var(--m-wired);opacity:.85"></i><i style="height:${Math.min(100, c.u)}%;background:var(--m-app)"></i></div><small>${c.k}${c.i}</small></div>`).join("")}</div>
+      <div class="mleg" style="padding:0 16px 6px"><span><i style="background:var(--m-app)"></i>user</span><span><i style="background:var(--m-wired)"></i>system</span></div>`;
+  }
+  if (P){
+    const parts = [["CPU", P.cpu], ["GPU", P.gpu], ["Neural Engine", P.ane], ["Memory (DRAM)", P.dram]];
+    const mx = Math.max(5, ...parts.map(p => p[1]));
+    h += sub("Power by component") + parts.map(([n, v]) => hbar(n, v, mx, v.toFixed(2) + " W", "var(--amber)")).join("");
+    if (P.gpu_active != null) h += hbar("GPU active time", P.gpu_active, 100, Math.round(P.gpu_active) + "%", "var(--m-comp)");
+    const ch = Object.entries(P.channels || {}).sort((a, b) => b[1] - a[1]);
+    if (ch.length) h += `<div class="chipline" title="Raw IOReport energy channels">${ch.slice(0, 16).map(([k, v]) => `<span>${esc(k)} <b class="mono">${v.toFixed(2)}W</b></span>`).join("")}</div>`;
+  }
+  if (hw.smc_power && (hw.smc_power.system || hw.smc_power.adapter_in)) h += kv([["Whole system (SMC)", hw.smc_power.system != null ? hw.smc_power.system.toFixed(1) + " W" : null], ["From adapter", hw.smc_power.adapter_in ? hw.smc_power.adapter_in.toFixed(1) + " W" : null]]);
+  if ((hw.fans || []).length){
+    h += sub("Fans") + hw.fans.map(f => hbar("Fan " + (f.id + 1), f.rpm, f.max || 6000, f.rpm + " rpm", f.max && f.rpm > .8 * f.max ? "var(--red)" : "var(--blue)")).join("");
+  } else if (s.hw) h += sub("Fans") + na(sy.model && /Air/.test(sy.model) ? "This Mac has no fans." : "Fans are idle or not reported.");
+  h += kv([["Load average", s.cpu.load.map(x => x.toFixed(2)).join("  ")], ["Threads", s.threads != null ? s.threads.toLocaleString() + (s.running != null ? ` · ${s.running} running` : "") : null], ["Processes", s.procs]]);
+  $("hw-cpu").innerHTML = h || na("Needs macOS.");
+
+  // Temperatures
+  if (T && T.sensors.length){
+    const groups = {};
+    T.sensors.forEach(x => (groups[x.group] = groups[x.group] || []).push(x));
+    const order = ["CPU / SoC", "GPU", "SoC (other)", "SSD", "Battery", "Other", "Calibration"];
+    $("hw-temp").innerHTML = order.filter(g => groups[g]).map(g => sub(`${g} · max ${Math.round(Math.max(...groups[g].map(x => x.c)))}°C`) +
+      groups[g].sort((a, b) => b.c - a.c).slice(0, tempAll ? 999 : 8).map(x => hbar(x.name, x.c, 110, x.c.toFixed(1) + "°", heat(x.c))).join("") +
+      (!tempAll && groups[g].length > 8 ? `<div class="hbar"><button class="linkbtn" data-tempall="1">+${groups[g].length - 8} more</button></div>` : "")).join("");
+    $("hw-temp-sub").textContent = `${T.sensors.length} sensors · thermal pressure ${hw.thermal || "unknown"}`;
+  } else $("hw-temp").innerHTML = na(s.hw ? "macOS didn't expose any temperature sensors." : "Temperatures need macOS.");
+
+  // Network
+  h = "";
+  const W = hs.wifi;
+  if (W && !W.off){
+    const q = W.signal == null ? "" : W.signal > -60 ? "excellent" : W.signal > -67 ? "good" : W.signal > -75 ? "fair" : "weak";
+    h += sub("Wi-Fi") + kv([["Network", esc(W.ssid || "hidden (needs Location permission)")], ["Signal", W.signal != null ? `${W.signal} dBm · ${q}` : null],
+      ["Noise / SNR", W.noise != null ? `${W.noise} dBm · ${W.signal - W.noise} dB` : null], ["Channel", esc(W.channel)], ["Standard", esc(W.phy)],
+      ["Link rate", W.rate ? W.rate + " Mbps" : null], ["Security", esc(W.security)]]);
+  } else if (W && W.off) h += sub("Wi-Fi") + na("Wi-Fi is off or not connected.");
+  const ifs = Object.values(hs.ifaces || {}), rates = (N && N.ifaces) || {};
+  h += sub("Interfaces") + kv(ifs.map(i => [`${i.name} (${i.if})`, `<span class="mono">${esc(i.ip)}</span>${rates[i.if] ? ` · ↓${rate(rates[i.if].down)} ↑${rate(rates[i.if].up)}` : ""}`])
+    .concat([["Router", hs.gateway ? `<span class="mono">${esc(hs.gateway)}</span>${hs.ping_gateway != null ? " · " + hs.ping_gateway.toFixed(1) + " ms" : ""}` : null],
+             ["Internet (1.1.1.1)", hs.ping_internet != null ? hs.ping_internet.toFixed(1) + " ms" : "no reply"],
+             ["Transferred since boot", N && rates.en0 ? `↓${fmt(rates.en0.total_down)} ↑${fmt(rates.en0.total_up)}` : null]]));
+  if (hs.ping_hist && hs.ping_hist.length > 1) h += `<div style="padding:0 16px 8px">${spark(hs.ping_hist, Math.max(50, ...hs.ping_hist) * 1.1, "var(--blue)")}</div>`;
+  const NT = hs.nettop || [];
+  if (NT.length){
+    const mx = Math.max(...NT.map(n => n.down + n.up), 1);
+    h += sub("Using the network now") + NT.slice(0, 8).map(n => hbar(n.app || n.name, n.down + n.up, mx, `↓${fmt(n.down)} ↑${fmt(n.up)}`, "var(--blue)")).join("");
+  }
+  $("hw-net").innerHTML = h || na("Needs macOS.");
+
+  // Battery & devices
+  h = "";
+  if (B && B.percent != null){
+    const col = B.percent <= 15 ? "var(--red)" : B.percent <= 30 ? "var(--amber)" : "var(--green)";
+    h += `<div class="batt"><span class="bigpct">${B.percent}%</span><span class="shell"><i style="width:${B.percent}%;background:${col}"></i></span><span class="sub" style="margin:0">${B.charging ? "Charging" : B.plugged ? (B.full ? "Charged" : "Plugged in, not charging") : B.time_min ? Math.floor(B.time_min / 60) + "h " + B.time_min % 60 + "m left" : "On battery"}</span></div>`;
+    h += kv([["Health", B.health != null ? `${B.health}%${B.condition ? " · " + esc(B.condition) : ""}` : esc(B.condition)], ["Cycle count", B.cycles],
+      ["Capacity", B.max_mah ? `${B.max_mah.toLocaleString()} of ${B.design_mah.toLocaleString()} mAh design` : null],
+      ["Battery temperature", B.temp != null ? B.temp + " °C" : null], ["Voltage / current", B.voltage ? `${B.voltage} V · ${B.amps > 0 ? "+" : ""}${B.amps} A` : null],
+      [B.watts >= 0 ? "Charging power" : "Discharge power", B.watts ? Math.abs(B.watts) + " W" : null],
+      ["Power from adapter", B.power_in_w != null ? B.power_in_w + " W" : null], ["System load", B.system_load_w != null ? B.system_load_w + " W" : null],
+      ["Adapter", B.adapter_w ? `${B.adapter_w} W${B.adapter_name ? " · " + esc(B.adapter_name) : ""}` : (B.plugged ? "connected" : "none")]]);
+  } else h += na(s.hw ? "No battery — this is a desktop Mac." : "Battery info needs macOS.");
+  if ((hs.bt || []).length) h += sub("Bluetooth devices") + hs.bt.map(d => hbar(d.name, d.percent, 100, d.percent + "%", d.percent <= 20 ? "var(--red)" : "var(--green)")).join("");
+  if ((hs.usb || []).length) h += sub("USB devices") + `<div class="chipline">${hs.usb.map(u => `<span>${esc(u)}</span>`).join("")}</div>`;
+  $("hw-bat").innerHTML = h;
+
+  // Storage
+  h = "";
+  if (IO) h += `<div class="minis"><div class="mini"><div class="l">Read</div><div class="n">${rate(IO.read)}<small>${Math.round(IO.riops)} IOPS</small></div></div>
+     <div class="mini"><div class="l">Write</div><div class="n">${rate(IO.write)}<small>${Math.round(IO.wiops)} IOPS</small></div></div></div>`;
+  const V = hs.volumes || [];
+  if (V.length) h += sub("Volumes") + V.map(v => hbar(v.name, v.used, v.total, `${fmt(v.free)} free`, v.free / v.total < .1 ? "var(--red)" : "var(--text)")).join("");
+  h += kv([["SSD health (SMART)", esc(sy.smart)], ["Time Machine", hs.tm ? (hs.tm.running ? `Backing up${hs.tm.percent != null ? " · " + hs.tm.percent + "%" : ""}${hs.tm.phase ? " · " + esc(hs.tm.phase) : ""}` : "Idle") : null],
+    ["Total read since boot", IO ? fmt(IO.total_read) : null], ["Total written since boot", IO ? fmt(IO.total_write) : null]]);
+  $("hw-sto").innerHTML = h;
+
+  // System
+  const PG = hw.paging || {}, m = s.mem;
+  h = kv([["Model", esc([sy.chip, sy.model].filter(Boolean).join(" · "))], ["CPU", sy.cores ? `${sy.cores} cores${sy.cores_p ? ` (${sy.cores_p}P + ${sy.cores_e}E)` : ""}` : null],
+    ["GPU", sy.gpu ? `${esc(sy.gpu.name || "")}${sy.gpu.cores ? " · " + esc(sy.gpu.cores) + " cores" : ""}` : null], ["Memory", sy.mem ? fmt(sy.mem) + " unified" : null],
+    ["macOS", esc(sy.os)], ["Kernel", esc(sy.kernel)], ["Uptime", s.uptime ? dur(s.uptime) + (sy.boot ? " · since " + new Date(sy.boot * 1000).toLocaleString([], {dateStyle:"medium", timeStyle:"short"}) : "") : null],
+    ["Processes / threads", `${s.procs}${s.threads ? " / " + s.threads.toLocaleString() : ""}`]]);
+  h += sub("Memory") + kv([["Pressure", `${esc(m.pressure)} · ${m.free_pct}% free`], ["Cached files", fmt(m.cached)], ["Swap used", fmt(m.swap)],
+    ["Page-ins / outs", PG.pageins != null ? `${rate(PG.pageins)} / ${rate(PG.pageouts)}` : null], ["Swap in / out", PG.swapins != null ? `${rate(PG.swapins)} / ${rate(PG.swapouts)}` : null],
+    ["Compress / decompress", PG.compressions != null ? `${rate(PG.compressions)} / ${rate(PG.decompressions)}` : null]]);
+  if ((sy.displays || []).length) h += sub("Displays") + kv(sy.displays.map(d => [d.name || "Display", esc(d.res || "") + (d.main ? " · main" : "")]));
+  const SB = hs.sleep_blockers || [];
+  const sbh = SB.length ? kv(SB.map(b => [b.proc, `${esc(b.type.replace("PreventUserIdle", "").replace("Sleep", " sleep"))} · ${esc(b.age)}${b.reason ? " · " + esc(b.reason) : ""}`])) : na("Nothing. It can sleep normally.");
+  h += sub("Keeping the Mac awake") + sbh;
+  $("hw-sys").innerHTML = h;
+  if ($("sleepb")) $("sleepb").innerHTML = sbh;
+}
+
+// ---------- disk section ----------
+const CATS = [["media","Documents & media"],["other","Dev tools & other"],["code","Code projects"],["sdk","iOS & Android SDKs"],["ai","AI models"],["cache","Package caches"]];
+let recs = [], recById = {}, view = "category", cur = null, curPath = null;
+const selKeys = new Set(), seenKeys = new Set(), open = new Set();
+const ikey = (r, it) => r.id + "|" + it.p;
+const isSel = (r, i) => selKeys.has(ikey(r, r.items[i]));
+const selIdx = r => r.items.map((_, i) => i).filter(i => isSel(r, i));
+const selSize = r => selIdx(r).reduce((a, i) => a + r.items[i].s, 0);
+const totalSel = () => recs.reduce((a, r) => a + selSize(r), 0);
+const countSel = () => recs.filter(r => selIdx(r).length).length;
+const tierSum = t => recs.filter(r => r.tier === t).reduce((a, r) => a + r.s, 0);
+const tierCount = t => recs.filter(r => r.tier === t).length;
+function setRec(r, on){ r.items.forEach(it => on ? selKeys.add(ikey(r, it)) : selKeys.delete(ikey(r, it))); }
+
+function loadDisk(data){
+  D = data;
+  recs = D.recs; recById = Object.fromEntries(recs.map(r => [r.id, r]));
+  recs.forEach(r => r.items.forEach(it => {
+    const k = ikey(r, it);
+    if (!seenKeys.has(k)){ seenKeys.add(k); if (r.tier === "safe") selKeys.add(k); }
+  }));
+  (function link(n, parent){ n._p = parent; (n.c || []).forEach(c => link(c, n)); })(D.tree, null);
+  cur = D.tree;
+  if (curPath){ // stay where the user was
+    const find = (n) => { if (n.p === curPath) return n; for (const c of n.c || []) if (c.d && curPath.startsWith(c.p)) { const f = find(c); if (f) return f; } return null; };
+    cur = find(D.tree) || D.tree;
+  }
+  $("host").textContent = D.host;
+  buildDisk();
+  if (LIVE){ renderBigFiles(); renderHealth(); }
+}
+
+function buildDisk(){
+  const notScanned = Math.max(0, D.disk.used - D.scanned);
+  $("disk").innerHTML = `
+  <div class="card unread" id="unread"><b>Some folders couldn't be read.</b> Give your terminal app Full Disk Access (System Settings › Privacy &amp; Security) and re-run for a complete map.
+    <ul class="mono">${D.unreadable.map(p => `<li>${esc(p)}</li>`).join("")}</ul></div>
+  <section class="card stats">
+    <div class="stat"><div class="lbl">Free after cleanup</div><div class="val mono" id="s-free"></div></div>
+    <div class="stat"><div class="lbl"><span class="dot" style="background:var(--green)"></span>Safe to remove</div><div class="val mono">${fmt(tierSum("safe"))}<small>${tierCount("safe")} items</small></div></div>
+    <div class="stat"><div class="lbl"><span class="dot" style="background:var(--amber)"></span>Needs review</div><div class="val mono">${fmt(tierSum("review"))}<small>${tierCount("review")} items</small></div></div>
+    <div class="stat${D.outside ? " click" : ""}" id="s-out"><div class="lbl">${D.outside ? "Outside home folder" : "Not scanned"}${D.outside ? '<span class="more">Breakdown ›</span>' : ""}</div><div class="val mono">${fmt(notScanned)}<small>${D.outside ? "system, apps &amp; more" : D.root === "~" ? "system &amp; apps" : "outside " + esc(D.root)}</small></div></div>
+  </section>
+  <div class="main">
+    <section class="card explorer">
+      <div class="ex-head">
+        <div><h3>Explorer</h3><div class="sub">${D.root === "~" ? "Your home folder" : esc(D.root)}, sized by space used. Click a tile to open it.</div></div>
+        <div class="seg" id="seg"><button data-v="category" class="${view === "category" ? "on" : ""}">Category</button><button data-v="cleanup" class="${view === "cleanup" ? "on" : ""}">Cleanup</button></div>
+      </div>
+      <div class="crumbs"><nav id="crumbs"></nav><span class="mono" id="cursize"></span></div>
+      <div id="map"></div>
+      <div class="legend" id="legend"></div>
+    </section>
+    <aside class="card recs">
+      <div class="rh"><h3>Recommendations</h3><div class="sub">Select items to clean up</div></div>
+      <div class="list" id="list"></div>
+      <div class="foot">
+        <div class="selinfo" id="selinfo"></div>
+        <div class="btns"><button class="btn" id="b-safe">Select safe</button><button class="btn" id="b-view">Script</button>
+          ${LIVE && !RO ? '<button class="btn dark" id="b-clean">Clean now</button>' : '<button class="btn dark" id="b-copy">Copy script</button>'}</div>
+      </div>
+    </aside>
+  </div>`;
+  wireDisk();
+  renderList();
+  renderMap();
+  renderMeta();
+}
+
+function renderMeta(){
+  const parts = [];
+  if (D){
+    const when = new Date(D.generated);
+    parts.push(`Disk scanned ${LIVE && scanStatus.last_scan ? ago(scanStatus.last_scan) : when.toLocaleString([], {dateStyle:"medium", timeStyle:"short"})} · ${D.files.toLocaleString()} files`);
+    if (D.unreadable_count) parts.push(`<span class="warn" id="uw">${D.unreadable_count} folders unreadable</span>`);
+  }
+  if (scanStatus.scanning){
+    const s = scanStatus.scanning;
+    parts.push(`<span><span class="spin"></span> Scanning · ${s.files.toLocaleString()} files · <span class="mono">${esc(String(s.path).slice(-48))}</span></span>`);
+  } else if (LIVE && !RO){
+    parts.push(`<button class="btn sm" id="b-rescan">Rescan disk</button>`);
+  }
+  $("meta").innerHTML = parts.join(" · ");
+  if ($("uw")) $("uw").onclick = () => $("unread").classList.toggle("on");
+  if ($("b-rescan")) $("b-rescan").onclick = async () => { try { await post({kind:"rescan"}); } catch(e){ toast(esc(e.message)); } };
+}
+
+function wireDisk(){
+  if (D.outside) $("s-out").onclick = showOutside;
+  $("seg").onclick = e => {
+    const b = e.target.closest("button"); if (!b) return;
+    view = b.dataset.v; $("seg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); renderMap();
+  };
+  const map = $("map");
+  map.addEventListener("click", e => {
+    const t = e.target.closest(".tile"); if (!t) return;
+    const n = t._n;
+    if (n.d && n.c && n.c.length && !n.x){ cur = n; curPath = n.p; hideTip(); renderMap(); }
+    else if (t.dataset.r) openRec(t.dataset.r);
+  });
+  map.addEventListener("mousemove", e => {
+    const t = e.target.closest(".tile"); if (!t){ hideTip(); return; }
+    const n = t._n, rec = t.dataset.r && recById[t.dataset.r];
+    const pct = D.scanned ? (n.s / D.scanned * 100) : 0;
+    tip.innerHTML = `<b>${esc(n.n)}</b> · <span class="mono">${fmt(n.s)}</span> <span style="opacity:.6">(${pct < 0.1 ? "<0.1" : pct.toFixed(1)}%)</span>` +
+      (n.p ? `<div class="tp mono">${esc(n.p)}</div>` : "") +
+      (rec ? `<div class="tr">${rec.tier === "safe" ? "Safe to remove" : "Review"} · ${esc(rec.title)}</div>` : "");
+    tip.style.opacity = 1;
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    let x = e.clientX + 14, y = e.clientY + 14;
+    if (x + tw > innerWidth - 8) x = e.clientX - tw - 14;
+    if (y + th > innerHeight - 8) y = e.clientY - th - 14;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  });
+  map.addEventListener("mouseleave", hideTip);
+  ro.disconnect(); ro.observe(map);
+  const list = $("list");
+  list.addEventListener("click", e => {
+    const recEl = e.target.closest(".rec"); if (!recEl) return;
+    const r = recById[recEl.dataset.id];
+    const itemCb = e.target.closest("[data-item]");
+    if (itemCb){ const k = ikey(r, r.items[+itemCb.dataset.item]); itemCb.checked ? selKeys.add(k) : selKeys.delete(k); syncChecks(); return; }
+    if (e.target.closest(".det")) return;
+    if (e.target.closest('[data-act="expand"]')){ open.has(r.id) ? open.delete(r.id) : open.add(r.id); recEl.classList.toggle("open"); return; }
+    if (e.target.closest(".row")){ setRec(r, selIdx(r).length !== r.items.length); syncChecks(); }
+  });
+  list.addEventListener("mouseover", e => { const recEl = e.target.closest(".rec"); highlight(recEl ? recEl.dataset.id : null); });
+  list.addEventListener("mouseleave", () => highlight(null));
+  $("b-safe").onclick = () => { recs.forEach(r => setRec(r, r.tier === "safe")); syncChecks(); };
+  $("b-view").onclick = () => { $("script").textContent = buildScript(); $("modal").classList.add("on"); };
+  if ($("b-copy")) $("b-copy").onclick = doCopy;
+  if ($("b-clean")) $("b-clean").onclick = cleanNow;
+}
+
+const tip = $("tip");
+function hideTip(){ tip.style.opacity = 0; }
+const ro = new ResizeObserver(() => D && renderMap());
+
+function squarify(items, x, y, w, h){
+  const total = items.reduce((a, n) => a + n.s, 0), out = [];
+  if (!total || w <= 0 || h <= 0) return out;
+  const scale = w * h / total, nodes = items.map(n => ({n, a: n.s * scale}));
+  const worst = (row, side) => { let s = 0, mx = 0, mn = Infinity; for (const r of row){ s += r.a; if (r.a > mx) mx = r.a; if (r.a < mn) mn = r.a; } const s2 = s*s, d2 = side*side; return Math.max(d2*mx/s2, s2/(d2*mn)); };
+  const lay = row => {
+    const s = row.reduce((a, r) => a + r.a, 0);
+    if (w >= h){ const cw = s / h; let cy = y; for (const r of row){ const rh = r.a / cw; out.push({n:r.n, x, y:cy, w:cw, h:rh}); cy += rh; } x += cw; w -= cw; }
+    else { const rh = s / w; let cx = x; for (const r of row){ const rw = r.a / rh; out.push({n:r.n, x:cx, y, w:rw, h:rh}); cx += rw; } y += rh; h -= rh; }
+  };
+  let row = [], i = 0;
+  while (i < nodes.length){ const side = Math.min(w, h), it = nodes[i]; if (!row.length || worst(row.concat([it]), side) <= worst(row, side)){ row.push(it); i++; } else { lay(row); row = []; } }
+  if (row.length) lay(row);
+  return out;
+}
+function drawKids(node, el, x, y, w, h, depth, inhRec){
+  const kids = (node.c || []).filter(k => k.s > 0).slice().sort((a, b) => b.s - a.s);
+  for (const r of squarify(kids, x, y, w, h)) drawTile(r.n, el, r, depth, inhRec);
+}
+function drawTile(n, parent, r, depth, inhRec){
+  const g = 3, w = r.w - g, h = r.h - g;
+  if (w < 2 || h < 2) return;
+  const recId = n.r || inhRec, rec = recId && recById[recId];
+  const t = document.createElement("div");
+  t.className = "tile k-" + (n.k || "other") + (rec ? " cand " + rec.tier + (selIdx(rec).length ? " sel" : "") + (n.r ? "" : " inh") : "");
+  t.style.cssText = `left:${r.x + g/2}px;top:${r.y + g/2}px;width:${w}px;height:${h}px`;
+  if (rec) t.dataset.r = recId;
+  t._n = n;
+  const drill = n.d && n.c && n.c.length && !n.x;
+  if (!drill) t.classList.add("flat");
+  const nest = drill && depth < 2 && w > 90 && h > 70 && (depth === 0 || w * h > 70000);
+  if (nest){
+    t.innerHTML = `<div class="hd"><b>${esc(n.n)}</b><span class="mono">${fmt(n.s)}</span></div>`;
+    parent.appendChild(t);
+    drawKids(n, t, 4, 22, w - 10, h - 28, depth + 1, recId);
+  } else {
+    let html = "";
+    if (w > 34 && h > 16) html += `<div class="nm">${esc(n.n)}</div>`;
+    if (w > 54 && h > 40){ const fs = Math.max(11, Math.min(18, Math.sqrt(w * h) / 9)); html += `<div class="sz mono" style="font-size:${fs}px">${fmt(n.s)}</div>`; }
+    t.innerHTML = html;
+    parent.appendChild(t);
+  }
+}
+function renderMap(){
+  const map = $("map"); if (!map) return;
+  map.innerHTML = "";
+  map.className = view === "cleanup" ? "v-cleanup" : "";
+  drawKids(cur, map, 0, 0, map.clientWidth + 3, map.clientHeight + 3, 0, null);
+  const chain = []; for (let n = cur; n; n = n._p) chain.unshift(n);
+  $("crumbs").innerHTML = chain.map((n, i) => (i ? '<span class="sep">›</span>' : "") + `<a data-i="${i}" class="${i === chain.length - 1 ? "cur" : ""}">${esc(n.n)}</a>`).join("");
+  $("crumbs").querySelectorAll("a").forEach(a => a.onclick = () => { cur = chain[+a.dataset.i]; curPath = cur._p ? cur.p : null; renderMap(); });
+  $("cursize").textContent = fmt(cur.s);
+  $("legend").innerHTML = view === "category"
+    ? CATS.map(([k, l]) => `<span><i style="background:var(--${k}-bd)"></i>${l}</span>`).join("") + `<span><i style="background:repeating-linear-gradient(135deg,var(--hatch) 0 1px,transparent 1px 3px);border:1px solid var(--candBd)"></i>Cleanup candidate</span>`
+    : `<span><i style="background:var(--green)"></i>Safe · selected</span><span><i style="background:var(--amber)"></i>Review · selected</span><span><i style="background:var(--green);opacity:.4"></i>Not selected</span><span><i style="background:var(--other-bd)"></i>Keep</span>`;
+}
+function subline(r){ return r.items.length <= 2 ? r.items.map(i => i.p).join(", ") : r.items.length + " items"; }
+function renderList(){
+  const scroll = $("list").scrollTop;
+  $("list").innerHTML = [["safe", "Safe to remove"], ["review", "Review first"]].map(([t, l]) => {
+    const rs = recs.filter(r => r.tier === t); if (!rs.length) return "";
+    return `<div class="grp"><span class="pill ${t}">${l}</span><span class="tot mono">${fmt(tierSum(t))}</span></div>` + rs.map(r => `
+      <div class="rec${open.has(r.id) ? " open" : ""}" data-id="${r.id}">
+        <div class="row"><input type="checkbox" data-act="check" aria-label="Select ${esc(r.title)}">
+          <div style="min-width:0"><div class="t">${esc(r.title)}</div><div class="p mono">${esc(subline(r))}</div></div>
+          <div class="s mono">${fmt(r.s)}</div>
+          <button class="chev" data-act="expand" aria-label="Details"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M3.5 1.5 7 5l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+        <div class="det">${r.note ? `<div class="note2">${esc(r.note)}</div>` : ""}
+          ${r.items.map((it, i) => `<label class="it"><input type="checkbox" data-item="${i}"><div style="min-width:0"><div class="l">${esc(it.label)}</div>${it.label !== it.p ? `<div class="ip mono">${esc(it.p)}</div>` : ""}</div><span class="is mono">${fmt(it.s)}</span></label>`).join("")}
+          ${(r.post && r.post.length) ? `<div class="cmd mono">${esc(r.post.join("\n"))}</div>` : ""}</div>
+      </div>`).join("");
+  }).join("") || `<div class="okstate"><b>Nothing to clean</b>No caches or build output worth removing were found.</div>`;
+  $("list").scrollTop = scroll;
+  syncChecks();
+}
+function syncFree(){
+  const total = totalSel(), free = S ? S.disk.free : D.disk.free;
+  if ($("s-free")) $("s-free").innerHTML = `${fmt(free + total)}${total ? `<small class="up">+${fmt(total)}</small>` : ""}`;
+}
+function syncChecks(){
+  document.querySelectorAll(".rec").forEach(el => {
+    const r = recById[el.dataset.id], n = selIdx(r).length, cb = el.querySelector('[data-act="check"]');
+    cb.checked = n === r.items.length; cb.indeterminate = n > 0 && n < r.items.length;
+    el.querySelectorAll("[data-item]").forEach(c => c.checked = isSel(r, +c.dataset.item));
+  });
+  const total = totalSel(), n = countSel();
+  $("selinfo").innerHTML = `<b class="mono">${fmt(total)}</b> selected · ${n} item${n === 1 ? "" : "s"}`;
+  syncFree();
+  ["b-copy", "b-view", "b-clean"].forEach(id => $(id) && ($(id).disabled = !n || !!cleaning));
+  document.querySelectorAll(".tile.cand").forEach(t => t.classList.toggle("sel", selIdx(recById[t.dataset.r]).length > 0));
+  if (S) renderLive(S);
+}
+function highlight(id){
+  document.querySelectorAll("#map .tile").forEach(t => {
+    const on = !!id && t.dataset.r === id;
+    t.classList.toggle("hl", on && !(t.parentElement.dataset && t.parentElement.dataset.r === id));
+  });
+}
+function openRec(id){
+  open.add(id);
+  const el = document.querySelector(`.rec[data-id="${id}"]`);
+  if (el){ el.classList.add("open"); el.scrollIntoView({block:"nearest", behavior:"smooth"}); el.animate([{background:"var(--chip)"},{background:"transparent"}], {duration:900}); }
+}
+function showOutside(){
+  const items = D.outside.items, max = Math.max(...items.map(i => i.s), 1);
+  $("olist").innerHTML = items.map(i => `<div class="orow${i.rest ? " rest" : ""}"><div class="top"><b>${esc(i.label)}</b><span class="mono">${fmt(i.s)}</span></div>
+    ${i.p && i.p !== i.label ? `<div class="pp mono">${esc(i.p)}${i.unreadable ? ` · ${i.unreadable} folders unreadable` : ""}</div>` : ""}
+    <div class="bar"><i style="width:${(i.s / max * 100).toFixed(1)}%"></i></div></div>`).join("");
+  const notes = [];
+  if (items.some(i => i.rest)) notes.push(`<p><b style="color:var(--text)">Unaccounted space</b> is in folders macOS wouldn't let the scan read${D.unreadable_count ? ` (${D.unreadable_count} in your home folder alone)` : ""}, Time Machine local snapshots, or files macOS marks as purgeable. Give your terminal app Full Disk Access in System Settings › Privacy &amp; Security, then rescan to shrink it.</p>`);
+  if (D.outside.snapshots) notes.push(`<p>${D.outside.snapshots} Time Machine local snapshot${D.outside.snapshots > 1 ? "s" : ""} on this disk. macOS deletes them when it needs room; to remove them now: <code>tmutil thinlocalsnapshots / 999999999999 4</code></p>`);
+  if (!D.outside.apfs) notes.push(`<p>Volume sizes weren't available (diskutil failed), so system files are counted under unaccounted space.</p>`);
+  $("onote").innerHTML = notes.join(""); $("onote").style.display = notes.length ? "block" : "none";
+  $("omodal").classList.add("on");
+}
+$("omodal").addEventListener("click", e => { if (e.target.id === "omodal" || e.target.dataset.act === "close") $("omodal").classList.remove("on"); });
+
+// ---------- cleanup: script or run now ----------
+function buildScript(){
+  const chosen = recs.filter(r => selIdx(r).length), total = totalSel();
+  const L = ["#!/usr/bin/env bash", `# diskmap cleanup script · ${D.host} · generated ${new Date().toLocaleString()}`,
+    `# ${chosen.length} item(s), about ${fmt(total)}. Read it before running.`, "set -u", "",
+    `read -r -p "Permanently delete ${chosen.length} item(s), about ${fmt(total)}? [y/N] " ok < /dev/tty`,
+    '[[ "$ok" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 1; }', `before=$(df -k "$HOME" | awk 'NR==2{print $4}')`, ""];
+  for (const r of chosen){
+    const s = selSize(r);
+    L.push(`# ── ${r.title} (${fmt(s)}) ${"─".repeat(Math.max(2, 50 - r.title.length))}`);
+    L.push(`echo "→ ${r.title.replace(/["$`\\]/g, "")} (${fmt(s)})"`);
+    (r.pre || []).forEach(c => L.push(c));
+    for (const i of selIdx(r)){ const it = r.items[i]; if (r.items.length > 1 && it.cmds.length) L.push(`# ${it.label.replace(/\n/g, " ")} · ${fmt(it.s)}`); it.cmds.forEach(c => L.push(c)); }
+    (r.post || []).forEach(c => L.push(c));
+    L.push("");
+  }
+  L.push(`after=$(df -k "$HOME" | awk 'NR==2{print $4}')`, `echo "Done. Freed about $(( (after - before) / 976563 )) GB."`);
+  return L.join("\n") + "\n";
+}
+async function copy(text){
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch(e){ const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = 0; document.body.appendChild(ta); ta.select(); let ok = false; try { ok = document.execCommand("copy"); } catch(_){} ta.remove(); return ok; }
+}
+async function doCopy(){
+  const ok = await copy(buildScript());
+  toast(ok ? 'Copied. In Terminal run <code class="mono">pbpaste &gt; cleanup.sh &amp;&amp; bash cleanup.sh</code>' : "Couldn't access the clipboard. Use Script → Download instead.");
+}
+function download(){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([buildScript()], {type: "text/x-shellscript"}));
+  a.download = "diskmap-cleanup.sh"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+let cleaning = null, cleanArm = 0;
+async function cleanNow(){
+  const b = $("b-clean"), total = totalSel();
+  if (Date.now() - cleanArm > 3500){ cleanArm = Date.now(); b.classList.add("armed"); b.textContent = `Delete ${fmt(total)}?`;
+    setTimeout(() => { if (b.isConnected && Date.now() - cleanArm >= 3500){ b.classList.remove("armed"); b.textContent = "Clean now"; } }, 3600); return; }
+  cleanArm = 0; b.classList.remove("armed"); b.textContent = "Clean now";
+  const items = []; recs.forEach(r => selIdx(r).forEach(i => items.push([r.id, i])));
+  try { toast(esc(await post({kind:"clean", items, scan_id:D.scan_id}))); } catch(e){ toast("⚠︎ " + esc(e.message), 7000); }
+}
+$("modal").addEventListener("click", e => {
+  const act = e.target.dataset.act;
+  if (e.target.id === "modal" || act === "close") $("modal").classList.remove("on");
+  if (act === "copy") doCopy();
+  if (act === "download") download();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape"){ $("modal").classList.remove("on"); $("omodal").classList.remove("on"); }
+  if (e.key === "Backspace" && cur && cur._p && !document.querySelector(".modal.on") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)){ cur = cur._p; curPath = cur._p ? cur.p : null; renderMap(); }
+});
+
+// ---------- views & routing ----------
+const INFO = {};            // section -> {data, updated, busy}
+const VIEW_INFO = {city:["security","updates","brew","repos","logs","apps","background","docker"], home:["security","updates","brew","repos","logs","apps","background","docker","netx"], overview:["security","updates","brew","repos","logs","apps","background","docker"], processes:[], hardware:["hardware"],
+  network:["netx","security"], storage:[], software:["apps","brew","updates","background"], security:["security"],
+  developer:["tools","repos","docker","ollama"], history:[], logs:["logs"], diagnostics:[], settings:[]};
+let curView = "overview", procTimer = null, histTimer = null, histRange = "1h";
+function go(){
+  const v = (location.hash.match(/^#\/(\w+)/) || [])[1] || "city";
+  curView = VIEWS.some(x => x[0] === v) ? v : "overview";
+  document.querySelectorAll(".view").forEach(el => el.classList.toggle("on", el.dataset.view === curView));
+  document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("on", a.dataset.v === curView));
+  clearInterval(procTimer); clearInterval(histTimer);
+  if (curView === "processes"){ loadProcs(); procTimer = setInterval(loadProcs, 3000); }
+  if (curView === "history"){ loadHistory(); histTimer = setInterval(loadHistory, 30000); }
+  if (curView === "settings") loadSettings();
+  if (curView === "diagnostics") loadDiag();
+  if (curView === "storage" && D) setTimeout(renderMap, 0);
+  loadInfo(VIEW_INFO[curView] || []);
+  if (S) renderLive(S);
+}
+window.addEventListener("hashchange", go);
+async function loadInfo(names){
+  if (!names.length || !LIVE) return;
+  try {
+    const r = await fetch(api("/api/info?s=" + names.join(","))); const j = await r.json();
+    Object.assign(INFO, j); renderInfo(names);
+  } catch(e){ console.error(e); }
+}
+const idata = n => INFO[n] && INFO[n].data;
+const loading = (n, what) => `<div class="loading"><span class="spin"></span> ${INFO[n] && INFO[n].busy ? "Collecting" : "Loading"} ${esc(what)}…</div>`;
+function renderInfo(names){
+  const set = new Set(names);
+  const R = (id, fn) => { const el = $(id); if (el) { try { el.innerHTML = fn(); } catch(err){ console.error(id, err); el.innerHTML = na("Couldn't render this section."); } } };
+  if (set.has("security")){ R("inv-sec", secHTML); R("inv-ports", portsHTML); R("inv-share", shareHTML); }
+  if (set.has("apps")) R("inv-apps", appsHTML);
+  if (set.has("updates") || set.has("brew")) R("inv-upd", updHTML);
+  if (set.has("background")) R("inv-bg", bgHTML);
+  if (set.has("tools")) R("inv-tools", toolsHTML);
+  if (set.has("repos")) R("inv-repos", reposHTML);
+  if (set.has("docker")) R("inv-docker", dockerHTML);
+  if (set.has("ollama")) R("inv-ai", aiHTML);
+  if (set.has("hardware")) R("inv-hw", invHwHTML);
+  if (set.has("logs")){ R("inv-crash", crashHTML); R("inv-sleep", sleepHTML); }
+  if (set.has("netx")) R("inv-net", netxHTML);
+  if (curView === "developer") R("tasks", tasksHTML);
+  renderHealth(); renderBadges();
+  if (S) renderSuggestions();
+}
+
+// ---------- findings from inventory → suggestions + health ----------
+const DAY = 86400;
+function unusedApps(){ const a = idata("apps") || []; const now = Date.now() / 1000;
+  return a.filter(x => !x.apple && x.size && x.size > 2e8 && x.last_used && now - x.last_used > 120 * DAY); }
+function infoSuggestions(){
+  const out = [], add = (id, sev, title, sub, actions) => out.push({id, sev, title, sub, actions: actions || []});
+  const sec = idata("security");
+  if (sec && sec.items) sec.items.filter(i => i.ok === false && i.level === "bad").forEach(i =>
+    add("sec:" + i.id, "high", `${i.title} is ${i.status.toLowerCase()}`, i.detail + (i.fix ? " Fix: " + i.fix : ""), [{label:"Open Settings", kind:"open_settings", pane: i.id === "sharing" ? "sharing" : "security"}]));
+  if (sec && sec.items) sec.items.filter(i => i.ok === false && i.level === "warn").forEach(i =>
+    add("sec:" + i.id, "low", `${i.title} is ${i.status.toLowerCase()}`, i.detail, [{label:"Open Settings", kind:"open_settings", pane: i.id === "autoupdate" ? "updates" : i.id === "screenlock" ? "lock" : "network"}]));
+  const up = idata("updates");
+  if (up && up.updates && up.updates.length) add("macos-up", "med", `${up.updates.length} macOS update${up.updates.length > 1 ? "s" : ""} available`, up.updates.map(u => u.title + " " + u.version).join(", "), [{label:"Open Software Update", kind:"open_settings", pane:"updates"}]);
+  const br = idata("brew");
+  if (br && br.outdated && br.outdated.length >= 3) add("brew-up", "low", `${br.outdated.length} Homebrew packages are out of date`, br.outdated.slice(0, 5).map(o => o.name).join(", ") + (br.outdated.length > 5 ? "…" : ""), [{label:"Upgrade all", kind:"task", task:"brew_upgrade", confirm:"Run brew upgrade?"}]);
+  const un = unusedApps();
+  if (un.length) add("apps-unused", "low", `${un.length} big apps you haven't opened in 4+ months`, `${un.slice(0, 4).map(a => a.name).join(", ")}: ${fmt(un.reduce((s, a) => s + a.size, 0))} in total.`, [{label:"Review", kind:"scroll", target:"software"}]);
+  const bg = idata("background");
+  const orphan = bg && bg.agents ? bg.agents.filter(a => a.missing) : [];
+  if (orphan.length) add("orphans", "low", `${orphan.length} leftover background item${orphan.length > 1 ? "s" : ""}`, "They point at apps that are no longer installed: " + orphan.slice(0, 3).map(o => o.label).join(", "), [{label:"Review", kind:"scroll", target:"software"}]);
+  const repos = idata("repos") || [];
+  const risky = repos.filter(r => (r.ahead > 0) || (r.dirty > 0 && r.last_commit && Date.now() / 1000 - r.last_commit > 3 * DAY) || (r.no_upstream && r.dirty));
+  if (risky.length) add("repos", "low", `${risky.length} repo${risky.length > 1 ? "s" : ""} with work that isn't pushed`, risky.slice(0, 4).map(r => r.name).join(", ") + ". Push before you clean up or switch Macs.", [{label:"Show", kind:"scroll", target:"developer"}]);
+  const lg = idata("logs");
+  if (lg && lg.crash_counts && lg.crash_counts.length && lg.crash_counts[0][1] >= 3) add("crashy", "info", `${lg.crash_counts[0][0]} crashed ${lg.crash_counts[0][1]} times this month`, "Updating or reinstalling it usually helps.", [{label:"See logs", kind:"scroll", target:"logs"}]);
+  if (lg && lg.crashes && lg.crashes.some(c => c.kind === "panic" && Date.now() / 1000 - c.ts < 14 * DAY)) add("panic", "med", "Your Mac restarted after a kernel panic recently", "Often caused by a driver, an accessory or a hardware fault. Check Logs for the report.", [{label:"See logs", kind:"scroll", target:"logs"}]);
+  const dk = idata("docker");
+  if (dk && dk.usage){ const rec = dk.usage.reduce((s, u) => s + parseSize(u.Reclaimable), 0); if (rec > 3e9) add("docker-rec", "low", `Docker can free ${fmt(rec)}`, "Unused images, stopped containers and build cache.", [{label:"Prune", kind:"task", task:"docker_prune", confirm:"Prune unused Docker data?"}]); }
+  if (D && D.dups && D.dups.length){ const w = D.dups.reduce((s, d) => s + d.waste, 0); if (w > 1e9) add("dups", "low", `${fmt(w)} in duplicate files`, `${D.dups.length} groups of identical large files.`, [{label:"Review", kind:"scroll", target:"storage"}]); }
+  return out;
+}
+function parseSize(s){ const m = /([\d.]+)\s*([KMGT]?B)/i.exec(s || ""); if (!m) return 0; return parseFloat(m[1]) * ({B:1, KB:1e3, MB:1e6, GB:1e9, TB:1e12}[m[2].toUpperCase()] || 1); }
+function renderHealth(){
+  const el = $("health"); if (!el) return;
+  const sec = idata("security"), up = idata("updates"), br = idata("brew"), repos = idata("repos"), lg = idata("logs"), bat = S && S.hw && S.hw.battery;
+  const cards = [];
+  const card = (view, label, n, d, tone) => cards.push(`<a class="hc" href="#/${view}"><div class="l"><span class="dot" style="background:var(--${tone === "bad" ? "red" : tone === "warn" ? "amber" : tone === "ok" ? "green" : "faint"})"></span>${label}</div><div class="n">${n}</div><div class="d">${d}</div></a>`);
+  if (sec) { const bad = sec.items.filter(i => i.ok === false && i.level !== "info").length; card("security", "Security", sec.score + "/100", bad ? bad + " thing" + (bad > 1 ? "s" : "") + " to fix" : "All protections on", bad ? "warn" : "ok"); }
+  else card("security", "Security", "…", "checking", "");
+  const nUp = (up && up.updates ? up.updates.length : 0), nBr = (br && br.outdated ? br.outdated.length : 0);
+  card("software", "Updates", up || br ? nUp + nBr : "…", up || br ? `${nUp} macOS · ${nBr} Homebrew` : "checking", nUp ? "warn" : "ok");
+  if (repos) { const r = repos.filter(x => x.dirty || x.ahead > 0); card("developer", "Git repos", repos.length, r.length ? r.length + " with unsaved or unpushed work" : "all clean", r.length ? "warn" : "ok"); }
+  if (lg) { const n = lg.crashes.filter(c => Date.now() / 1000 - c.ts < 30 * DAY).length; card("logs", "Crashes (30 days)", n, lg.crash_counts[0] ? "most: " + esc(lg.crash_counts[0][0]) : "none", n > 5 ? "warn" : "ok"); }
+  if (bat && bat.health != null) card("hardware", "Battery health", Math.round(bat.health) + "%", bat.cycles + " cycles", bat.health < 80 ? "warn" : "ok");
+  if (D) { const safe = tierSum("safe"); card("storage", "Cleanable now", fmt(safe), "safe caches & build output", safe > 10e9 ? "warn" : "ok"); }
+  el.innerHTML = cards.join("");
+}
+function renderBadges(){
+  const set = (v, n, tone) => { const b = $("b-" + v); if (!b) return; b.textContent = n || ""; b.className = "badge " + (n ? "on " + tone : ""); };
+  const sec = idata("security"); set("security", sec ? sec.items.filter(i => i.ok === false && i.level === "bad").length : 0, "bad");
+  const up = idata("updates"), br = idata("brew"); set("software", (up && up.updates ? up.updates.length : 0) + (br && br.outdated ? br.outdated.length : 0), "warn");
+  const repos = idata("repos"); set("developer", repos ? repos.filter(r => r.ahead > 0).length : 0, "warn");
+  if (S) set("overview", S.suggestions.concat(infoSuggestions()).filter(x => x.sev === "high" && !(dismissed[x.id] > Date.now())).length, "bad");
+}
+
+// ---------- Processes ----------
+let PROCS = [], pSort = "cpu", pDir = -1, pScope = "all", pOpen = new Set();
+async function loadProcs(){ try { const r = await fetch(api("/api/procs")); PROCS = (await r.json()).procs; renderProcs(); } catch(e){} }
+function renderProcs(){
+  const q = ($("psearch").value || "").toLowerCase();
+  let list = PROCS.filter(p => pScope === "all" || (pScope === "mine" ? p.mine : !p.mine));
+  if (q) list = list.filter(p => (p.name + " " + (p.app || "") + " " + p.pid + " " + p.user + " " + p.cmd).toLowerCase().includes(q));
+  list.sort((a, b) => { const x = a[pSort], y = b[pSort]; return (typeof x === "string" ? String(x).localeCompare(y) : (x || 0) - (y || 0)) * pDir; });
+  const tot = list.reduce((s, p) => s + p.cpu, 0), mem = list.reduce((s, p) => s + p.mem, 0);
+  $("procs-sub").textContent = `${list.length} of ${PROCS.length} processes · ${tot.toFixed(0)}% CPU · ${fmt(mem)} memory`;
+  const th = (k, l, cls) => `<th class="sortable ${cls || ""} ${pSort === k ? "on" : ""}" data-sort="${k}">${l}${pSort === k ? (pDir < 0 ? " ↓" : " ↑") : ""}</th>`;
+  $("procs").innerHTML = `<table class="t"><thead><tr>${th("name", "Process")}${th("pid", "PID", "num")}${th("user", "User", "hide-n")}${th("cpu", "CPU", "num")}${th("mem", "Memory", "num")}${th("th", "Thr", "num hide-n")}${th("power", "Energy", "num hide-n")}${th("elapsed", "Running", "hide-n")}<th></th></tr></thead><tbody>` +
+    list.slice(0, 400).map(p => `<tr class="click" data-pid="${p.pid}"><td><div class="appn"><div style="min-width:0"><div class="nm">${esc(p.name)}</div>${p.app && p.app !== p.name ? `<div class="sm">${esc(p.app)}</div>` : ""}</div></div></td>
+      <td class="num">${p.pid}</td><td class="hide-n">${esc(p.user)}</td><td class="num">${p.cpu.toFixed(1)}%</td><td class="num">${fmt(p.mem)}</td>
+      <td class="num hide-n">${p.th || ""}</td><td class="num hide-n">${p.power ? p.power.toFixed(1) : ""}</td><td class="hide-n mono" style="font-size:11px">${esc(p.elapsed)}</td>
+      <td>${p.mine ? actBtn({label:"Stop", kind:"kill_pid", pid:p.pid, confirm:`Stop ${p.name}?`}) + " " + actBtn({label:"Kill", kind:"kill_pid", pid:p.pid, force:true, confirm:`Force-kill ${p.name}? Unsaved work is lost.`}) : ""}</td></tr>` +
+      (pOpen.has(p.pid) ? `<tr><td colspan="9" class="wrap mono">${esc(p.cmd)}<br>parent ${p.ppid}</td></tr>` : "")).join("") + `</tbody></table>` +
+    (list.length > 400 ? `<div class="note">Showing the first 400. Use the filter to narrow down.</div>` : "");
+}
+
+// ---------- Security ----------
+const ICON = {ok:"✓", warn:"!", bad:"✕", info:"i", unknown:"?"};
+function ring(score){
+  const r = 22, c = 2 * Math.PI * r, col = score >= 85 ? "var(--green)" : score >= 60 ? "var(--amber)" : "var(--red)";
+  return `<svg class="ring" viewBox="0 0 54 54"><circle cx="27" cy="27" r="${r}" fill="none" stroke="var(--line2)" stroke-width="6"/><circle cx="27" cy="27" r="${r}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${c * score / 100} ${c}" transform="rotate(-90 27 27)"/></svg>`;
+}
+function secHTML(){
+  const d = idata("security"); if (!d) return loading("security", "security checks");
+  return `<div class="score">${ring(d.score)}<div><b>${d.score}</b><span class="sub" style="margin-left:6px">out of 100</span><div class="sub">${d.items.filter(i => i.ok).length} of ${d.items.filter(i => i.ok !== null).length} checks pass</div></div></div>` +
+    d.items.map(i => `<div class="sec-row"><span class="ic2 ${i.level}">${ICON[i.level] || "?"}</span><div style="min-width:0"><div class="t">${esc(i.title)}</div><div class="s">${esc(i.detail)}${!i.ok && i.fix ? `<br><span style="color:var(--text)">Fix:</span> ${esc(i.fix)}` : ""}</div></div>
+      <div class="st">${esc(i.status)}${!i.ok && i.level !== "unknown" ? "<br>" + actBtn({label:"Open", kind:"open_settings", pane: i.id === "sharing" ? "sharing" : i.id === "autoupdate" ? "updates" : i.id === "screenlock" ? "lock" : i.id === "firewall" ? "network" : i.id === "findmy" ? "icloud" : "security"}) : ""}</div></div>`).join("");
+}
+const PORTS = {22:"SSH", 53:"DNS", 80:"HTTP", 88:"Kerberos", 443:"HTTPS", 445:"SMB file sharing", 548:"AFP file sharing", 631:"Printing (CUPS)", 3000:"dev server", 3283:"Remote Management",
+  3689:"Media sharing", 5000:"AirPlay / Control Center", 5173:"Vite", 5432:"PostgreSQL", 5900:"Screen Sharing", 6379:"Redis", 7000:"AirPlay Receiver", 8000:"dev server", 8080:"dev server", 11434:"Ollama", 27017:"MongoDB"};
+function portsHTML(){
+  const d = idata("security"); if (!d) return loading("security", "ports");
+  return `<table class="t"><thead><tr><th>Port</th><th>Usually</th></tr></thead><tbody>${d.listening.map(p => `<tr><td class="mono">${p}</td><td>${esc(PORTS[p] || "")}</td></tr>`).join("")}</tbody></table>`;
+}
+function shareHTML(){
+  const d = idata("security"); if (!d) return loading("security", "sharing services");
+  return (d.sharing.length ? kv(d.sharing.map(x => [x.name, "port " + x.port])) : na("No sharing services are on.")) + `<div class="note">${actBtn({label:"Open Sharing settings", kind:"open_settings", pane:"sharing"})}</div>`;
+}
+
+// ---------- Software ----------
+let appFilter = "all", appSortK = "size";
+function appsHTML(){
+  const a = idata("apps"); if (!a) return loading("apps", "apps (measuring sizes takes a minute)");
+  const now = Date.now() / 1000;
+  let list = a.slice();
+  if (appFilter === "unused") list = list.filter(x => !x.last_used || now - x.last_used > 90 * DAY);
+  if (appFilter === "intel") list = list.filter(x => x.intel_only);
+  if (appFilter === "store") list = list.filter(x => x.appstore);
+  list.sort((x, y) => appSortK === "used" ? (x.last_used || 0) - (y.last_used || 0) : appSortK === "name" ? x.name.localeCompare(y.name) : (y.size || 0) - (x.size || 0));
+  const total = a.reduce((s, x) => s + (x.size || 0), 0), un = unusedApps();
+  $("inv-apps-sub").textContent = `${a.length} apps · ${fmt(total)}${un.length ? ` · ${fmt(un.reduce((s, x) => s + x.size, 0))} in apps unused for 4+ months` : ""}`;
+  const th = (k, l, cls) => `<th class="sortable ${cls || ""} ${appSortK === k ? "on" : ""}" data-asort="${k}">${l}</th>`;
+  return `<table class="t"><thead><tr>${th("name", "App")}<th class="hide-n">Version</th>${th("size", "Size", "num")}${th("used", "Last opened")}<th class="hide-n">Kind</th><th></th></tr></thead><tbody>` + list.map(x => {
+    const age = x.last_used ? Math.floor((now - x.last_used) / DAY) : null;
+    return `<tr><td><div class="appn">${icon({app:x.path, name:x.name})}<div style="min-width:0"><div class="nm">${esc(x.name)}</div><div class="sm mono">${esc(x.id || "")}</div></div></div></td>
+      <td class="hide-n mono" style="font-size:11px">${esc(x.version || "")}</td><td class="num">${x.size ? fmt(x.size) : "…"}</td>
+      <td>${age == null ? '<span class="sub">never / unknown</span>' : age === 0 ? "today" : age + " days ago"}${age != null && age > 120 ? '<span class="tag dup">unused</span>' : ""}</td>
+      <td class="hide-n">${x.intel_only ? '<span class="tag lan" title="Runs under Rosetta">Intel</span>' : ""}${x.appstore ? '<span class="tag">App Store</span>' : ""}${x.apple ? '<span class="tag">Apple</span>' : ""}</td>
+      <td>${actBtn({label:"Show", kind:"reveal", path:x.path})} ${!x.apple ? actBtn({label:"Trash", kind:"trash", path:x.path, confirm:`Move ${x.name} to the Trash?`}) : ""}</td></tr>`;
+  }).join("") + `</tbody></table>`;
+}
+function updHTML(){
+  const up = idata("updates"), br = idata("brew");
+  let h = sub("macOS");
+  h += !up ? loading("updates", "Software Update (can take a minute)") : up.updates.length ? kv(up.updates.map(u => [u.title + " " + u.version, `${esc(u.size)}${u.restart ? " · restart" : ""}`])) + `<div class="note">${actBtn({label:"Open Software Update", kind:"open_settings", pane:"updates"})}</div>`
+    : na("macOS is up to date" + (up.checked ? " (checked " + ago(up.checked) + ")" : "") + ".");
+  h += sub("Homebrew");
+  if (br === null || (INFO.brew && INFO.brew.data === null && INFO.brew.updated)) h += na("Homebrew isn't installed.");
+  else if (!br) h += loading("brew", "Homebrew");
+  else {
+    h += kv([["Installed", `${br.formulae} formulae · ${br.casks} casks`], ["Cache", br.cache_size ? fmt(br.cache_size) : null], ["Version", esc((br.version || [])[0] || "")]]);
+    if (br.outdated.length) h += `<table class="t"><thead><tr><th>Outdated</th><th>Installed</th><th>Latest</th></tr></thead><tbody>${br.outdated.map(o => `<tr><td>${esc(o.name)}${o.kind === "cask" ? '<span class="tag">app</span>' : ""}</td><td class="mono">${esc(o.have)}</td><td class="mono">${esc(o.want)}</td></tr>`).join("")}</tbody></table>`;
+    h += `<div class="note btns">${actBtn({label:"brew update", kind:"task", task:"brew_update"})} ${br.outdated.length ? actBtn({label:`Upgrade ${br.outdated.length}`, kind:"task", task:"brew_upgrade", confirm:"Run brew upgrade?"}) : ""} ${actBtn({label:"Clean cache", kind:"task", task:"brew_cleanup"})}</div>`;
+    if ((br.services || []).length) h += sub("Homebrew services") + kv(br.services.map(x => [x.name, esc(x.status)]));
+  }
+  return h;
+}
+function bgHTML(){
+  const d = idata("background"); if (!d) return loading("background", "background items");
+  let h = "";
+  if (d.login_items) h += sub("Login items") + (d.login_items.length ? `<div class="chipline">${d.login_items.map(x => `<span>${esc(x)}</span>`).join("")}</div>` : na("None.")) ;
+  const rows = d.agents.slice().sort((a, b) => (b.missing - a.missing) || a.scope.localeCompare(b.scope));
+  h += sub(`Launch agents & daemons · ${rows.length}`) + `<table class="t"><tbody>${rows.map(a => `<tr><td><div class="appn"><div style="min-width:0"><div class="nm">${esc(a.label)}</div><div class="sm mono">${esc(a.program || a.file)}</div></div></div></td>
+      <td>${a.missing ? '<span class="tag dup">app missing</span>' : ""}${a.running ? '<span class="tag heavy">running</span>' : a.loaded ? '<span class="tag">loaded</span>' : ""}<span class="tag">${esc(a.scope)}</span></td>
+      <td>${a.removable ? actBtn({label:"Remove", kind:"remove_agent", file:a.file, confirm:"Stop and remove " + a.label + "?"}) : ""}</td></tr>`).join("")}</tbody></table>`;
+  h += `<div class="note">${actBtn({label:"Open Login Items settings", kind:"open_settings", pane:"login"})}</div>`;
+  return h;
+}
+
+// ---------- Developer ----------
+function reposHTML(){
+  const r = idata("repos"); if (!r) return loading("repos", "git repos");
+  if (!r.length) return na("No git repos found in ~/projects, ~/Developer, ~/code, ~/Desktop…");
+  const now = Date.now() / 1000;
+  return `<table class="t"><thead><tr><th>Repo</th><th>Branch</th><th>State</th><th class="num hide-n">Last commit</th></tr></thead><tbody>${r.map(x => `<tr title="${esc(x.path)}${x.last_msg ? " — " + esc(x.last_msg) : ""}">
+    <td><div class="appn"><div style="min-width:0"><div class="nm">${esc(x.name)}</div><div class="sm mono">${esc(x.path)}</div></div></div></td><td class="mono" style="font-size:11px">${esc(x.branch)}</td>
+    <td>${x.dirty ? `<span class="tag dup">${x.dirty} changed</span>` : ""}${x.ahead ? `<span class="tag lan">${x.ahead} unpushed</span>` : ""}${x.behind ? `<span class="tag heavy">${x.behind} behind</span>` : ""}${x.no_upstream ? '<span class="tag">no upstream</span>' : ""}${x.stashes ? `<span class="tag">${x.stashes} stash</span>` : ""}${!x.dirty && !x.ahead && !x.behind && !x.no_upstream ? '<span class="tag" style="color:var(--green)">clean</span>' : ""}</td>
+    <td class="num hide-n">${x.last_commit ? dur(now - x.last_commit) + " ago" : ""}</td></tr>`).join("")}</tbody></table>`;
+}
+function toolsHTML(){
+  const t = idata("tools"); if (!t) return loading("tools", "tool versions");
+  return `<table class="t"><tbody>${t.map(x => `<tr><td><b style="font-weight:550">${esc(x.name)}</b></td><td class="mono">${esc(x.version)}</td><td class="hide-n mono" style="font-size:10.5px;color:var(--faint)">${esc(x.path)}</td></tr>`).join("")}</tbody></table>`;
+}
+function dockerHTML(){
+  const d = idata("docker");
+  if (INFO.docker && INFO.docker.updated && d === null) return na("Docker isn't installed.");
+  if (!d) return loading("docker", "Docker");
+  if (!d.running) return na("Docker is installed but not running.");
+  let h = `<table class="t"><thead><tr><th>Type</th><th class="num">Count</th><th class="num">Size</th><th class="num">Reclaimable</th></tr></thead><tbody>${d.usage.map(u => `<tr><td>${esc(u.Type)}</td><td class="num">${esc(u.TotalCount)} <span class="sub">(${esc(u.Active)} active)</span></td><td class="num">${esc(u.Size)}</td><td class="num">${esc(u.Reclaimable)}</td></tr>`).join("")}</tbody></table>`;
+  h += `<div class="note">${actBtn({label:"Prune unused data", kind:"task", task:"docker_prune", confirm:"Remove stopped containers, unused networks, dangling images and build cache?"})}</div>`;
+  if (d.containers.length) h += sub("Containers") + kv(d.containers.map(c => [c.name, `${esc(c.image)} · ${esc(c.status)}`]));
+  return h;
+}
+function aiHTML(){
+  const m = idata("ollama"), loaded = new Set(((S && S.models) || []).map(x => x.name));
+  if (INFO.ollama && INFO.ollama.updated && m === null) return na("Ollama isn't running.");
+  if (!m) return loading("ollama", "models");
+  const mx = Math.max(...m.map(x => x.size), 1);
+  return m.map(x => hbar(x.name + (loaded.has(x.name) ? " ●" : ""), x.size, mx, fmt(x.size), loaded.has(x.name) ? "var(--m-comp)" : "var(--c1)")).join("") +
+    `<div class="note">${m.length} models, ${fmt(m.reduce((s, x) => s + x.size, 0))} on disk. ● = loaded in memory. Remove with <code class="mono">ollama rm &lt;name&gt;</code>.</div>`;
+}
+let TASK = null;
+const TASKLIST = [["brew_update","Update Homebrew","brew update"],["brew_upgrade","Upgrade Homebrew packages","brew upgrade"],["brew_cleanup","Clean Homebrew cache","brew cleanup -s --prune=all"],
+  ["docker_prune","Prune Docker","docker system prune -f"],["sim_unavailable","Delete old simulators","xcrun simctl delete unavailable"],["repos_fetch","Fetch all git repos","git fetch --all (each repo)"],
+  ["flush_dns","Flush DNS cache","dscacheutil -flushcache"],["qlmanage_reset","Reset Quick Look cache","qlmanage -r cache"]];
+function tasksHTML(){
+  return `<div class="taskgrid">${TASKLIST.map(([k, l, c]) => `<div class="tk"><b>${esc(l)}</b><code>${esc(c)}</code><div>${actBtn({label:"Run", kind:"task", task:k, confirm: k === "docker_prune" || k === "brew_upgrade" ? l + "?" : undefined})}</div></div>`).join("")}</div>` +
+    (TASK ? `<div class="subh">${esc(TASK.title)} ${TASK.done ? (TASK.rc === 0 ? "· finished" : "· exited with " + TASK.rc) : '<span class="spin"></span>'}</div><pre class="out mono" id="taskout">${esc(TASK.out || "")}</pre>` : "");
+}
+
+// ---------- Hardware inventory (generic system_profiler tree) ----------
+const prettyKey = k => k.replace(/^(sp\w+?_|spdisplays_|spnvme_|sppci_|spusb_|_)/, "").replace(/_/g, " ").replace(/^\w/, c => c.toUpperCase());
+const SP_NAMES = {SPHardwareDataType:"Overview", SPSoftwareDataType:"Software", SPNVMeDataType:"SSD (NVMe)", SPStorageDataType:"Volumes", SPMemoryDataType:"Memory",
+  SPDisplaysDataType:"Graphics & displays", SPPowerDataType:"Power", SPBluetoothDataType:"Bluetooth", SPAudioDataType:"Audio", SPCameraDataType:"Cameras",
+  SPThunderboltDataType:"Thunderbolt / USB4", SPUSBDataType:"USB", SPUSBHostDataType:"USB", SPNetworkDataType:"Network services", SPPrintersDataType:"Printers",
+  SPSecureElementDataType:"Secure Element", SPDiagnosticsDataType:"Diagnostics"};
+function tree(x, depth){
+  if (x == null) return "";
+  if (Array.isArray(x)) return x.map(i => tree(i, depth)).join("");
+  if (typeof x !== "object") return esc(String(x));
+  const name = x._name;
+  const scal = Object.entries(x).filter(([k, v]) => k !== "_name" && k !== "_items" && (typeof v !== "object" || v === null));
+  const nest = Object.entries(x).filter(([k, v]) => k !== "_items" && v && typeof v === "object");
+  let h = "";
+  if (name && depth > 0) h += `<b>${esc(prettyKey(String(name)))}</b>`;
+  h += scal.map(([k, v]) => `<div class="kv"><span>${esc(prettyKey(k))}</span><b>${esc(String(v).replace(/^sp\w+?_/, "").replace(/_/g, " "))}</b></div>`).join("");
+  if (depth < 4) h += nest.map(([k, v]) => `<div class="nest"><b>${esc(prettyKey(k))}</b>${tree(v, depth + 1)}</div>`).join("");
+  if (x._items && depth < 4) h += `<div class="nest">${x._items.map(i => tree(i, depth + 1)).join("")}</div>`;
+  return h;
+}
+function invHwHTML(){
+  const d = idata("hardware");
+  if (!d && INFO.hardware && INFO.hardware.updated && !INFO.hardware.busy) return na("System Information didn't return anything.");
+  if (!d) return loading("hardware", "hardware inventory (System Information takes ~30 s)");
+  return `<div class="tree">${Object.entries(d).map(([k, v], i) => `<details ${i === 0 ? "open" : ""}><summary>${esc(SP_NAMES[k] || k)}</summary>${tree(v, 0)}</details>`).join("")}</div>`;
+}
+
+// ---------- Network extras ----------
+function netxHTML(){
+  const d = idata("netx"); if (!d) return loading("netx", "connections");
+  let h = kv([["Computer name", esc(d.hostname)], ["Public IP", d.public_ip ? `<span class="mono">${esc(d.public_ip)}</span>` : '<span class="sub">off — enable in Settings</span>'],
+    ["DNS servers", `<span class="mono">${esc(d.dns.join(", ") || "—")}</span>`], ["Proxy", d.proxy_on ? "On" : "Off"],
+    ["VPN", d.vpn.length ? d.vpn.map(v => esc(v.name) + " · " + esc(v.status)).join(", ") : "none configured"], ["Open connections", d.total_connections]]);
+  if (d.connections.length){ const mx = d.connections[0][1]; h += sub("Connections by app") + d.connections.slice(0, 12).map(([n, c]) => hbar(n, c, mx, c, "var(--c1)")).join(""); }
+  if (d.top_remotes.length) h += sub("Most-connected hosts") + kv(d.top_remotes.slice(0, 8).map(([hst, c]) => [hst, c + " connection" + (c > 1 ? "s" : "")]));
+  h += `<div class="note btns">${actBtn({label:"Flush DNS cache", kind:"task", task:"flush_dns"})} ${actBtn({label:"Network settings", kind:"open_settings", pane:"network"})}</div>`;
+  return h;
+}
+
+// ---------- Logs ----------
+function crashHTML(){
+  const d = idata("logs"); if (!d) return loading("logs", "diagnostic reports");
+  let h = "";
+  if (d.crash_counts.length){ const mx = d.crash_counts[0][1]; h += sub("Most crashes in the last 30 days") + d.crash_counts.map(([a, n]) => hbar(a, n, mx, n, "var(--red)")).join(""); }
+  h += sub("Recent reports") + (d.crashes.length ? `<table class="t"><tbody>${d.crashes.slice(0, 60).map(c => `<tr><td><div class="appn"><div style="min-width:0"><div class="nm">${esc(c.app)}</div><div class="sm mono">${esc(c.file)}</div></div></div></td>
+      <td><span class="tag ${c.kind === "panic" ? "lan" : c.kind === "crash" ? "dup" : ""}">${esc(c.kind)}</span></td><td class="num">${new Date(c.ts * 1000).toLocaleString([], {dateStyle:"short", timeStyle:"short"})}</td><td>${actBtn({label:"Show", kind:"reveal", path:c.file})}</td></tr>`).join("")}</tbody></table>` : na("No crash reports. Nice."));
+  return h;
+}
+function sleepHTML(){
+  const d = idata("logs"); if (!d) return loading("logs", "power events");
+  let h = kv([["Last restarts", esc(d.reboots.slice(0, 3).join(" · ") || "—")], ["Last shutdowns", esc(d.shutdowns.slice(0, 3).join(" · ") || "—")]]);
+  h += sub("Sleep & wake") + (d.sleep.length ? `<table class="t"><tbody>${d.sleep.map(e => `<tr><td class="mono" style="font-size:11px">${esc(e.ts.slice(5, 16))}</td><td><span class="tag ${e.kind === "Wake" ? "heavy" : e.kind === "Sleep" ? "" : "dup"}">${esc(e.kind)}</span></td><td class="wrap" style="white-space:normal">${esc(e.reason)}</td></tr>`).join("")}</tbody></table>` : na("No sleep events recorded."));
+  return h;
+}
+
+// ---------- Storage extras ----------
+function renderBigFiles(){
+  if (!$("bigf") || !D) return;
+  const L = D.large || [];
+  $("bigf").innerHTML = L.length ? `<table class="t"><tbody>${L.slice(0, 80).map(f => `<tr title="${esc(f.p)}"><td><div class="appn"><div style="min-width:0"><div class="nm">${esc(f.p.split("/").pop())}</div><div class="sm mono">${esc(f.p)}</div></div></div></td>
+      <td class="num">${fmt(f.s)}</td><td class="num hide-n sub">${f.age}d</td><td>${actBtn({label:"Show", kind:"reveal", path:f.p})} ${actBtn({label:"Trash", kind:"trash", path:f.p, confirm:"Move to Trash?"})}</td></tr>`).join("")}</tbody></table>` : na("No files over 50 MB found (or the scan hasn't run yet).");
+  const G = D.dups || [];
+  $("dups-sub").textContent = G.length ? `${G.length} group${G.length > 1 ? "s" : ""} · ${fmt(G.reduce((s, g) => s + g.waste, 0))} could be freed` : "Same size and same sampled content. Keep one copy.";
+  $("dups").innerHTML = G.length ? G.map(g => `<div class="bhead"><span><b>${fmt(g.size)}</b> × ${g.files.length} copies</span><span class="sub" style="margin:0">frees ${fmt(g.waste)}</span></div>` +
+      g.files.map((f, i) => `<div class="tab dupr"><span class="fav">${i + 1}</span><div style="min-width:0"><div class="tt mono" style="font-size:11.5px">${esc(f.p)}</div><div class="dm">${i === 0 ? "oldest copy" : f.age + " days old"}</div></div>
+        <span class="btns">${actBtn({label:"Show", kind:"reveal", path:f.p})}${i > 0 ? actBtn({label:"Trash", kind:"trash", path:f.p, confirm:"Move this copy to Trash?"}) : ""}</span></div>`).join("")).join("")
+    : na("No duplicate large files found.");
+}
+
+// ---------- History charts ----------
+let HIST = null;
+async function loadHistory(){
+  try { const r = await fetch(api("/api/history?range=" + histRange)); HIST = await r.json(); renderHistory(); } catch(e){ console.error(e); }
+}
+const CHARTS = [
+  {k:"cpu", t:"CPU", unit:"%", max:100, f:v => v.toFixed(0) + "%"},
+  {k:"mem_pct", t:"Memory used", unit:"%", max:100, f:v => v.toFixed(0) + "%"},
+  {k:"temp", t:"CPU temperature", f:v => v.toFixed(0) + " °C"},
+  {k:"power", t:"System power", f:v => v.toFixed(1) + " W", extra:[["cpu_w", "CPU"], ["gpu_w", "GPU"]]},
+  {k:"gpu", t:"GPU", max:100, f:v => v.toFixed(0) + "%"},
+  {k:"net_down", t:"Network", f:v => rate(v), two:["net_up", "Upload"], name:"Download"},
+  {k:"io_read", t:"Disk activity", f:v => rate(v), two:["io_write", "Write"], name:"Read"},
+  {k:"battery", t:"Battery", max:100, f:v => v.toFixed(0) + "%"},
+  {k:"disk_free", t:"Free disk space", f:v => fmt(v)},
+  {k:"swap", t:"Swap used", f:v => fmt(v)},
+  {k:"ping", t:"Internet latency", f:v => v.toFixed(0) + " ms"},
+];
+function renderHistory(){
+  const H = HIST; if (!H) return;
+  const t = H.series.t || [];
+  $("hist-sub").textContent = t.length ? `${t.length} points · recording since ${new Date((H.first || t[0]) * 1000).toLocaleString([], {dateStyle:"medium", timeStyle:"short"})}` : "Recording just started. Charts fill in as data comes in (every 10 seconds).";
+  $("charts").innerHTML = CHARTS.map((c, i) => {
+    const series = c.extra ? [[c.k, "Total", "var(--c1)"]].concat(c.extra.map(([k, n], j) => [k, n, j === 0 ? "var(--c2)" : "var(--faint)"]))
+                 : c.two ? [[c.k, c.name, "var(--c1)"], [c.two[0], c.two[1], "var(--c2)"]] : [[c.k, c.t, "var(--c1)"]];
+    const has = (H.series[c.k] || []).some(v => v != null);
+    if (!has && i > 1) return "";
+    const last = (H.series[c.k] || []).filter(v => v != null).pop();
+    return `<section class="card chart" data-i="${i}"><div class="ct"><h3>${esc(c.t)}</h3><span class="now">${last != null ? "now <b>" + c.f(last) + "</b>" : ""}</span></div>
+      ${series.length > 1 ? `<div class="lg">${series.map(s => `<span><i style="background:${s[2]}"></i>${esc(s[1])}</span>`).join("")}</div>` : ""}
+      ${has ? `<svg data-i="${i}"></svg>` : `<div class="empty2">No data yet</div>`}</section>`;
+  }).join("");
+  $("charts").querySelectorAll("svg[data-i]").forEach(svg => drawChart(svg, CHARTS[+svg.dataset.i]));
+  const A = H.apps || [];
+  $("hist-apps").innerHTML = A.length ? `<table class="t"><thead><tr><th>App</th><th class="num">Avg CPU</th><th class="num">Peak</th><th class="num">Avg memory</th><th class="num" title="Average energy impact over the period">Energy</th><th class="num hide-n">Minutes</th></tr></thead><tbody>${A.map(a => `<tr class="drill" data-app="${esc(a.name)}"><td>${esc(a.name)}</td><td class="num">${a.cpu_avg.toFixed(1)}%</td><td class="num">${a.cpu_max.toFixed(0)}%</td><td class="num">${fmt(a.mem_avg)}</td><td class="num">${(a.energy || 0).toFixed(1)}</td><td class="num hide-n">${a.minutes}</td></tr>`).join("")}</tbody></table><div class="note">Click an app for its own history.</div>` : na("No app history yet. It's recorded once a minute.");
+  $("hist-ev").innerHTML = (H.events || []).length ? kv(H.events.map(e => [new Date(e.ts * 1000).toLocaleString([], {dateStyle:"short", timeStyle:"short"}), `<span class="tag">${esc(e.kind)}</span> ${esc(e.text)}`])) : na("No alerts or cleanups in this period.");
+}
+function lineChart(svg, T, series, f, opt){
+  opt = opt || {};
+  const W = svg.clientWidth || 500, Hh = opt.h || 150, pl = 44, pr = 8, pt = 6, pb = 18;
+  const vals = series.flatMap(s => (s.v || []).filter(v => v != null));
+  if (!vals.length || T.length < 2){ svg.outerHTML = `<div class="empty2" style="height:${Hh}px">No data yet</div>`; return; }
+  let mn = opt.min != null ? opt.min : 0, mx = opt.max || Math.max(...vals, 1e-9) * 1.1;
+  if (opt.tight){ mn = Math.min(...vals) * 0.97; mx = Math.max(...vals) * 1.02 + 1e-9; }
+  if (mx - mn < 1e-9) mx = mn + 1;
+  const x = i => pl + (T[i] - T[0]) / Math.max(1, T[T.length - 1] - T[0]) * (W - pl - pr);
+  const y = v => pt + (1 - (v - mn) / (mx - mn)) * (Hh - pt - pb);
+  const ticks = [mn, (mn + mx) / 2, mx];
+  let g = `<g class="grid">${ticks.map(v => `<line x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}"/>`).join("")}</g>`;
+  g += `<g class="ax">${ticks.map(v => `<text x="${pl - 6}" y="${y(v) + 3}" text-anchor="end">${esc(f(v))}</text>`).join("")}`;
+  const span = T[T.length - 1] - T[0];
+  for (let k = 0; k <= 3; k++){ const tt = T[0] + span * k / 3, d = new Date(tt * 1000);
+    const lab = span > 2 * 86400 ? d.toLocaleDateString([], {month:"short", day:"numeric"}) : d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+    g += `<text x="${pl + (W - pl - pr) * k / 3}" y="${Hh - 3}" text-anchor="${k === 0 ? "start" : k === 3 ? "end" : "middle"}">${esc(lab)}</text>`; }
+  g += `</g>`;
+  series.forEach((sr, si) => {
+    const segs = []; let cur = null;
+    (sr.v || []).forEach((val, i) => { if (val == null){ cur = null; return; } if (!cur){ cur = []; segs.push(cur); } cur.push([x(i), y(val)]); });
+    const line = sg => "M" + sg.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L");
+    if (si === 0 && series.length === 1) segs.forEach(sg => { g += `<path class="ar" fill="${sr.c}" d="${line(sg)} L${sg[sg.length - 1][0]} ${y(mn)} L${sg[0][0]} ${y(mn)} Z"/>`; });
+    g += `<path class="ln" stroke="${sr.c}" d="${segs.map(line).join(" ")}"/>`;
+  });
+  g += `<line class="xh" y1="${pt}" y2="${Hh - pb}" x1="-10" x2="-10"/><g class="dots"></g><rect x="${pl}" y="0" width="${W - pl - pr}" height="${Hh}" fill="transparent"/>`;
+  svg.setAttribute("viewBox", `0 0 ${W} ${Hh}`); svg.innerHTML = g;
+  const xh = svg.querySelector(".xh"), dots = svg.querySelector(".dots");
+  svg.onmousemove = e => {
+    const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * W / r.width;
+    const tx0 = T[0] + (px - pl) / (W - pl - pr) * span;
+    let i = 0, best = Infinity; for (let j = 0; j < T.length; j++){ const dd = Math.abs(T[j] - tx0); if (dd < best){ best = dd; i = j; } }
+    xh.setAttribute("x1", x(i)); xh.setAttribute("x2", x(i));
+    dots.innerHTML = series.map(sr => { const v = (sr.v || [])[i]; return v == null ? "" : `<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="${sr.c}" stroke="var(--panel)" stroke-width="2"/>`; }).join("");
+    tip.innerHTML = `<b>${new Date(T[i] * 1000).toLocaleString([], {dateStyle:"medium", timeStyle:"short"})}</b>` + series.map(sr => { const v = (sr.v || [])[i], m = (sr.max || [])[i];
+      return v == null ? "" : `<div>${esc(sr.n)}: <span class="mono">${f(v)}</span>${m != null && opt.bucket > 10 && Math.abs(m - v) > 1e-6 ? ` <span style="opacity:.6">peak ${f(m)}</span>` : ""}</div>`; }).join("") || "<div>No data (asleep or not running)</div>";
+    tip.style.opacity = 1; const tw = tip.offsetWidth; let tx = e.clientX + 14; if (tx + tw > innerWidth - 8) tx = e.clientX - tw - 14;
+    tip.style.left = tx + "px"; tip.style.top = (e.clientY + 14) + "px";
+  };
+  svg.onmouseleave = () => { hideTip(); xh.setAttribute("x1", -10); xh.setAttribute("x2", -10); dots.innerHTML = ""; };
+}
+function drawChart(svg, c){
+  const H = HIST;
+  const defs = c.extra ? [[c.k, "Total", "var(--c1)"]].concat(c.extra.map(([k, n], j) => [k, n, j === 0 ? "var(--c2)" : "var(--faint)"]))
+             : c.two ? [[c.k, c.name, "var(--c1)"], [c.two[0], c.two[1], "var(--c2)"]] : [[c.k, c.t, "var(--c1)"]];
+  lineChart(svg, H.series.t, defs.map(([k, n, col]) => ({n, c: col, v: H.series[k], max: H.series[k + "_max"]})), c.f,
+    {max: c.max, tight: c.k === "disk_free" || c.k === "temp", bucket: H.bucket});
+}
+
+// ---------- App drill-down ----------
+let APPM = null, appRange = "24h";
+async function openApp(name){
+  APPM = {name}; $("appmodal").classList.add("on");
+  renderAppModal();
+  try { APPM.h = await (await fetch(api(`/api/apphistory?name=${encodeURIComponent(name)}&range=${appRange}`))).json(); } catch(e){ APPM.h = {t: []}; }
+  renderAppModal();
+}
+function renderAppModal(){
+  if (!APPM) return;
+  const live = S && S.apps.find(a => a.name === APPM.name), h = APPM.h, st = h && h.stats || {};
+  const acts = [];
+  if (live && !live.protected && live.kind === "app") acts.push(actBtn({label:"Quit", kind:"quit_app", app:live.app, confirm:`Quit ${live.name}?`}, "dark"));
+  if (live && live.app) acts.push(actBtn({label:"Show in Finder", kind:"reveal", path:live.app}));
+  $("appm").innerHTML = `<div class="head">${live ? icon(live) : `<span class="ic">${esc(APPM.name[0] || "?")}</span>`}
+      <div style="flex:1;min-width:0"><h3>${esc(APPM.name)}</h3><div class="sub">${live ? `Running · ${live.n} process${live.n > 1 ? "es" : ""} · ${live.cpu.toFixed(1)}% CPU · ${fmt(live.mem)}${live.th ? " · " + live.th + " threads" : ""}${live.explain ? " · " + esc(live.explain) : ""}` : "Not running right now"}</div></div>
+      <div class="seg" id="apprange">${["1h","6h","24h","7d","30d"].map(r => `<button data-v="${r}" class="${r === appRange ? "on" : ""}">${r}</button>`).join("")}</div>
+      <div class="btns">${acts.join("")}</div><button class="btn" data-act="close">Close</button></div>
+    ${h && h.t ? `<div class="minis">${[["Avg CPU", st.cpu_avg != null ? st.cpu_avg.toFixed(1) + "%" : "–"], ["Peak CPU", st.cpu_max != null ? st.cpu_max.toFixed(0) + "%" : "–"],
+        ["Avg memory", st.mem_avg ? fmt(st.mem_avg) : "–"], ["Peak memory", st.mem_max ? fmt(st.mem_max) : "–"], ["Avg energy", st.energy_avg != null ? st.energy_avg.toFixed(1) : "–"], ["Minutes seen", st.minutes || 0]]
+        .map(([l, v]) => `<div class="mini"><div class="l">${l}</div><div class="n">${v}</div></div>`).join("")}</div>
+      <div class="charts"><section class="chart"><div class="ct"><h3>CPU</h3></div><svg id="ac-cpu"></svg></section>
+        <section class="chart"><div class="ct"><h3>Memory</h3></div><svg id="ac-mem"></svg></section>
+        <section class="chart"><div class="ct"><h3>Energy impact</h3></div><svg id="ac-en"></svg></section></div>` : `<div class="loading"><span class="spin"></span> Loading history…</div>`}`;
+  if (h && h.t){
+    lineChart($("ac-cpu"), h.t, [{n:"CPU", c:"var(--c1)", v:h.cpu}], v => v.toFixed(0) + "%", {h:120});
+    lineChart($("ac-mem"), h.t, [{n:"Memory", c:"var(--c1)", v:h.mem}], v => fmt(v), {h:120});
+    lineChart($("ac-en"), h.t, [{n:"Energy", c:"var(--c2)", v:h.energy}], v => v.toFixed(1), {h:120});
+  }
+  const seg = $("apprange"); if (seg) seg.onclick = e => { const b = e.target.closest("button"); if (!b) return; appRange = b.dataset.v; APPM.h = null; openApp(APPM.name); };
+}
+document.addEventListener("click", e => {
+  const tr = e.target.closest("tr.drill");
+  if (tr && !e.target.closest(".act") && !e.target.closest("button")) openApp(tr.dataset.app);
+});
+
+// ---------- Diagnostics ----------
+let DIAG = null;
+async function loadDiag(){ try { DIAG = await (await fetch(api("/api/diag"))).json(); renderDiag(); } catch(e){ console.error(e); } }
+function renderDiag(){
+  const d = DIAG; if (!d) { $("diag").innerHTML = loading("x", "checks"); return; }
+  const lab = {ok:"✓", warn:"!", fail:"✕", info:"i", unknown:"?"};
+  const lvl = {ok:"ok", warn:"warn", fail:"bad", info:"info", unknown:"unknown"};
+  const groups = [...new Set(d.checks.map(c => c.group))];
+  const c = d.counts || {};
+  let h = `<div class="diag-sum"><span class="pill normal">${c.ok || 0} OK</span>${c.warn ? `<span class="pill warning">${c.warn} to fix</span>` : ""}${c.fail ? `<span class="pill fail">${c.fail} failing</span>` : ""}${c.unknown ? `<span class="pill unknown">${c.unknown} not tested</span>` : ""}<span class="sub" style="margin:0 0 0 auto">checked ${new Date(d.t * 1000).toLocaleTimeString()}</span></div>`;
+  h += groups.map(g => sub(g) + d.checks.filter(x => x.group === g).map(x => `<div class="sec-row"><span class="ic2 ${lvl[x.status]}">${lab[x.status] || "?"}</span>
+      <div style="min-width:0"><div class="t">${esc(x.title)}</div><div class="s">${esc(x.detail || "")}</div></div>
+      <div class="st">${x.fix ? actBtn(x.fix) : ""}</div></div>`).join("")).join("");
+  h += sub("Server log (most recent last)") + (d.errors.length ? `<div class="errlog mono">${d.errors.map(e => esc(new Date(e.t * 1000).toLocaleTimeString() + "  " + e.msg)).join("\n")}</div>` : na("None."));
+  $("diag").innerHTML = h;
+  $("b-diagnostics") && (() => { const n = (c.warn || 0) + (c.fail || 0); const b = $("b-diagnostics"); b.textContent = n || ""; b.className = "badge " + (n ? "on " + (c.fail ? "bad" : "warn") : ""); })();
+}
+if (LIVE){
+  $("diag-run").onclick = loadDiag;
+  $("diag-copy").onclick = async () => {
+    if (!DIAG) return;
+    const txt = "diskmap diagnostics\n" + DIAG.checks.map(x => `[${x.status}] ${x.group} / ${x.title}: ${x.detail}`).join("\n") +
+      "\n\nRecent errors:\n" + DIAG.errors.map(e => e.msg).join("\n");
+    toast(await copy(txt) ? "Report copied. Paste it to Claude if something looks wrong." : "Couldn't copy.");
+  };
+}
+
+// ---------- ⌘K command bar ----------
+let CMDS = [], cmdSel = 0;
+function buildCommands(){
+  const out = [];
+  const nav = (v, l) => out.push({g:"Go to", t:l, run: () => { location.hash = "#/" + v; }});
+  VIEWS.forEach(([v, l]) => nav(v, l));
+  const A = (t, g, a, danger) => out.push({g, t, a, danger});
+  A("Rescan disk", "Disk", {kind:"rescan"});
+  if (D) { const safe = recs.filter(r => r.tier === "safe"); if (safe.length) out.push({g:"Disk", t:`Clean all safe items (${fmt(tierSum("safe"))})`, danger:true, run: async () => {
+      const items = []; safe.forEach(r => r.items.forEach((_, i) => items.push([r.id, i])));
+      try { toast(esc(await post({kind:"clean", items, scan_id:D.scan_id}))); } catch(e){ toast("⚠︎ " + esc(e.message)); } }}); }
+  if (S){
+    S.apps.filter(a => !a.protected && a.kind === "app").slice(0, 40).forEach(a => A(`Quit ${a.name}  ·  ${fmt(a.mem)}`, "Apps", {kind:"quit_app", app:a.app}, true));
+    S.apps.slice(0, 60).forEach(a => out.push({g:"App history", t:`${a.name} history`, run: () => openApp(a.name)}));
+    (S.listeners || []).filter(l => !l.app).forEach(l => A(`Stop ${l.cmd} on :${l.ports.join(", :")}${l.cwd ? "  ·  " + l.cwd : ""}`, "Ports", {kind:"stop_pid", pid:l.pid}, true));
+    (S.models || []).forEach(m => A(`Unload ${m.name}  ·  ${fmt(m.size)}`, "Models", {kind:"unload_model", model:m.name}));
+    Object.entries(S.tabs || {}).forEach(([b, info]) => { const d = (info.tabs || []).filter(t => t.dup); if (d.length) A(`Close ${d.length} duplicate tabs in ${b}`, "Tabs", {kind:"close_tabs", browser:b, tabs:d.map(t => ({win:t.win, id:t.id, url:t.url}))}); });
+  }
+  TASKLIST.forEach(([k, l]) => A(l, "Tasks", {kind:"task", task:k}, k === "docker_prune" || k === "brew_upgrade"));
+  A("Compact Cursor & VS Code databases", "Tasks", {kind:"task", task:"cursor_vacuum"});
+  [["fda","Full Disk Access settings"],["automation","Automation settings"],["notifications","Notification settings"],["storage","Storage settings"],["login","Login Items settings"],["updates","Software Update"],["security","Privacy & Security"]]
+    .forEach(([p, l]) => A("Open " + l, "System Settings", {kind:"open_settings", pane:p}));
+  ["Activity Monitor","Console","Disk Utility","System Information"].forEach(x => A("Open " + x, "Apps", {kind:"open_app", app:x}));
+  A("Send a test notification", "diskmap", {kind:"notify_test"});
+  if (window.DM_cmds) try { out.push(...window.DM_cmds()); } catch(e){}
+  return out;
+}
+function openCmdk(){
+  if (!LIVE || RO) return;
+  CMDS = buildCommands(); cmdSel = 0;
+  $("cmdk").classList.add("on"); $("cmdk-in").value = ""; renderCmdk(); setTimeout(() => $("cmdk-in").focus(), 0);
+}
+function closeCmdk(){ $("cmdk").classList.remove("on"); }
+function cmdMatches(){
+  const q = $("cmdk-in").value.toLowerCase().trim();
+  if (!q) return CMDS.filter(c => c.g !== "App history").slice(0, 60);
+  const words = q.split(/\s+/);
+  return CMDS.filter(c => { const h = (c.t + " " + c.g).toLowerCase(); return words.every(w => h.includes(w)); }).slice(0, 60);
+}
+function renderCmdk(){
+  const list = cmdMatches(); cmdSel = Math.min(cmdSel, Math.max(0, list.length - 1));
+  $("cmdk-res").innerHTML = list.length ? list.map((c, i) => `<div class="it2 ${i === cmdSel ? "on" : ""}" data-i="${i}"><span class="${c.danger ? "" : ""}">${esc(c.t)}</span><span class="g">${esc(c.g)}</span></div>`).join("")
+    : `<div class="note">No matches.</div>`;
+  const el = $("cmdk-res").querySelector(".it2.on"); if (el) el.scrollIntoView({block:"nearest"});
+}
+let cmdArmed = null;
+async function runCmd(c){
+  if (!c) return;
+  if (c.danger && cmdArmed !== c){ cmdArmed = c; toast("Press Enter again to confirm: " + esc(c.t), 3500); return; }
+  cmdArmed = null; closeCmdk();
+  if (c.run) return c.run();
+  try { toast(esc(await post(c.a))); } catch(e){ toast("⚠︎ " + esc(e.message), 7000); }
+}
+if (LIVE){
+  document.body.insertAdjacentHTML("beforeend", `<div class="cmdk" id="cmdk"><div class="box"><input id="cmdk-in" placeholder="Type a command: quit, clean, port, unload, go to…" autocomplete="off" spellcheck="false">
+    <div class="res" id="cmdk-res"></div><div class="hint"><span><span class="kbd">↑↓</span> choose</span><span><span class="kbd">↵</span> run</span><span><span class="kbd">esc</span> close</span></div></div></div>
+    <div class="modal appmodal" id="appmodal"><div class="card" id="appm"></div></div>`);
+  $("cmdk-btn").onclick = openCmdk;
+  $("cmdk").addEventListener("click", e => { if (e.target.id === "cmdk") closeCmdk(); const it = e.target.closest(".it2"); if (it) runCmd(cmdMatches()[+it.dataset.i]); });
+  $("cmdk-in").addEventListener("input", () => { cmdSel = 0; cmdArmed = null; renderCmdk(); });
+  $("cmdk-in").addEventListener("keydown", e => {
+    if (e.key === "ArrowDown"){ cmdSel++; renderCmdk(); e.preventDefault(); }
+    else if (e.key === "ArrowUp"){ cmdSel = Math.max(0, cmdSel - 1); renderCmdk(); e.preventDefault(); }
+    else if (e.key === "Enter"){ runCmd(cmdMatches()[cmdSel]); e.preventDefault(); }
+    else if (e.key === "Escape"){ closeCmdk(); }
+  });
+  document.addEventListener("keydown", e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k"){ e.preventDefault(); $("cmdk").classList.contains("on") ? closeCmdk() : openCmdk(); }
+    if (e.key === "Escape"){ $("appmodal").classList.remove("on"); APPM = null; }
+  });
+  $("appmodal").addEventListener("click", e => { if (e.target.id === "appmodal" || e.target.dataset.act === "close"){ $("appmodal").classList.remove("on"); APPM = null; } });
+}
+
+// ---------- Settings ----------
+let SET = null;
+async function loadSettings(){ try { SET = await (await fetch(api("/api/settings"))).json(); renderSettings(); } catch(e){} }
+function renderSettings(){
+  const s = SET; if (!s) return;
+  const tg = (k, l, d) => `<div class="frow"><div><div>${l}</div><div class="fs">${d}</div></div><input type="checkbox" class="tgl" data-set="${k}" ${s[k] ? "checked" : ""} ${RO ? "disabled" : ""}></div>`;
+  const nm = (k, l, d, unit) => `<div class="frow"><div><div>${l}</div><div class="fs">${d}</div></div><span><input type="number" data-set="${k}" value="${s[k]}" ${RO ? "disabled" : ""}> <span class="sub">${unit}</span></span></div>`;
+  $("settings").innerHTML = `<div class="form"><div class="subh" style="padding-left:0">Notifications</div>
+    ${tg("notify", "Notifications", "Alert me when something below happens, at most once every 30 minutes per alert.")}
+    ${nm("notify_temp", "Hot CPU", "When the hottest CPU sensor stays above this.", "°C")}
+    ${nm("notify_disk_gb", "Low disk space", "When free space drops below this.", "GB")}
+    ${nm("notify_battery", "Low battery", "On battery at or below this.", "%")}
+    ${tg("notify_pressure", "Critical memory pressure", "When macOS reports critical memory pressure.")}
+    ${tg("notify_swap", "Heavy swapping", "When the Mac is writing lots of memory to disk.")}
+    ${tg("notify_hog", "Runaway apps", "When a background app uses over 150% CPU for a few minutes (with a Quit button).")}
+    ${tg("notify_crash", "Crashes", "When an app crashes, hangs, or the Mac panics.")}
+    ${tg("notify_done", "Finished jobs", "When a cleanup, scan or maintenance task finishes.")}
+    <div class="subh" style="padding-left:0;margin-top:10px">Autopilot (off unless you turn it on)</div>
+    ${tg("auto_clean", "Weekly cleanup", "Clears everything in Safe to remove when plugged in and the Mac is quiet: first within a few minutes of turning this on, then weekly." + (s.last_auto_clean ? " Last run " + new Date(s.last_auto_clean * 1000).toLocaleDateString() + "." : ""))}
+    ${tg("auto_models", "Unload AI models under memory pressure", "Unloads Ollama models after a minute of memory pressure. They reload on next use.")}
+    ${tg("auto_tabs", "Close duplicate tabs under memory pressure", "Keeps the first copy of each page. Reads tabs in the background to do this.")}
+    <div class="subh" style="padding-left:0;margin-top:10px">General</div>
+    ${nm("idle_interval", "Sample every … when hidden", "How often to measure while no window is open. History still records.", "s")}
+    ${tg("public_ip", "Show public IP", "Looks up your public address via api.ipify.org once a minute.")}
+    ${nm("history_days", "Keep history for", "Older samples are deleted. Takes effect after restart.", "days")}
+    <div class="frow"><div><div>Data folder</div><div class="fs">History database ${fmt(s.history_size || 0)} · settings.json</div></div><span class="mono sub">${esc(s.data_dir)}</span></div>
+    <div class="frow"><div><div>Test</div><div class="fs">Make sure notifications reach you.</div></div>${actBtn({label:"Send test notification", kind:"notify_test"})}</div></div>`;
+}
+document.addEventListener("change", async e => {
+  const el = e.target.closest("[data-set]"); if (!el || RO) return;
+  const v = el.type === "checkbox" ? el.checked : Number(el.value);
+  try { toast(esc(await post({kind:"settings", values:{[el.dataset.set]: v}}))); } catch(err){ toast("⚠︎ " + esc(err.message)); }
+});
+
+// ---------- delegated UI events for new views ----------
+document.addEventListener("click", e => {
+  const s1 = e.target.closest("[data-sort]");
+  if (s1){ const k = s1.dataset.sort; pDir = pSort === k ? -pDir : (k === "name" || k === "user" ? 1 : -1); pSort = k; renderProcs(); return; }
+  const s2 = e.target.closest("[data-asort]");
+  if (s2){ appSortK = s2.dataset.asort; renderInfo(["apps"]); return; }
+  const tr = e.target.closest("tr[data-pid]");
+  if (tr && !e.target.closest(".act")){ const pid = +tr.dataset.pid; pOpen.has(pid) ? pOpen.delete(pid) : pOpen.add(pid); renderProcs(); }
+});
+const segWire = (id, fn) => { const el = $(id); if (el) el.onclick = e => { const b = e.target.closest("button"); if (!b) return; el.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); fn(b.dataset.v); }; };
+if (LIVE){
+  segWire("pscope", v => { pScope = v; renderProcs(); });
+  segWire("appfilter", v => { appFilter = v; renderInfo(["apps"]); });
+  segWire("hrange", v => { histRange = v; loadHistory(); });
+  $("psearch").addEventListener("input", renderProcs);
+  window.addEventListener("resize", () => { if (curView === "history" && HIST) renderHistory(); });
+}
+
+// ---------- theme (light / dark / system) ----------
+const THEME_RULES = [];
+for (const sh of document.styleSheets){ try { for (const r of sh.cssRules){ if (r.media && /prefers-color-scheme:\s*dark/.test(r.media.mediaText)) THEME_RULES.push([r, r.media.mediaText]); } } catch(e){} }
+function applyTheme(t){
+  THEME_RULES.forEach(([r, orig]) => { r.media.mediaText = t === "dark" ? "all" : t === "light" ? "not all" : orig; });
+  document.documentElement.dataset.theme = t;
+  document.querySelectorAll("#theme button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
+  try { localStorage.setItem("dm-theme", t); } catch(e){}
+  try { window.webkit && window.webkit.messageHandlers.diskmap && window.webkit.messageHandlers.diskmap.postMessage({theme: t}); } catch(e){}
+  window.dispatchEvent(new Event("dm-theme"));
+}
+let theme0 = "auto"; try { theme0 = localStorage.getItem("dm-theme") || "auto"; } catch(e){}
+if (LIVE && LIVE.prefs && LIVE.prefs.ui_theme) theme0 = LIVE.prefs.ui_theme;
+applyTheme(theme0);
+const setTheme = t => { applyTheme(t); if (window.DM && window.DM.savePref) window.DM.savePref("ui_theme", t); };
+if ($("theme")) $("theme").onclick = e => { const b = e.target.closest("button"); if (b) setTheme(b.dataset.t); };
+window.__dmTheme = setTheme;
+
+// shared helpers for the home page module
+window.DM = {fmt, esc, actBtn, post, api, toast, icon, dur, ago, rate, spark, kv, hbar, na,
+  get S(){ return S; }, get D(){ return D; }, info: n => idata(n), get INFO(){ return INFO; },
+  tierSum: t => D ? tierSum(t) : 0, suggestions: () => S ? S.suggestions.concat(infoSuggestions()).filter(x => !(dismissed[x.id] > Date.now())) : [],
+  go: v => { location.hash = "#/" + v; }, openApp: n => openApp(n), prefs: (LIVE && LIVE.prefs) || {},
+  savePref: (k, v) => { if (!LIVE || RO) return; fetch("/api/action", {method:"POST", headers:{"Content-Type":"application/json","X-Token":LIVE.token}, body:JSON.stringify({kind:"settings", values:{[k]: v}})}).catch(() => {}); }, loadInfo: n => loadInfo(n), get view(){ return curView; }};
+
+// ---------- boot ----------
+let scanStatus = {};
+if (D) loadDisk(D);
+if (LIVE){
+  if (!D) $("disk").innerHTML = `<div class="card empty" id="disk-wait"><span class="spin"></span>&nbsp; Mapping your disk for the first time. This takes a couple of minutes; everything above is already live.</div>`;
+  let lastRev = -1;
+  async function fetchDisk(){
+    const r = await fetch(api("/api/disk")); const j = await r.json();
+    if (j.pending) return;
+    if (j.rev === lastRev) return;
+    lastRev = j.rev; loadDisk(j);
+  }
+  let es = null;
+  window.__dmPause = () => { if (es){ es.close(); es = null; } };
+  window.__dmResume = () => { if (!es) connect(); };
+  window.__dmGo = v => { location.hash = "#/" + v; };
+  function connect(){
+    es = new EventSource(api("/api/events"));
+    es.addEventListener("live", e => { try { renderLive(JSON.parse(e.data)); } catch(err){ console.error(err); } });
+    es.addEventListener("scan", e => {
+      scanStatus = JSON.parse(e.data);
+      if (scanStatus.has_data && lastRev !== scanStatus.rev) fetchDisk();
+      if (!D && scanStatus.scanning && $("disk-wait")) $("disk-wait").innerHTML = `<span class="spin"></span>&nbsp; Mapping your disk · ${scanStatus.scanning.files.toLocaleString()} files · <span class="mono">${esc(String(scanStatus.scanning.path).slice(-60))}</span>`;
+      if (D) renderMeta();
+    });
+    es.addEventListener("disk", () => fetchDisk());
+    es.addEventListener("info", e => {
+      const d = JSON.parse(e.data);
+      INFO[d.section] = Object.assign(INFO[d.section] || {}, {busy: d.busy});
+      if (!d.busy && ((VIEW_INFO[curView] || []).includes(d.section) || VIEW_INFO.overview.includes(d.section))) loadInfo([d.section]);
+    });
+    es.addEventListener("note", e => {
+      const n = JSON.parse(e.data);
+      if (!window.__dmApp) toast(`<b>${esc(n.title)}</b>${n.body ? " · " + esc(n.body) : ""}`, 7000);
+    });
+    es.addEventListener("task", e => {
+      const t = JSON.parse(e.data), was = TASK && !TASK.done;
+      TASK = t;
+      if (curView === "developer"){ $("tasks").innerHTML = tasksHTML(); const o = $("taskout"); if (o) o.scrollTop = o.scrollHeight; }
+      else if (!t.done) toast(`<span class="spin"></span>&nbsp; ${esc(t.title)}… <a href="#/developer" style="color:inherit">output</a>`, 4000);
+      if (t.done && was) toast(`${esc(t.title)} ${t.rc === 0 ? "finished" : "failed (exit " + t.rc + ")"}.`, 6000);
+    });
+    es.addEventListener("clean", e => {
+      const c = JSON.parse(e.data);
+      cleaning = c.finished ? null : c;
+      if (c.finished) toast(`Cleanup done. Freed <b>${fmt(c.freed)}</b>.${c.errors.length ? " " + c.errors.length + " step(s) had errors: " + esc(c.errors[0]) : ""}`, 9000);
+      else toast(`<span class="spin"></span>&nbsp; Cleaning ${esc(c.title)} (${c.done + 1}/${c.total})…`, 60000);
+      if (D) syncChecks();
+    });
+    es.onopen = () => { $("lp").classList.remove("off"); $("lp").lastChild.textContent = "Live"; };
+    es.onerror = () => { $("lp").classList.add("off"); $("lp").lastChild.textContent = "Reconnecting"; };
+  }
+  connect();
+  go();
+  loadInfo(VIEW_INFO.overview);
+  setInterval(() => { if (D) renderMeta(); }, 30000);
+  setInterval(() => loadInfo(VIEW_INFO[curView] || []), 60000);
+}
+})();
+</script>
+<!--include:home-->
+<!--include:city-->
+</body>
+</html>

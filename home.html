@@ -1,0 +1,266 @@
+<style>
+/* ================= Today: the rundown ================= */
+.today-head{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;margin-bottom:14px}
+.th-l{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px 24px;position:relative;overflow:hidden}
+.th-l::after{content:"";position:absolute;right:-60px;top:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(124,112,240,.16),transparent 70%);pointer-events:none}
+.th-l .t{font:600 11.5px/1 -apple-system,system-ui;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.th-l h2{font:700 32px/1.1 -apple-system,"SF Pro Display",system-ui;letter-spacing:-.025em;margin:10px 0 8px}
+.th-l p{margin:0;color:var(--muted);font-size:14px}
+.th-l .chips2{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.th-l .chips2 a{font-size:12px;font-weight:600;color:var(--text);background:var(--chip);border-radius:999px;padding:5px 11px;text-decoration:none;display:flex;gap:6px;align-items:center}
+.th-l .chips2 a:hover{background:var(--line)}
+.th-l .chips2 i{width:7px;height:7px;border-radius:50%}
+.th-city{position:relative;border-radius:18px;overflow:hidden;text-decoration:none;color:#fff;display:flex;flex-direction:column;justify-content:space-between;padding:18px 20px;min-height:150px;
+  background:linear-gradient(180deg,#0a1233 0%,#1f1b48 60%,#47285a 100%);box-shadow:0 10px 30px rgba(20,20,60,.18)}
+.th-city.day{background:linear-gradient(180deg,#3f82d4,#9cc6f0 70%,#e2effb);color:#0b1530}
+.th-city .fl{font-size:28px;line-height:1}
+.th-city b{font-size:17px;display:block;margin-top:8px}
+.th-city span{font-size:12px;opacity:.75}
+.th-city svg{position:absolute;right:0;bottom:0;width:78%;height:70px;opacity:.35}
+.th-city .go2{position:absolute;right:16px;top:16px;font-size:12px;font-weight:600;background:rgba(255,255,255,.16);border-radius:999px;padding:5px 10px}
+.th-city:hover .go2{background:rgba(255,255,255,.28)}
+.qs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.qt{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px 10px;position:relative;overflow:hidden;cursor:pointer;text-decoration:none;color:inherit;display:block;transition:transform .15s,border-color .15s}
+.qt:hover{transform:translateY(-2px);border-color:var(--faint)}
+.qt .l{display:flex;gap:6px;align-items:center;font-size:11.5px;color:var(--muted);font-weight:550}
+.qt .l svg{width:14px;height:14px}
+.qt .v{font:700 21px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:-.02em;margin-top:9px;white-space:nowrap}
+.qt .s{font-size:11px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative;z-index:1}
+.qt svg.q{position:absolute;left:0;right:0;bottom:0;width:100%;height:34px;opacity:.55;pointer-events:none}
+.qt .lv{position:absolute;right:12px;top:13px;width:7px;height:7px;border-radius:50%}
+.rd .c h3 .hi{width:22px;height:22px;border-radius:7px;background:var(--chip);display:grid;place-items:center;color:var(--muted)}
+.rd .c h3 .hi svg{width:13px;height:13px}
+/* rundown */
+.rd{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px;margin-top:14px}
+.rd .c{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0;position:relative}
+.rd .c h3{font-size:13px;margin:0 0 2px;display:flex;align-items:center;gap:8px}
+.rd .c h3 .go{margin-left:auto;font-size:11.5px;color:var(--faint);font-weight:500;cursor:pointer;text-decoration:none}
+.rd .c h3 .go:hover{color:var(--text)}
+.rd .c .lead{color:var(--muted);font-size:12px;margin-bottom:10px}
+.rd .w4{grid-column:span 4}.rd .w5{grid-column:span 5}.rd .w6{grid-column:span 6}.rd .w7{grid-column:span 7}.rd .w8{grid-column:span 8}.rd .w12{grid-column:span 12}.rd .w3{grid-column:span 3}
+.rd .big2{font:700 28px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:-.02em}
+.rd .big2 small{font-size:12px;font-weight:500;color:var(--muted);margin-left:4px;font-family:-apple-system,system-ui}
+.rd .row2{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line2);font-size:12.5px}
+.rd .row2:first-of-type{border-top:0}
+.rd .row2 .grow{flex:1;min-width:0}
+.rd .row2 .grow b{font-weight:600}
+.rd .row2 .grow div{color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd .mini-sp{width:90px;height:26px;flex:none}
+.rd .mini-sp path.l{fill:none;stroke:var(--c2);stroke-width:1.6}
+.rd .mini-sp path.a{fill:var(--c2);opacity:.12}
+.focusgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.fbtn{border:1px solid var(--line);background:var(--chip);border-radius:12px;padding:12px;text-align:left;cursor:pointer;font:inherit;color:inherit;display:flex;flex-direction:column;gap:4px;min-height:84px}
+.fbtn:hover{border-color:var(--faint)}
+.fbtn .e{font-size:20px}
+.fbtn b{font-size:13px}
+.fbtn span{font-size:11px;color:var(--muted);line-height:1.35}
+.fbtn.on{background:var(--greenBg);border-color:var(--green)}
+.fbtn.on b{color:var(--green)}
+.fbtn.armed{border-color:var(--red)}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 10px}
+.stats3 > div{background:var(--chip);border-radius:10px;padding:9px 10px;min-width:0}
+.stats3 .l{font-size:11px;color:var(--muted)}
+.stats3 .n{font:650 16px/1.2 ui-monospace,"SF Mono",Menlo,monospace;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.digest-line{font-size:14px;line-height:1.5;margin:4px 0 10px}
+.attn .sg{padding:10px 0}
+.attn .sg:first-child{padding-top:2px}
+.bhealth{height:60px;width:100%;display:block}
+.pedit{border-top:1px solid var(--line2);margin-top:10px;padding-top:10px;display:none}
+.pedit.on{display:block}
+.pedit .pf{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:12px;padding:10px;border:1px solid var(--line);border-radius:10px}
+.pedit input[type=text]{font:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--text);width:100%}
+.pedit label{font-size:12px;display:flex;align-items:center;gap:8px;color:var(--muted)}
+@media (max-width: 1100px){ .rd .w3,.rd .w4,.rd .w5,.rd .w7{grid-column:span 6} .rd .w8{grid-column:span 12} }
+@media (max-width: 860px){ .today-head{grid-template-columns:1fr} }
+@media (max-width: 760px){ .rd .w3,.rd .w4,.rd .w5,.rd .w6,.rd .w7,.rd .w8{grid-column:span 12} .th-l h2{font-size:24px} }
+</style>
+<script>
+(function(){
+"use strict";
+if (!window.DM) return;
+const DM = window.DM, $ = id => document.getElementById(id);
+const {fmt, esc, actBtn, post, api, toast} = DM;
+const root = $("home-root");
+if (!root) return;
+root.innerHTML = `<div class="today-head"><div class="th-l"><div class="t" id="h-date"></div><h2 id="h-greet"></h2><p id="h-status"></p><div class="chips2" id="h-chips"></div></div><a class="th-city" href="#/city" id="h-city"></a></div>
+  <div class="qs" id="h-qs"></div><div class="rd" id="rundown"></div>`;
+
+// ---------- rundown ----------
+let HOME = null, DIG = null, BAT = null, editProfiles = false, armedFocus = null;
+async function loadHome(){
+  try {
+    const [h, d, b] = await Promise.all([fetch(api("/api/home")).then(r => r.json()), fetch(api("/api/digest?days=7")).then(r => r.json()), fetch(api("/api/battery")).then(r => r.json())]);
+    HOME = h; DIG = d; BAT = b; renderRundown();
+  } catch(e){ console.error(e); }
+}
+function greeting(){
+  const h = new Date().getHours();
+  return h < 5 ? "Up late" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 22 ? "Good evening" : "Good night";
+}
+function statusLine(){
+  const S = DM.S; if (!S) return "Collecting live stats…";
+  const sug = DM.suggestions(), hi = sug.filter(x => x.sev === "high").length, med = sug.filter(x => x.sev === "med").length;
+  if (hi) return `${hi} urgent issue${hi > 1 ? "s" : ""}${med ? ` and ${med} suggestion${med > 1 ? "s" : ""}` : ""}. Start with the first card below.`;
+  if (med) return `Running fine. ${med} suggestion${med > 1 ? "s" : ""} could make it faster.`;
+  return "Everything is running smoothly.";
+}
+function spark2(series){
+  if (!series || series.length < 2) return "";
+  const xs = series.map(p => p[0]), ys = series.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = 0, y1 = Math.max(...ys) * 1.1;
+  const X = x => (x - x0) / Math.max(1, x1 - x0) * 90, Y = y => 26 - (y - y0) / Math.max(1, y1 - y0) * 24;
+  const d = "M" + series.map(p => X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(" L");
+  return `<svg class="mini-sp" viewBox="0 0 90 26" preserveAspectRatio="none"><path class="a" d="${d} L90 26 L0 26 Z"/><path class="l" d="${d}"/></svg>`;
+}
+function renderRundown(){
+  const S = DM.S, D = DM.D, box = $("rundown"); if (!box) return;
+  const IKEY = {"Needs attention":"alerts", "Focus modes":"gpu", "Memory growth":"mem", "Storage":"disk", "This week":"io", "Battery":"bat", "Software & safety":"apps", "Right now":"cpu"};
+  const card = (cls, title, go, body) => `<section class="c ${cls}"><h3>${IKEY[title] && window.DM_city ? `<span class="hi">${DM_city.icon(IKEY[title])}</span>` : ""}${title}${go ? `<a class="go" href="#/${go}">Open ›</a>` : ""}</h3>${body}</section>`;
+  const H = HOME || {}, out = [];
+  // 1) attention
+  const sug = DM.suggestions().slice(0, 6);
+  out.push(card("w7 attn", "Needs attention", "overview", sug.length ? sug.map(x => `<div class="sg"><span class="dot sev-${x.sev}"></span><div style="min-width:0"><div class="t">${esc(x.title)}</div><div class="s">${esc(x.sub)}</div></div><div class="acts">${(x.actions || []).slice(0, 1).map(a => actBtn(a, x.sev !== "info" ? "dark" : "")).join("")}</div></div>`).join("")
+    : `<div class="okstate"><b>All clear</b>Nothing needs you right now.</div>`));
+  // 2) focus modes
+  const fa = H.focus || {}, profs = H.profiles || [];
+  out.push(card("w5", "Focus modes", "", `<div class="lead">${fa.name ? `${esc(fa.icon || "")} <b>${esc(fa.name)}</b> is on since ${new Date(fa.started * 1000).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}. Ending it reopens what it closed.` : "One click quits a set of apps (and more). Ending a mode brings them back."}</div>
+    <div class="focusgrid">${profs.map(p => `<button class="fbtn ${fa.name === p.name ? "on" : ""}" data-focus="${esc(p.name)}"><span class="e">${esc(p.icon || "◎")}</span><b>${esc(p.name)}</b><span>${fa.name === p.name ? "On · click to end" : esc((p.quit || []).slice(0, 4).join(", ") + ((p.quit || []).length > 4 ? "…" : "")) + (p.unload_models ? " · unload AI" : "") + (p.close_heavy_tabs ? " · heavy tabs" : "")}</span></button>`).join("")}</div>
+    <div style="margin-top:10px"><button class="linkbtn" id="pedit-t">${editProfiles ? "Done editing" : "Edit modes"}</button></div>
+    <div class="pedit ${editProfiles ? "on" : ""}" id="pedit">${editProfiles ? profileEditor(profs) : ""}</div>`));
+  // 3) memory growth
+  const G = (H.growth || []).slice(0, 5);
+  out.push(card("w6", "Memory growth", "overview", `<div class="lead">Apps whose memory keeps climbing the longer they run. Restarting gives it back.</div>` +
+    (G.length ? G.map(g => `<div class="row2"><div class="grow"><b>${esc(g.name)}</b>${g.flag ? ' <span class="tag dup">growing</span>' : ""}<div>${fmt(g.start)} → ${fmt(g.now)} over ${DM.dur(g.age)} · ${g.slope > 0 ? "+" + fmt(g.slope) + "/day" : "steady"}</div></div>${spark2(g.series)}
+      ${g.flag && !g.protected ? actBtn({label:"Restart", kind:"restart_app", app:g.app, confirm:`Restart ${g.name}?`}) : ""}</div>`).join("")
+    : DM.na("Nothing has grown suspiciously yet. Apps need to run for a few hours before trends show."))));
+  // 4) storage
+  const safe = H.safe || 0, w = (H.watch || [])[0];
+  out.push(card("w6", "Storage", "storage", `<div class="stats3"><div><div class="l">Free now</div><div class="n">${S ? fmt(S.disk.free) : "–"}</div></div><div><div class="l">Safe to clean</div><div class="n" style="color:var(--green)">${fmt(safe)}</div></div><div><div class="l">Duplicates</div><div class="n">${fmt(H.dups || 0)}</div></div></div>
+    ${safe > 1e9 && D ? `<div class="btns" style="margin-bottom:8px">${actBtn({label:`Clean ${fmt(safe)} of caches`, kind:"__cleansafe", confirm:`Clean ${fmt(safe)}?`}, "dark")}</div>` : ""}
+    ${w ? `<div class="row2"><div class="grow"><b>Free space dropped ${fmt(w.drop)}</b> <span class="sub">${DM.ago(w.t)}</span><div>${w.found && w.found[0] ? esc(w.found[0].p) + " · " + fmt(w.found[0].grew || w.found[0].s) : "No single culprit found"}</div></div>${w.found && w.found[0] ? actBtn({label:"Show", kind:"reveal", path:w.found[0].p}) : ""}</div>` : `<div class="note" style="padding:4px 0">The large-file watcher alerts you if free space suddenly drops.</div>`}`));
+  // 5) this week
+  if (DIG && DIG.samples){
+    const top = (DIG.top_cpu || [])[0], tm = (DIG.top_mem || [])[0];
+    out.push(card("w6", "This week", "history", `<div class="digest-line">${esc(DIG.text || "")}</div>
+      <div class="stats3"><div><div class="l">Avg CPU</div><div class="n">${(DIG.cpu_avg || 0).toFixed(0)}%</div></div><div><div class="l">Avg memory</div><div class="n">${(DIG.mem_avg || 0).toFixed(0)}%</div></div><div><div class="l">Peak swap</div><div class="n">${fmt(DIG.swap_max || 0)}</div></div>
+      <div><div class="l">Downloaded</div><div class="n">${fmt(DIG.net_down || 0)}</div></div><div><div class="l">Written to SSD</div><div class="n">${fmt(DIG.disk_written || 0)}</div></div><div><div class="l">Hottest</div><div class="n">${DIG.temp_max ? Math.round(DIG.temp_max) + " °C" : "–"}</div></div></div>
+      ${top ? `<div class="sub">Busiest: <b style="color:var(--text)">${esc(top.name)}</b>${tm ? ` · biggest: <b style="color:var(--text)">${esc(tm.name)}</b> (${fmt(tm.mem)} avg)` : ""}</div>` : ""}`));
+  } else out.push(card("w6", "This week", "history", DM.na("The weekly digest fills in as history builds up. You'll also get it as a notification on Sunday evenings.")));
+  // 6) battery
+  const hb = S && S.hw && S.hw.battery;
+  if (hb && hb.percent != null){
+    const B = BAT || {}, daily = B.daily || [];
+    const hs = daily.filter(x => x.health != null).map(x => x.health);
+    let hp = "";
+    if (hs.length > 1){ const mn = Math.min(...hs) - .5, mx = Math.max(...hs) + .5; hp = `<svg class="bhealth" viewBox="0 0 300 60" preserveAspectRatio="none"><path d="M${hs.map((v, i) => (i / (hs.length - 1) * 300).toFixed(1) + " " + (56 - (v - mn) / (mx - mn) * 50).toFixed(1)).join(" L")}" fill="none" stroke="var(--green)" stroke-width="2"/></svg>`; }
+    out.push(card("w6", "Battery", "hardware", `<div class="stats3"><div><div class="l">Charge</div><div class="n">${hb.percent}%${hb.charging ? " ⚡" : ""}</div></div><div><div class="l">Health</div><div class="n">${hb.health != null ? hb.health + "%" : "–"}</div></div><div><div class="l">Cycles</div><div class="n">${hb.cycles ?? "–"}${B.cycles_per_week != null ? `<small style="font-size:11px;color:var(--muted)"> · ${B.cycles_per_week}/wk</small>` : ""}</div></div>
+      <div><div class="l">Typical drain</div><div class="n">${B.typical_rate ? B.typical_rate + "%/h" : "–"}</div></div><div><div class="l">Full charge lasts</div><div class="n">${B.typical_full_hours ? "~" + B.typical_full_hours + " h" : "–"}</div></div><div><div class="l">Temp</div><div class="n">${hb.temp != null ? hb.temp + " °C" : "–"}</div></div></div>
+      ${hp ? `<div class="sub">Health over time</div>${hp}` : ""}
+      ${(B.hogs || []).length ? `<div class="sub" style="margin-top:6px">On battery, most drained by: ${B.hogs.slice(0, 4).map(h => `<b style="color:var(--text)">${esc(h.name)}</b>`).join(", ")}</div>` : ""}
+      ${(B.sessions || []).length ? `<div class="sub" style="margin-top:6px">Last unplugged: ${new Date(B.sessions[0].start * 1000).toLocaleString([], {weekday:"short", hour:"numeric", minute:"2-digit"})} · ${B.sessions[0].from}% → ${B.sessions[0].to}% in ${B.sessions[0].hours} h</div>` : ""}`));
+  }
+  // 7) security & software & dev
+  const sec = DM.info("security"), up = DM.info("updates"), br = DM.info("brew"), repos = DM.info("repos"), lg = DM.info("logs");
+  const rows = [];
+  if (sec) rows.push(["Security", `${sec.score}/100`, sec.items.filter(i => i.ok === false && i.level !== "info").map(i => i.title).join(", ") || "All protections on", "security"]);
+  if (up || br) rows.push(["Updates", `${(up && up.updates ? up.updates.length : 0) + (br && br.outdated ? br.outdated.length : 0)}`, `${up && up.updates ? up.updates.length : 0} macOS · ${br && br.outdated ? br.outdated.length : 0} Homebrew`, "software"]);
+  if (repos) { const r = repos.filter(x => x.dirty || x.ahead > 0); rows.push(["Git repos", `${repos.length}`, r.length ? `${r.length} with unsaved/unpushed work: ${r.slice(0, 3).map(x => x.name).join(", ")}` : "All clean", "developer"]); }
+  if (lg) { const n = lg.crashes.filter(c => Date.now() / 1000 - c.ts < 7 * 86400).length; rows.push(["Crashes (7 days)", `${n}`, lg.crash_counts[0] ? "Most: " + lg.crash_counts[0][0] : "None", "logs"]); }
+  out.push(card("w6", "Software & safety", "", rows.length ? rows.map(([a, b, c, go]) => `<a class="row2" href="#/${go}" style="text-decoration:none;color:inherit"><div class="grow"><b>${esc(a)}</b><div>${esc(c)}</div></div><span class="mono" style="font-weight:650">${esc(b)}</span></a>`).join("") : DM.na("Checking…")));
+  // 8) right now: apps + network + hardware
+  if (S){
+    const apps = S.apps.slice().sort((a, b) => b.mem - a.mem).slice(0, 4), hw = S.hw || {}, hs2 = S.hw_slow || {};
+    out.push(card("w6", "Right now", "overview", apps.map(a => `<div class="row2 drillrow" data-app="${esc(a.name)}" style="cursor:pointer"><div class="grow"><b>${esc(a.name)}</b><div>${a.cpu.toFixed(0)}% CPU${a.age ? " · open " + DM.dur(a.age) : ""}</div></div><span class="mono">${fmt(a.mem)}</span></div>`).join("") +
+      `<div class="stats3" style="margin-top:8px"><div><div class="l">Wi-Fi</div><div class="n">${hs2.wifi && hs2.wifi.signal ? hs2.wifi.signal + " dBm" : "–"}</div></div><div><div class="l">Ping</div><div class="n">${hs2.ping_internet != null ? Math.round(hs2.ping_internet) + " ms" : "–"}</div></div><div><div class="l">Uptime</div><div class="n">${DM.dur(S.uptime) || "–"}</div></div></div>`));
+  }
+  box.innerHTML = out.join("");
+  box.querySelectorAll("[data-focus]").forEach(b => b.onclick = () => focusClick(b));
+  const pt = $("pedit-t"); if (pt) pt.onclick = () => { editProfiles = !editProfiles; renderRundown(); };
+  const ps = $("psave"); if (ps) ps.onclick = saveProfiles;
+  const pa = $("padd"); if (pa) pa.onclick = () => { HOME.profiles = (HOME.profiles || []).concat([{name:"New mode", icon:"✨", quit:[], unload_models:false, close_heavy_tabs:false, shortcut_on:"", shortcut_off:""}]); renderRundown(); };
+  box.querySelectorAll(".drillrow").forEach(r => r.onclick = () => DM.openApp(r.dataset.app));
+}
+function profileEditor(profs){
+  const running = DM.S ? [...new Set(DM.S.apps.filter(a => a.kind === "app" && !a.protected).map(a => a.name))].sort() : [];
+  return profs.map((p, i) => `<div class="pf" data-i="${i}">
+      <div style="display:flex;gap:6px"><input type="text" data-k="icon" value="${esc(p.icon || "")}" style="width:52px" maxlength="4"><input type="text" data-k="name" value="${esc(p.name)}"></div>
+      <label>Quit these apps (comma-separated)</label><input type="text" data-k="quit" value="${esc((p.quit || []).join(", "))}">
+      <label><input type="checkbox" data-k="unload_models" ${p.unload_models ? "checked" : ""}> Unload Ollama models</label>
+      <label><input type="checkbox" data-k="close_heavy_tabs" ${p.close_heavy_tabs ? "checked" : ""}> Close heavy & duplicate tabs</label>
+      <label>Shortcut to run when it starts / ends (optional, e.g. one that turns on a macOS Focus)</label>
+      <div style="display:flex;gap:6px"><input type="text" data-k="shortcut_on" value="${esc(p.shortcut_on || "")}" placeholder="Start shortcut"><input type="text" data-k="shortcut_off" value="${esc(p.shortcut_off || "")}" placeholder="End shortcut"></div>
+      <div><button class="linkbtn" data-del="${i}">Delete</button></div></div>`).join("") +
+    `<div class="sub" style="margin:0 0 8px">Running now: ${esc(running.join(", "))}</div><div class="btns"><button class="btn sm" id="padd">Add mode</button><button class="btn sm dark" id="psave">Save modes</button></div>`;
+}
+async function saveProfiles(){
+  const profs = [...document.querySelectorAll("#pedit .pf")].map(f => {
+    const g = k => f.querySelector(`[data-k="${k}"]`);
+    return {name: g("name").value.trim(), icon: g("icon").value.trim(), quit: g("quit").value.split(",").map(x => x.trim()).filter(Boolean),
+            unload_models: g("unload_models").checked, close_heavy_tabs: g("close_heavy_tabs").checked, shortcut_on: g("shortcut_on").value.trim(), shortcut_off: g("shortcut_off").value.trim()};
+  });
+  try { toast(esc(await post({kind:"save_profiles", profiles: profs}))); editProfiles = false; loadHome(); } catch(e){ toast("⚠︎ " + esc(e.message)); }
+}
+document.addEventListener("click", e => {
+  const del = e.target.closest("[data-del]");
+  if (del && HOME){ HOME.profiles.splice(+del.dataset.del, 1); renderRundown(); }
+}, true);
+async function focusClick(b){
+  const name = b.dataset.focus, fa = (HOME && HOME.focus) || {};
+  if (armedFocus !== name){ armedFocus = name; b.classList.add("armed"); b.querySelector("span:last-child").textContent = fa.name === name ? "Click again to end" : "Click again to start"; setTimeout(() => { if (armedFocus === name){ armedFocus = null; renderRundown(); } }, 3500); return; }
+  armedFocus = null;
+  try { toast(esc(await post(fa.name === name ? {kind:"focus_end"} : {kind:"focus_start", name}))); } catch(e){ toast("⚠︎ " + esc(e.message), 7000); }
+  setTimeout(loadHome, 1200);
+}
+
+
+// ---------- header + quick stats ----------
+const QS = [["cpu", "overview"], ["mem", "overview"], ["gpu", "hardware"], ["temp", "hardware"], ["disk", "storage"], ["net", "network"], ["io", "storage"], ["bat", "hardware"]];
+const LVC = {ok: "var(--green)", warn: "var(--amber)", bad: "var(--red)", na: "var(--faint)"};
+function qspark(vals, max, col){
+  if (!vals || vals.length < 2) return "";
+  const n = Math.min(60, vals.length), v = vals.slice(-n), mx = max || Math.max(...v) * 1.1 || 1;
+  const d = "M" + v.map((x, i) => (i / (n - 1) * 100).toFixed(1) + " " + (33 - Math.max(0, Math.min(1, x / mx)) * 26).toFixed(1)).join(" L");
+  return `<svg class="q" viewBox="0 0 100 34" preserveAspectRatio="none"><path d="${d} L100 34 L0 34 Z" fill="${col}" opacity=".14"/><path d="${d}" fill="none" stroke="${col}" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function renderHead(){
+  const C = window.DM_city; if (!C) return;
+  C.compute();
+  const V = C.values, info = C.info(), names = C.names;
+  $("h-date").textContent = new Date().toLocaleDateString([], {weekday:"long", month:"long", day:"numeric"}) + (DM.D && DM.D.host ? " · " + DM.D.host : "");
+  $("h-greet").textContent = greeting();
+  $("h-status").textContent = statusLine();
+  const cityEl = $("h-city");
+  cityEl.className = "th-city" + (info.day ? " day" : "");
+  cityEl.innerHTML = `<div><span class="fl">${info.flag}</span><b>${esc(info.name)}</b><span>${esc(info.blurb)}</span></div><span class="go2">Open City ›</span><svg viewBox="0 0 100 40" preserveAspectRatio="xMaxYMax meet"><path d="${info.sil}" fill="currentColor"/></svg>`;
+  $("h-qs").innerHTML = QS.map(([k, go]) => { const v = V[k] || {}; const st = C.stats[k];
+    return `<a class="qt" href="#/${go}" title="${esc(names[k] ? names[k] + " in " + info.name : "")}"><span class="lv" style="background:${LVC[v.lvl || "na"]}"></span><div class="l" style="color:${st.col}">${C.icon(k)}<span style="color:var(--muted)">${esc(st.label)}</span></div>
+      <div class="v">${esc(k === "net" ? DM.rate((DM.S.hw.net || {}).down || 0) : v.txt || "–")}</div><div class="s">${esc(k === "net" ? "↑ " + DM.rate((DM.S.hw.net || {}).up || 0) : v.sub || "")}</div>${v.hist ? qspark(v.hist, v.max, st.col) : ""}</a>`; }).join("");
+  const fa = (HOME || {}).focus || {}, sug = DM.suggestions(), chips = [];
+  if (fa.name) chips.push(`<a href="#/home"><i style="background:#9d7bff"></i>${esc((fa.icon || "") + " " + fa.name)} mode is on</a>`);
+  if (V.alerts && V.alerts.v) chips.push(`<a href="#/overview"><i style="background:${V.alerts.lvl === "bad" ? "var(--red)" : "var(--amber)"}"></i>${V.alerts.v} to-do${V.alerts.v > 1 ? "s" : ""}</a>`);
+  if (DM.D) chips.push(`<a href="#/storage"><i style="background:var(--green)"></i>${fmt(DM.tierSum("safe"))} safe to clean</a>`);
+  chips.push(`<a href="#/history"><i style="background:var(--blue)"></i>History</a>`);
+  $("h-chips").innerHTML = chips.join("");
+}
+let lastRundown = 0;
+(window.DM_hooks = window.DM_hooks || []).push(() => {
+  if (DM.view !== "home") return;
+  renderHead();
+  if (Date.now() - lastRundown > 6000){ lastRundown = Date.now(); renderRundown(); }
+});
+setInterval(() => { if (DM.view === "home") loadHome(); }, 60000);
+window.addEventListener("hashchange", () => { if (DM.view === "home"){ loadHome(); if (DM.S){ renderHead(); renderRundown(); } } });
+// clean-safe action from the storage card
+document.addEventListener("click", async e => {
+  const b = e.target.closest(".act"); if (!b) return;
+  let a; try { a = JSON.parse(b.dataset.a); } catch(_){ return; }
+  if (a.kind !== "__cleansafe") return;
+  e.stopImmediatePropagation();
+  if (!b.classList.contains("armed")){ b.classList.add("armed"); b.dataset.orig = b.textContent; b.textContent = "Confirm"; setTimeout(() => { b.classList.remove("armed"); if (b.dataset.orig) b.textContent = b.dataset.orig; }, 3500); return; }
+  const D = DM.D; if (!D) return;
+  const items = []; D.recs.filter(r => r.tier === "safe").forEach(r => r.items.forEach((_, i) => items.push([r.id, i])));
+  try { toast(esc(await post({kind:"clean", items, scan_id:D.scan_id}))); } catch(err){ toast("⚠︎ " + esc(err.message)); }
+}, true);
+if (DM.view === "home") loadHome();
+})();
+</script>

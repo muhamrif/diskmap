@@ -1,0 +1,2009 @@
+<style>
+/* ================= City: a live skyline of your Mac ================= */
+body.v-city{overflow:hidden}
+body.v-city .wrap{max-width:none}
+.cityview{position:fixed;left:14px;right:14px;bottom:14px;top:var(--cityTop,118px);border-radius:20px;overflow:hidden;background:#070b1f;isolation:isolate;
+  box-shadow:0 20px 60px rgba(0,0,0,.28),0 0 0 1px rgba(255,255,255,.06) inset;color:#fff;user-select:none;-webkit-user-select:none}
+.cityview{background:linear-gradient(180deg,#0e0b16,#07060c)}
+.cityview svg.scape{position:absolute;left:0;right:0;top:0;bottom:var(--dockH,98px);width:100%;height:calc(100% - var(--dockH,98px));display:block;transition:opacity .35s}
+.cityview.swap svg.scape,.cityview.swap .cv-labels{opacity:0}
+.scape .lm{cursor:pointer}
+.scape .lm,.scape .bgl{transition:opacity .3s}
+.scape.spot .bgl{opacity:.38}
+.scape.spot .lm:not(.hl){opacity:.32}
+.scape .lm.hov{filter:url(#hovglow)}
+.scape .twinkle{animation:cv-tw 3.2s ease-in-out infinite}
+@keyframes cv-tw{0%,100%{opacity:.2}50%{opacity:1}}
+.scape .blink{animation:cv-bl 1.6s steps(1) infinite}
+@keyframes cv-bl{0%{opacity:1}50%{opacity:.08}}
+.scape .sparkle{animation:cv-sp .9s steps(2) infinite}
+@keyframes cv-sp{0%{opacity:1}50%{opacity:0}}
+.scape .steam{animation:cv-steam 4s ease-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes cv-steam{0%{opacity:0;transform:translateY(6px) scale(.6)}25%{opacity:.55}100%{opacity:0;transform:translateY(-60px) scale(1.9)}}
+.scape .smoke{animation:cv-smoke 6s ease-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+@keyframes cv-smoke{0%{opacity:0;transform:translate(0,4px) scale(.5)}20%{opacity:.6}100%{opacity:0;transform:translate(40px,-90px) scale(2.4)}}
+.scape .flame{transform-box:fill-box;transform-origin:50% 100%;animation:cv-flk .18s ease-in-out infinite alternate}
+@keyframes cv-flk{from{transform:scaleY(.92) skewX(-2deg)}to{transform:scaleY(1.06) skewX(2deg)}}
+.scape .beam{transform-box:fill-box;transform-origin:50% 100%;animation:cv-sweep 7s ease-in-out infinite alternate}
+@keyframes cv-sweep{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
+.scape .wave{animation:cv-wave 6s ease-in-out infinite alternate}
+@keyframes cv-wave{from{transform:translateX(-14px)}to{transform:translateX(14px)}}
+.scape .cloud{animation:cv-drift 140s linear infinite}
+@keyframes cv-drift{from{transform:translateX(-400px)}to{transform:translateX(2000px)}}
+.scape .bob{animation:cv-bob 5s ease-in-out infinite alternate;transform-box:fill-box}
+@keyframes cv-bob{from{transform:translateY(-1.5px) rotate(-.6deg)}to{transform:translateY(1.5px) rotate(.6deg)}}
+.scape .shoot{animation:cv-shoot 11s linear infinite;opacity:0}
+@keyframes cv-shoot{0%,90%{opacity:0;transform:translate(0,0)}92%{opacity:1}100%{opacity:0;transform:translate(-280px,130px)}}
+.scape .ring{pointer-events:none}
+.scape .ring .r1{fill:none;stroke-width:2.5;transform-box:fill-box;transform-origin:50% 50%;animation:cv-ring 1.8s ease-out infinite}
+@keyframes cv-ring{0%{transform:scale(.4);opacity:.95}100%{transform:scale(2.6);opacity:0}}
+.scape .jet{transition:transform .8s}
+
+/* overlay text */
+.cv-top{position:absolute;left:0;right:0;top:0;padding:22px 26px 60px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(4,6,20,.42),rgba(4,6,20,0));z-index:3}
+.cityview.day .cv-top{background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0))}
+.cv-hello{max-width:600px;text-shadow:0 2px 18px rgba(0,0,0,.35)}
+.cv-hello .t{font:600 12px/1 -apple-system,system-ui;letter-spacing:.14em;text-transform:uppercase;opacity:.78;display:flex;gap:8px;align-items:center}
+.cv-hello h2{font:700 38px/1.05 -apple-system,"SF Pro Display",system-ui;margin:10px 0 8px;letter-spacing:-.025em}
+.cv-hello p{margin:0;font-size:14.5px;opacity:.9;display:flex;gap:10px;align-items:center;flex-wrap:wrap;pointer-events:auto}
+.cv-hello p a{color:inherit;font-weight:650;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.5);cursor:pointer}
+.cityview.day .cv-hello{color:#0b1530;text-shadow:0 1px 14px rgba(255,255,255,.6)}
+.cityview.day .cv-hello p a{border-color:rgba(11,21,48,.4)}
+.cv-ctrl{display:flex;gap:8px;align-items:center;pointer-events:auto;flex-wrap:wrap;justify-content:flex-end}
+.cv-glass{background:rgba(12,16,40,.5);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border:1px solid rgba(255,255,255,.14);color:#fff}
+.cv-btn{font:600 13px/1 -apple-system,system-ui;border-radius:12px;padding:9px 12px;cursor:pointer;display:flex;gap:8px;align-items:center;white-space:nowrap}
+.cv-btn:hover{background:rgba(12,16,40,.72)}
+.cv-btn .fl{font-size:17px;line-height:1}
+.cv-btn small{font-weight:500;opacity:.65;font-size:11.5px}
+.cv-btn svg{width:12px;height:12px;opacity:.7}
+.cv-seg{display:flex;border-radius:12px;padding:3px;gap:2px}
+.cv-seg button{border:0;background:transparent;color:rgba(255,255,255,.72);font:600 12px/1 -apple-system,system-ui;padding:7px 9px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.cv-seg button:hover{color:#fff;background:rgba(255,255,255,.08)}
+.cv-seg button.on{background:rgba(255,255,255,.18);color:#fff}
+
+/* city picker */
+.cv-pop{position:absolute;top:70px;right:22px;width:min(560px,calc(100% - 44px));border-radius:18px;padding:14px;z-index:6;display:none;
+  box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.cv-pop.on{display:block;animation:cv-in .18s ease-out}
+@keyframes cv-in{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
+.cv-pop h4{margin:2px 4px 10px;font:600 11px/1 -apple-system,system-ui;letter-spacing:.12em;text-transform:uppercase;opacity:.6}
+.cv-cities{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.cv-cc{position:relative;border-radius:14px;padding:12px 12px 10px;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);text-align:left;color:#fff;font:inherit;overflow:hidden;min-height:96px}
+.cv-cc:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25)}
+.cv-cc.on{border-color:#ffd27a;background:rgba(255,210,122,.12)}
+.cv-cc .fl{font-size:22px}
+.cv-cc b{display:block;font-size:14px;margin-top:6px}
+.cv-cc span{display:block;font-size:11px;opacity:.65;margin-top:2px}
+.cv-cc i{position:absolute;right:10px;top:12px;font-style:normal;font:600 11px/1 ui-monospace,Menlo,monospace;opacity:.7}
+.cv-cc svg{position:absolute;right:0;bottom:0;width:70%;height:46px;opacity:.22}
+.cv-pop .cv-foot{margin:12px 4px 2px;font-size:11.5px;opacity:.6;line-height:1.45}
+
+/* labels */
+.cv-labels{position:absolute;left:0;right:0;top:0;bottom:var(--dockH,98px);pointer-events:none;z-index:2;transition:opacity .35s;overflow:hidden}
+.cv-lb{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:0}
+.cv-lb .c{display:flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px 5px 7px;font:650 12.5px/1 -apple-system,system-ui;white-space:nowrap;
+  background:rgba(8,12,34,.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.18);color:#fff;transition:transform .15s,background .15s}
+.cv-lb .c svg{width:14px;height:14px;opacity:.85}
+.cv-lb .c em{font-style:normal;font-weight:500;opacity:.65;font-size:11.5px}
+.cv-lb .st{width:1px;height:12px;background:linear-gradient(rgba(255,255,255,.6),rgba(255,255,255,0))}
+.cv-lb:hover .c,.cv-lb.hl .c{background:rgba(8,12,34,.85);transform:translateY(-2px)}
+.cv-lb.warn .c{border-color:#ffb84d;box-shadow:0 0 0 3px rgba(255,184,77,.18)}
+.cv-lb.bad .c{border-color:#ff5a4a;box-shadow:0 0 0 3px rgba(255,90,74,.22)}
+.cv-lb .dt{width:7px;height:7px;border-radius:50%;flex:none}
+.cityview.lbl-off .cv-labels{opacity:0}
+.cityview.lbl-off .cv-lb{pointer-events:none}
+.cityview:not(.lbl-names) .cv-lb em{display:none}
+
+/* tooltip */
+.cv-tip{position:absolute;z-index:7;pointer-events:none;min-width:200px;max-width:280px;border-radius:14px;padding:11px 13px;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s;
+  box-shadow:0 14px 40px rgba(0,0,0,.4)}
+.cv-tip.on{opacity:1;transform:none}
+.cv-tip .k{font:600 10.5px/1 -apple-system,system-ui;letter-spacing:.1em;text-transform:uppercase;opacity:.65}
+.cv-tip .n{font:700 22px/1.1 ui-monospace,"SF Mono",Menlo,monospace;margin:6px 0 2px;letter-spacing:-.02em}
+.cv-tip .n small{font:500 12px/1 -apple-system,system-ui;opacity:.7;margin-left:6px;letter-spacing:0}
+.cv-tip .m{font-size:12px;opacity:.82;line-height:1.4;margin-top:6px}
+.cv-tip .h{font-size:11px;opacity:.55;margin-top:8px}
+
+/* inspector */
+.cv-insp{position:absolute;top:14px;right:14px;bottom:110px;width:370px;max-width:calc(100% - 28px);border-radius:20px;z-index:5;display:flex;flex-direction:column;
+  transform:translateX(calc(100% + 30px));transition:transform .32s cubic-bezier(.2,.8,.2,1);box-shadow:0 30px 80px rgba(0,0,0,.45);overflow:hidden}
+.cv-insp.on{transform:none}
+.cv-insp .ih{display:flex;gap:12px;align-items:center;padding:16px 16px 12px}
+.cv-insp .ih .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none}
+.cv-insp .ih .ic svg{width:20px;height:20px}
+.cv-insp .ih .k{font:600 10.5px/1 -apple-system,system-ui;letter-spacing:.1em;text-transform:uppercase;opacity:.6}
+.cv-insp .ih h3{margin:4px 0 0;font-size:15.5px;font-weight:650;color:#fff}
+.cv-insp .ih .x{margin-left:auto;color:rgba(255,255,255,.7);font-size:20px;width:30px;height:30px;border-radius:9px}
+.cv-insp .ih .x:hover{background:rgba(255,255,255,.1);color:#fff}
+.cv-insp .ib{overflow:auto;padding:0 16px 16px;flex:1;min-height:0}
+.cv-insp .iv{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.cv-insp .iv b{font:700 40px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:-.03em}
+.cv-insp .iv span{font-size:13px;opacity:.7}
+.cv-insp .im{font-size:12.5px;line-height:1.5;opacity:.78;margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.06)}
+.cv-insp .im b{opacity:1;color:#ffd27a;font-weight:600}
+.cv-insp svg.isp{display:block;width:100%;height:70px;margin:12px 0 2px}
+.cv-insp .isp .a{opacity:.18}
+.cv-insp .isp .l{fill:none;stroke-width:2;vector-effect:non-scaling-stroke}
+.cv-insp .ispl{display:flex;justify-content:space-between;font-size:10.5px;opacity:.5;font-family:ui-monospace,Menlo,monospace}
+.cv-insp h4{margin:16px 0 6px;font:600 10.5px/1 -apple-system,system-ui;letter-spacing:.1em;text-transform:uppercase;opacity:.55}
+.cv-insp .kv2{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:12.5px}
+.cv-insp .kv2:last-child{border-bottom:0}
+.cv-insp .kv2 span{opacity:.62}
+.cv-insp .kv2 b{font-weight:600;text-align:right;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px}
+.cv-insp .ar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:12.5px}
+.cv-insp .ar:last-child{border-bottom:0}
+.cv-insp .ar .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:550}
+.cv-insp .ar .nm small{display:block;font-weight:400;opacity:.55;font-size:11px}
+.cv-insp .ar .v{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;opacity:.85}
+.cv-insp .bar2{height:4px;border-radius:2px;background:rgba(255,255,255,.1);margin-top:5px;overflow:hidden}
+.cv-insp .bar2 i{display:block;height:100%;border-radius:2px}
+.cv-insp .sgx{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.06);margin-bottom:8px;font-size:12.5px}
+.cv-insp .sgx .t{font-weight:600;display:flex;gap:8px;align-items:center}
+.cv-insp .sgx .s{opacity:.7;font-size:12px;margin:3px 0 8px;line-height:1.4}
+.cv-insp .if{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px 16px;border-top:1px solid rgba(255,255,255,.08)}
+.cityview .btn{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.16)}
+.cityview .btn:hover{background:rgba(255,255,255,.16)}
+.cityview .btn.dark{background:#fff;color:#0b1020;border-color:#fff}
+.cityview .btn.armed{background:#e5483b;border-color:#e5483b;color:#fff}
+.cv-insp .ok{padding:14px;border-radius:12px;background:rgba(76,194,133,.14);color:#9ff0c4;font-size:12.5px}
+
+/* dock */
+.cv-dock{position:absolute;left:14px;right:14px;bottom:14px;display:flex;gap:8px;z-index:4;overflow-x:auto;scrollbar-width:none;padding:2px}
+.cv-dock::-webkit-scrollbar{display:none}
+.cv-tile{flex:1 0 128px;min-width:128px;border-radius:15px;padding:10px 12px 8px;cursor:pointer;text-align:left;font:inherit;position:relative;overflow:hidden;transition:transform .15s,background .15s,border-color .15s}
+.cv-tile:hover,.cv-tile.hl{transform:translateY(-3px);background:rgba(12,16,40,.72);border-color:rgba(255,255,255,.3)}
+.cv-tile.sel{border-color:#ffd27a}
+.cv-tile .tl{display:flex;align-items:center;gap:6px;font:600 11px/1 -apple-system,system-ui;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cv-tile .tl svg{width:13px;height:13px;flex:none}
+.cv-tile .tv{font:700 19px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:-.02em;margin-top:7px;white-space:nowrap}
+.cv-tile .tv small{font:500 11px/1 -apple-system,system-ui;opacity:.6;margin-left:3px;letter-spacing:0}
+.cv-tile .ts{font-size:10.5px;opacity:.55;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cv-tile svg.tsp{position:absolute;left:0;right:0;bottom:0;width:100%;height:30px;opacity:.5;pointer-events:none}
+.cv-tile .lvl{position:absolute;top:10px;right:10px;width:7px;height:7px;border-radius:50%}
+.lv-ok{background:#5fd39a}.lv-warn{background:#ffb84d;box-shadow:0 0 0 3px rgba(255,184,77,.25)}.lv-bad{background:#ff5a4a;box-shadow:0 0 0 3px rgba(255,90,74,.3);animation:pulse 1.4s infinite}.lv-na{background:rgba(255,255,255,.3)}
+.cv-hint{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);font-size:11.5px;opacity:.0;z-index:3;pointer-events:none;transition:opacity .4s;white-space:nowrap;text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.cv-hint.on{opacity:.75}
+@media (max-width: 760px){
+  .cityview{left:8px;right:8px;bottom:8px;border-radius:16px}
+  .cv-top{flex-direction:column;padding:14px 14px 40px}
+  .cv-hello h2{font-size:24px}
+  .cv-hello p{font-size:12.5px}
+  .cv-ctrl{justify-content:flex-start}
+  .cv-insp{top:auto;left:8px;right:8px;bottom:96px;width:auto;max-height:62%;transform:translateY(calc(100% + 120px))}
+  .cv-insp.on{transform:none}
+  .cv-tile{flex:0 0 118px;min-width:118px}
+  .cv-pop{top:auto;bottom:100px;right:8px;left:8px;width:auto}
+  .cv-hello p{display:none}
+  .cv-hello h2{margin:6px 0 0}
+  .cv-seg button{padding:6px 7px;font-size:11px}
+  .cv-seg button[data-sky="city"]{display:none}
+  #cv-lbl span{display:none}
+  .cv-btn{padding:8px 10px}
+}
+</style>
+<script>
+(function(){
+"use strict";
+if (!window.DM) return;
+const DM = window.DM, $ = id => document.getElementById(id);
+const {fmt, esc, actBtn, post, toast} = DM;
+const root = $("city-root");
+if (!root) return;
+const NS = "http://www.w3.org/2000/svg";
+const W = 1600, H = 900, HZ = 720, ST = 790, TUN = 828;
+
+/* ------------------------------------------------------------------ utils */
+function rng(seed){ let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); if (attrs) for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const f1 = v => (+v).toFixed(1);
+const heatCol = t => t == null ? "#9aa3c4" : t < 55 ? "#7fd0ff" : t < 70 ? "#ffd27a" : t < 85 ? "#ff9f43" : "#ff4d3d";
+const loadCol = c => c < 35 ? "#bfe7ff" : c < 65 ? "#ffd27a" : c < 85 ? "#ff9f43" : "#ff4d3d";
+function moonPhase(d){ const ref = Date.UTC(2000, 0, 6, 18, 14) / 1000, syn = 29.530588853; return (((d.getTime() / 1000 - ref) / 86400) % syn + syn) % syn / syn; }
+function modeForHour(h){ return h >= 7.5 && h < 17.5 ? "day" : h >= 5.5 && h < 7.5 ? "dawn" : h >= 17.5 && h < 19.5 ? "dusk" : "night"; }
+function hourIn(tz){
+  try { const p = new Intl.DateTimeFormat("en-GB", {timeZone: tz, hour: "2-digit", minute: "2-digit", hourCycle: "h23"}).formatToParts(new Date());
+        return +p.find(x => x.type === "hour").value + +p.find(x => x.type === "minute").value / 60; } catch(e){ const d = new Date(); return d.getHours() + d.getMinutes() / 60; }
+}
+function timeIn(tz){ try { return new Date().toLocaleTimeString([], {timeZone: tz, hour: "numeric", minute: "2-digit"}); } catch(e){ return ""; } }
+
+const PAL = {
+  night: {sky:["#040716","#0a1233","#1d1a48","#45285a"], glow:"#ff8a5c", glowA:.35, far:"#141936", mid:"#0e1330", near:"#0a0e25", lm:"#161c40", edge:"#2e3870", win:["#ffd27a","#ffe7b0","#bfe3ff"], water:["#0b1230","#050918"], refl:.6, winOn:.55, street:"#0b0e20", land:"#0c1024", stone:"#5a4e46", stoneD:"#3d3530", cable:"#9aa3c4", haze:.0},
+  dusk:  {sky:["#1b1e4a","#4a3a78","#c46a7a","#ffb07a"], glow:"#ffb07a", glowA:.35, far:"#3a3560", mid:"#2a2650", near:"#1d1a3c", lm:"#2c2955", edge:"#57528f", win:["#ffd27a","#ffe7b0","#ffd9a8"], water:["#3b3466","#1a1736"], refl:.45, winOn:.35, street:"#1a1834", land:"#1b1933", stone:"#7a6658", stoneD:"#55463d", cable:"#b7b5d8", haze:.06},
+  dawn:  {sky:["#25305e","#6e6aa6","#e7a1a0","#ffd7a1"], glow:"#ffd7a1", glowA:.3, far:"#5a5f8a", mid:"#454a75", near:"#353a62", lm:"#474c7a", edge:"#8287b8", win:["#ffe7b0","#fff3d6","#d6ecff"], water:["#5a6596","#2c3462"], refl:.35, winOn:.18, street:"#2a2f55", land:"#2b2f52", stone:"#9a8574", stoneD:"#6f5f53", cable:"#c5c8e6", haze:.12},
+  day:   {sky:["#3f82d4","#74abeb","#b4d5f6","#e2effb"], glow:"#ffffff", glowA:0, far:"#a4b5cf", mid:"#8095b3", near:"#5f7192", lm:"#6c7fa1", edge:"#b3c3db", win:["#dcecff","#eef6ff","#c9def5"], water:["#5d8bc0","#3a6496"], refl:.22, winOn:.04, street:"#4a5674", land:"#5a6682", stone:"#b7a58e", stoneD:"#8f7f6b", cable:"#4b4f60", haze:.3},
+};
+const mix = (a, b, t) => { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, "0")).join(""); };
+
+/* ------------------------------------------------------------------ icons */
+const IC = {
+  cpu:'<rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9 3v3M15 3v3M9 18v3M15 18v3M3 9h3M3 15h3M18 9h3M18 15h3"/>',
+  mem:'<rect x="3" y="7" width="18" height="10" rx="1.5"/><path d="M7 17v3M11 17v3M15 17v3M7 10v4M11 10v4M15 10v4"/>',
+  gpu:'<path d="M12 3l2.2 5.3L20 10l-5.8 1.7L12 17l-2.2-5.3L4 10l5.8-1.7z"/><path d="M19 16l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>',
+  temp:'<path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z"/><path d="M12 9v7"/>',
+  disk:'<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+  net:'<path d="M2.5 9a14 14 0 0 1 19 0M5.8 12.4a9.5 9.5 0 0 1 12.4 0M9.2 15.8a5 5 0 0 1 5.6 0"/><circle cx="12" cy="19.2" r="1"/>',
+  io:'<path d="M7 20V4M3.5 7.5L7 4l3.5 3.5M17 4v16M13.5 16.5L17 20l3.5-3.5"/>',
+  bat:'<rect x="2.5" y="7" width="17" height="10" rx="2.2"/><path d="M22 10.5v3"/><rect x="5" y="9.5" width="8" height="5" rx=".8" fill="currentColor" stroke="none"/>',
+  apps:'<rect x="4" y="4" width="7" height="7" rx="1.8"/><rect x="13" y="4" width="7" height="7" rx="1.8"/><rect x="4" y="13" width="7" height="7" rx="1.8"/><rect x="13" y="13" width="7" height="7" rx="1.8"/>',
+  fans:'<circle cx="12" cy="12" r="1.8"/><path d="M12 10.2c0-4 1.6-6.7 4.4-6.2 2.6.5 1.3 4.6-2.6 6.4M13.8 12c4 0 6.7 1.6 6.2 4.4-.5 2.6-4.6 1.3-6.4-2.6M12 13.8c0 4-1.6 6.7-4.4 6.2-2.6-.5-1.3-4.6 2.6-6.4M10.2 12c-4 0-6.7-1.6-6.2-4.4.5-2.6 4.6-1.3 6.4 2.6"/>',
+  alerts:'<path d="M6 16v-5a6 6 0 1 1 12 0v5l1.8 2H4.2z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+};
+const icon = (k, cls) => `<svg ${cls ? `class="${cls}"` : ""} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${IC[k] || ""}</svg>`;
+
+/* ------------------------------------------------------------------ what each stat is */
+const STATS = {
+  cpu:   {label:"CPU", tab:"overview", tabName:"Live", col:"#8fb8ff"},
+  mem:   {label:"Memory", tab:"overview", tabName:"Live", col:"#b6a6ff"},
+  gpu:   {label:"GPU", tab:"hardware", tabName:"Hardware", col:"#ff9fd0"},
+  temp:  {label:"Temperature", tab:"hardware", tabName:"Hardware", col:"#ffb070"},
+  disk:  {label:"Free space", tab:"storage", tabName:"Storage", col:"#9fe3ff"},
+  net:   {label:"Network", tab:"network", tabName:"Network", col:"#7dc4ff"},
+  io:    {label:"Disk activity", tab:"storage", tabName:"Storage", col:"#8ff0b8"},
+  bat:   {label:"Battery", tab:"hardware", tabName:"Hardware", col:"#7dffb0"},
+  apps:  {label:"Apps", tab:"overview", tabName:"Live", col:"#ffd27a"},
+  fans:  {label:"Fans", tab:"hardware", tabName:"Hardware", col:"#d8e1f0"},
+  alerts:{label:"To-dos", tab:"home", tabName:"Today", col:"#ff9f6e"},
+};
+const DOCK = ["cpu", "mem", "gpu", "temp", "disk", "net", "io", "bat", "alerts"];
+
+/* ================================================================== KIT
+   Shared drawing helpers. Each city's build() uses these; everything that
+   moves with live data is registered on `sc` (the scene record).          */
+let sc = null;
+function makeKit(svg, city, mode){
+  const P = JSON.parse(JSON.stringify(PAL[mode]));
+  if (city.tint) city.tint(P, mode);
+  const R = rng(city.seed || 7);
+  svg.innerHTML = "";
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const defs = el("defs", {}, svg);
+  defs.innerHTML = `
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.sky[0]}"/><stop offset=".42" stop-color="${P.sky[1]}"/><stop offset=".78" stop-color="${P.sky[2]}"/><stop offset="1" stop-color="${P.sky[3]}"/></linearGradient>
+    <radialGradient id="hglow" cx=".5" cy="1" r=".7"><stop offset="0" stop-color="${P.glow}" stop-opacity="${P.glowA}"/><stop offset="1" stop-color="${P.glow}" stop-opacity="0"/></radialGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.water[0]}"/><stop offset="1" stop-color="${P.water[1]}"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a9d6ff" stop-opacity=".95"/><stop offset=".5" stop-color="#5b8fe6" stop-opacity=".88"/><stop offset="1" stop-color="#2d4fa8" stop-opacity=".92"/></linearGradient>
+    <linearGradient id="glassWarn" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffd59a"/><stop offset="1" stop-color="#e08a2a"/></linearGradient>
+    <linearGradient id="glassCrit" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffb3a8"/><stop offset="1" stop-color="#d9463a"/></linearGradient>
+    <linearGradient id="lmshade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${P.edge}" stop-opacity=".5"/><stop offset=".35" stop-color="${P.lm}" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".38"/></linearGradient>
+    <linearGradient id="beamg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#d6ecff" stop-opacity=".6"/><stop offset="1" stop-color="#d6ecff" stop-opacity="0"/></linearGradient>
+    <radialGradient id="flameg" cx=".5" cy=".7" r=".6"><stop offset="0" stop-color="#fff6c4"/><stop offset=".45" stop-color="#ffb23e"/><stop offset="1" stop-color="#ff5a1f" stop-opacity="0"/></radialGradient>
+    <radialGradient id="halo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd27a" stop-opacity=".55"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="whalo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="heatg" cx=".5" cy=".5" r=".5"><stop id="heatstop" offset="0" stop-color="#ffd27a" stop-opacity=".75"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="earth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1424"/><stop offset="1" stop-color="#0b0912"/></linearGradient>
+    <linearGradient id="trainb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f7"/><stop offset=".55" stop-color="#aab3c5"/><stop offset="1" stop-color="#6b7488"/></linearGradient>
+    <linearGradient id="fadeup" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <filter id="blur4" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+    <filter id="blur8" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="8"/></filter>
+    <filter id="blur2"><feGaussianBlur stdDeviation="1.6"/></filter>
+    <filter id="hovglow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="b"/><feFlood flood-color="#ffe7a8" flood-opacity=".75"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  // layers back-to-front; `px` is the parallax depth
+  const L = {};
+  [["sky", 0], ["far", .18], ["mid", .36], ["back", .5], ["water", .62], ["lm", .62], ["fg", 1], ["under", 1]].forEach(([n, d]) => { L[n] = el("g", {class: "ly " + (["sky", "far", "mid", "back", "water"].includes(n) ? "bgl" : "")}, svg); L[n].dataset.px = d; });
+  const k = {P, R, L, defs, mode, svg, night: mode === "night" || mode === "dusk", day: mode === "day"};
+  k.el = el;
+  k.win = () => P.win[(R() * 3) | 0];
+  k.clip = (id, inner) => { el("clipPath", {id}, defs).innerHTML = inner; return `url(#${id})`; };
+  k.shade = (d, g) => el("path", {d, fill: "url(#lmshade)", "pointer-events": "none"}, g);
+
+  /* sky: gradient, stars, moon (real phase), sun, clouds */
+  k.sky = (opt = {}) => {
+    const g = L.sky;
+    el("rect", {x: -80, y: -40, width: W + 700, height: HZ + 80, fill: "url(#sky)"}, g);
+    el("rect", {x: -80, y: HZ - 380, width: W + 700, height: 420, fill: "url(#hglow)"}, g);
+    const [mx, my] = opt.moon || [1180, 230];
+    if (k.night){
+      let s = "";
+      for (let i = 0; i < 190; i++){
+        const x = R() * W, y = R() * (HZ - 260), r = R() < .07 ? 1.7 : .45 + R() * .9;
+        s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r.toFixed(2)}" fill="#fff" ${R() < .45 ? `class="twinkle" style="animation-delay:${(R() * 3).toFixed(2)}s"` : ""} opacity="${mode === "dusk" ? .45 : .9}"/>`;
+      }
+      g.insertAdjacentHTML("beforeend", s);
+      const sh = el("g", {class: "shoot"}, g); el("line", {x1: 1380, y1: 120, x2: 1446, y2: 88, stroke: "#fff", "stroke-width": 1.4, "stroke-linecap": "round", opacity: .85}, sh);
+      const ph = moonPhase(new Date()), mr = 24;
+      el("circle", {cx: mx, cy: my, r: mr * 3, fill: "url(#halo)", opacity: .32}, g);
+      el("circle", {cx: mx, cy: my, r: mr, fill: "#f4ecd2"}, g);
+      el("circle", {cx: mx - 7, cy: my - 5, r: 4, fill: "#d9cfb2", opacity: .6}, g); el("circle", {cx: mx + 6, cy: my + 8, r: 3, fill: "#d9cfb2", opacity: .5}, g);
+      const kk = Math.cos(ph * 2 * Math.PI), waxing = ph < .5;
+      if (kk > -.995){
+        const side = waxing ? -1 : 1, rx = Math.abs(kk) * mr;
+        const d = `M ${mx} ${my - mr} A ${mr} ${mr} 0 0 ${side < 0 ? 0 : 1} ${mx} ${my + mr} A ${f1(rx)} ${mr} 0 0 ${kk > 0 ? (side < 0 ? 1 : 0) : (side < 0 ? 0 : 1)} ${mx} ${my - mr} Z`;
+        el("path", {d, fill: P.sky[0], opacity: .93}, g);
+      }
+    } else {
+      const sx = k.day ? mx : (mode === "dawn" ? 260 : 1320), sy = k.day ? my - 40 : HZ - 170;
+      el("circle", {cx: sx, cy: sy, r: 150, fill: "url(#whalo)", opacity: k.day ? .55 : .5}, g);
+      el("circle", {cx: sx, cy: sy, r: 40, fill: k.day ? "#fff8dc" : "#ffcf8f"}, g);
+    }
+    const nc = opt.clouds != null ? opt.clouds : (k.day ? 6 : mode === "night" ? 2 : 4);
+    for (let i = 0; i < nc; i++){
+      const cg = el("g", {class: "cloud", style: `animation-delay:${-i * 31}s;animation-duration:${130 + i * 27}s`, opacity: k.day ? .92 : mode === "night" ? .12 : .5}, g);
+      const y = 80 + i * 42 + R() * 20, s = .7 + R() * .7;
+      [[0, 0, 46], [40, -14, 38], [80, 0, 42], [30, 10, 40], [110, 6, 30]].forEach(([dx, dy, r]) => el("ellipse", {cx: f1(dx * s), cy: f1(y + dy * s), rx: f1(r * s), ry: f1(r * s * .55), fill: opt.cloudCol || "#fff"}, cg));
+    }
+  };
+
+  /* procedural skyline layer; one <path> for bodies + a few for windows */
+  k.skyline = (g, style, color, minH, maxH, winOn, seed, opt = {}) => {
+    const r = rng(seed), base = opt.base || HZ, x1 = opt.x1 != null ? opt.x1 : W + 80;
+    let x = opt.x0 != null ? opt.x0 : -80, d = "", extra = [];
+    const wd = [[], [], []], wd2 = [[], [], []];
+    const win = (wx, wy, ww, wh) => { (r() < .5 ? wd : wd2)[(r() * 3) | 0].push(`M${f1(wx)} ${f1(wy)}h${ww}v${wh}h-${ww}z`); };
+    const box = (bx, top, w) => { d += `M${f1(bx)} ${base + 2}V${f1(top)}h${f1(w)}V${base + 2}z`; };
+    const grid = (bx, top, w, sx = 7, sy = 9, ww = 2.6, wh = 3.4) => { for (let wy = top + 8; wy < base - 6; wy += sy) for (let wx = bx + 4; wx < bx + w - 4; wx += sx) if (r() < winOn) win(wx, wy, ww, wh); };
+    while (x < x1){
+      let w, h;
+      if (opt.skip && opt.skip.some(([a, b]) => x > a && x < b)){ x += 14; continue; }
+      if (style === "glass"){
+        w = 18 + r() * 34; h = minH + Math.pow(r(), 1.3) * (maxH - minH);
+        const top = base - h; box(x, top, w);
+        const t = r();
+        if (t < .25) d += `M${f1(x)} ${f1(top + 1)}L${f1(x + w / 2)} ${f1(top - w * .9)}L${f1(x + w)} ${f1(top + 1)}z`;
+        else if (t < .45) d += `M${f1(x)} ${f1(top + 1)}V${f1(top - w * .5)}L${f1(x + w)} ${f1(top + 1)}z`;
+        else if (t < .6){ d += `M${f1(x + w * .2)} ${f1(top + 1)}V${f1(top - 22)}h${f1(w * .6)}V${f1(top + 1)}z`; d += `M${f1(x + w / 2 - .8)} ${f1(top - 22)}v-${f1(30 + r() * 30)}h1.6v${f1(30 + r() * 30)}z`; }
+        for (let wy = top + 6; wy < base - 6; wy += 9) for (let wx = x + 3; wx < x + w - 3; wx += 5) if (r() < winOn * .8) win(wx, wy, 1.6, 5.5);
+      } else if (style === "paris"){
+        w = 46 + r() * 70; h = minH + r() * (maxH - minH);
+        const top = base - h; box(x, top, w);
+        d += `M${f1(x)} ${f1(top + .5)}L${f1(x + 5)} ${f1(top - 13)}H${f1(x + w - 5)}L${f1(x + w)} ${f1(top + .5)}z`;
+        for (let c = x + 9; c < x + w - 9; c += 16 + r() * 14) d += `M${f1(c)} ${f1(top - 12)}v-${f1(5 + r() * 5)}h4v${f1(5 + r() * 5)}z`;
+        if (r() < .05){ const cx = x + w / 2; d += `M${f1(cx - 12)} ${f1(top - 12)}a12 14 0 0 1 24 0z M${f1(cx - 1)} ${f1(top - 26)}v-8h2v8z`; }
+        if (r() < .04){ const cx = x + w * .3; d += `M${f1(cx - 5)} ${f1(top - 12)}L${f1(cx)} ${f1(top - 70)}L${f1(cx + 5)} ${f1(top - 12)}z`; }
+        for (let wy = top + 7; wy < base - 6; wy += 10) for (let wx = x + 5; wx < x + w - 5; wx += 8) if (r() < winOn) win(wx, wy, 3, 5);
+      } else if (style === "london"){
+        const t = r();
+        if (t < .18){ w = 26 + r() * 30; h = maxH * (.9 + r() * .7); const top = base - h; box(x, top, w); grid(x, top, w, 6, 8, 2.4, 3.6); }
+        else if (t < .26){ w = 30 + r() * 20; h = minH + r() * 30; const top = base - h; box(x, top, w); const cx = x + w / 2; d += `M${f1(cx - 8)} ${f1(top + .5)}V${f1(top - 30)}h16V${f1(top + .5)}z M${f1(cx - 8)} ${f1(top - 30)}L${f1(cx)} ${f1(top - 90)}L${f1(cx + 8)} ${f1(top - 30)}z`; }
+        else { w = 40 + r() * 60; h = minH + r() * (maxH - minH) * .55; const top = base - h; box(x, top, w); if (r() < .5) d += `M${f1(x)} ${f1(top + .5)}L${f1(x + w / 2)} ${f1(top - 16)}L${f1(x + w)} ${f1(top + .5)}z`; grid(x, top, w, 8, 10, 3, 4.5); }
+      } else if (style === "tokyo"){
+        w = 20 + r() * 42; h = minH + Math.pow(r(), 1.1) * (maxH - minH);
+        const top = base - h; box(x, top, w); grid(x, top, w, 6, 7, 2.4, 2.8);
+        if (r() < .22) extra.push(`<rect x="${f1(x + 3)}" y="${f1(top + 6 + r() * 30)}" width="5" height="${f1(14 + r() * 26)}" fill="${["#ff4fa3", "#3ff0ff", "#9dff6a", "#ffd23f"][(r() * 4) | 0]}" opacity="${k.night ? .85 : .35}"/>`);
+        if (h > maxH * .6 && r() < .5){ d += `M${f1(x + w / 2 - .8)} ${f1(top)}v-24h1.6v24z`; if (k.night) extra.push(`<circle cx="${f1(x + w / 2)}" cy="${f1(top - 25)}" r="1.8" fill="#ff3b30" class="blink" style="animation-delay:${(r() * 1.6).toFixed(2)}s"/>`); }
+      } else if (style === "karachi"){
+        const t = r();
+        if (t < .07){ w = 10; h = minH + 40 + r() * 60; const top = base - h; d += `M${f1(x + 3)} ${base + 2}V${f1(top)}h4V${base + 2}z M${f1(x + 1)} ${f1(top + 1)}a4 5 0 0 1 8 0z M${f1(x + 4.6)} ${f1(top - 4)}v-6h.8v6z`; }
+        else if (t < .11){ w = 44 + r() * 30; h = minH + r() * 20; const top = base - h; box(x, top, w); d += `M${f1(x + w / 2 - 14)} ${f1(top + .5)}a14 15 0 0 1 28 0z`; }
+        else {
+          w = 30 + r() * 50; h = minH + Math.pow(r(), 1.6) * (maxH - minH);
+          const top = base - h; box(x, top, w);
+          for (let tx = x + 4; tx < x + w - 10; tx += 12 + r() * 16) if (r() < .55) d += `M${f1(tx)} ${f1(top)}v-3h1v3z M${f1(tx + 6)} ${f1(top)}v-3h1v3z M${f1(tx - 1)} ${f1(top - 3)}v-7h9v7z`;
+          grid(x, top, w, 8, 9, 3, 3.6);
+        }
+      } else { // nyc
+        w = 26 + r() * 40; h = minH + r() * (maxH - minH);
+        const top = base - h; box(x, top, w);
+        if (r() < .3) d += `M${f1(x + w * .3)} ${f1(top + .5)}V${f1(top - 10 - r() * 18)}h${f1(w * .4)}V${f1(top + .5)}z`;
+        if (r() < .12) d += `M${f1(x + w / 2 - 1)} ${f1(top)}v-34h2v34z`;
+        grid(x, top, w);
+      }
+      x += w + (opt.gap ? opt.gap[0] + r() * opt.gap[1] : 2 + r() * 6);
+    }
+    el("path", {d, fill: color}, g);
+    [.42, .82].forEach((op, j) => (j ? wd2 : wd).forEach((list, c) => { if (list.length) el("path", {d: list.join(""), fill: P.win[c], opacity: op}, g); }));
+    if (extra.length) g.insertAdjacentHTML("beforeend", extra.join(""));
+    if (opt.haze) el("rect", {x: -80, y: base - maxH - 120, width: W + 160, height: maxH + 124, fill: P.sky[3], opacity: opt.haze}, g);
+  };
+  k.backdrop = (style, o = {}) => {
+    k.skyline(L.far, style, P.far, o.farMin || 70, o.farMax || 210, P.winOn * .5, (city.seed || 7) + 11, {haze: (o.farHaze != null ? o.farHaze : (k.day ? .38 : .16)) + P.haze, gap: o.gap});
+    k.skyline(L.mid, style, P.mid, o.midMin || 80, o.midMax || 250, P.winOn, (city.seed || 7) + 23, {haze: k.day ? .1 + P.haze * .4 : P.haze * .4, gap: o.gap2 || o.gap, skip: o.midSkip});
+  };
+
+  /* water with reflections and waves */
+  k.water = (x0, x1, opt = {}) => {
+    const g = L.water, y0 = opt.y0 || HZ, y1 = opt.y1 || ST + 18;
+    el("rect", {x: x0, y: y0, width: x1 - x0, height: y1 - y0, fill: "url(#water)"}, g);
+    const cp = k.clip("wclip" + x0, `<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}"/>`);
+    const rg = el("g", {"clip-path": cp, opacity: P.refl}, g), rr = rng(91 + x0);
+    let s = "";
+    for (let i = 0; i < (x1 - x0) / 12; i++){ const x = x0 + rr() * (x1 - x0); s += `<rect x="${f1(x)}" y="${f1(y0 + 3 + rr() * 26)}" width="${f1(1 + rr() * 3)}" height="${f1(10 + rr() * 54)}" fill="${P.win[(rr() * 3) | 0]}" opacity="${(.2 + rr() * .5).toFixed(2)}" filter="url(#blur2)"/>`; }
+    rg.insertAdjacentHTML("beforeend", s);
+    const wv = el("g", {class: "wave", opacity: k.day ? .5 : .35, "clip-path": cp}, g);
+    for (let i = 0; i < (y1 - y0) / 4.2; i++){ const y = y0 + 10 + i * 4, x = x0 + (i * 97) % Math.max(60, x1 - x0 - 60); el("path", {d: `M ${x} ${y} q 12 -3 24 0 t 24 0`, stroke: "#fff", "stroke-width": .8, fill: "none", opacity: .35}, wv); }
+    return g;
+  };
+  k.land = (x0, x1, col) => el("rect", {x: x0, y: HZ, width: x1 - x0, height: ST + 18 - HZ, fill: col || P.land}, L.water);
+
+  /* foreground blocks + street */
+  k.street = (x0, x1) => {
+    const g = L.fg;
+    el("rect", {x: x0, y: ST, width: x1 - x0, height: 30, fill: P.street}, g);
+    el("rect", {x: x0, y: ST, width: x1 - x0, height: 2, fill: "#000", opacity: .25}, g);
+    let s = ""; for (let x = x0 + 20; x < x1; x += 34) s += `M${x} ${ST + 14}h16v1.6h-16z`;
+    el("path", {d: s, fill: "#ffd27a", opacity: .45}, g);
+  };
+  k.blocks = (x0, x1, opt = {}) => {
+    const g = L.fg, r = rng(opt.seed || 57);
+    let x = x0;
+    while (x < x1){
+      const w = (opt.wMin || 70) + r() * (opt.wVar || 70), h = (opt.hMin || 90) + r() * (opt.hVar || 90), top = ST - h;
+      const sk = (opt.skip || []).find(([a, b]) => x + w > a && x < b);
+      if (sk){ x = sk[1] + 1; continue; }
+      const col = opt.color ? opt.color(r) : P.near;
+      el("rect", {x: f1(x), y: f1(top), width: f1(w), height: f1(h + 1), fill: col}, g);
+      el("rect", {x: f1(x), y: f1(top), width: f1(w), height: 3, fill: P.edge, opacity: .5}, g);
+      let s = "";
+      const sx = opt.wx || 14, sy = opt.wy || 14, ww = opt.ww || 6, wh = opt.wh || 7;
+      for (let y = top + 10; y < ST - 12; y += sy) for (let xx = x + 8; xx < x + w - 10; xx += sx) if (r() < P.winOn + .06) s += `<rect x="${f1(xx)}" y="${f1(y)}" width="${ww}" height="${wh}" ${opt.arch ? 'rx="3"' : ""} fill="${P.win[(r() * 3) | 0]}" opacity="${(.4 + r() * .5).toFixed(2)}"/>`;
+      if (opt.fireEsc && r() < .5) for (let y = top + 16; y < ST - 20; y += 20) s += `<rect x="${f1(x + w * .3)}" y="${y}" width="${f1(w * .4)}" height="1.5" fill="#000" opacity=".45"/>`;
+      if (opt.awning && r() < .6) s += `<path d="M${f1(x + 6)} ${ST - 26}h${f1(w - 12)}l-6 10h${f1(-(w - 24))}z" fill="${["#c0392b", "#1f6f50", "#2c3e8f", "#b8860b"][(r() * 4) | 0]}" opacity=".85"/>`;
+      if (opt.mansard){ s += `<path d="M${f1(x)} ${f1(top + 1)}L${f1(x + 6)} ${f1(top - 14)}H${f1(x + w - 6)}L${f1(x + w)} ${f1(top + 1)}z" fill="${opt.mansard}"/>`; for (let dx = x + 12; dx < x + w - 14; dx += 18) s += `<rect x="${f1(dx)}" y="${f1(top - 10)}" width="5" height="7" rx="2" fill="${P.win[0]}" opacity="${k.day ? .25 : .6}"/>`; for (let c = x + 10; c < x + w - 8; c += 26 + r() * 10) s += `<rect x="${f1(c)}" y="${f1(top - 22)}" width="5" height="9" fill="${opt.mansard}"/>`; }
+      if (opt.tanks && r() < .7) s += `<rect x="${f1(x + 10 + r() * (w - 30))}" y="${f1(top - 10)}" width="12" height="10" fill="${P.near}"/>`;
+      g.insertAdjacentHTML("beforeend", s);
+      x += w + 1;
+    }
+  };
+
+  /* underground line with two trains (disk read →, write ←) */
+  k.tunnel = (opt = {}) => {
+    const g = L.under;
+    el("rect", {x: -80, y: ST + 28, width: W + 700, height: H - ST - 28 + 40, fill: "url(#earth)"}, g);
+    el("rect", {x: -80, y: TUN, width: W + 160, height: 64, rx: 6, fill: "#07060c"}, g);
+    el("rect", {x: -80, y: TUN + 31, width: W + 160, height: 1.5, fill: "#2a2540"}, g);
+    el("rect", {x: -80, y: TUN + 58, width: W + 160, height: 2, fill: "#3a3550"}, g);
+    let s = ""; for (let x = 30; x < W; x += 180) s += `<circle cx="${x}" cy="${TUN + 8}" r="2" fill="#ffd27a" opacity=".7"/>`;
+    g.insertAdjacentHTML("beforeend", s);
+    const tR = el("g", {}, g), tW = el("g", {}, g);
+    const mk = (tg, cars, y0, front) => {
+      for (let i = 0; i < cars; i++){
+        const x = i * 82;
+        el("rect", {x, y: y0, width: 78, height: 22, rx: 5, fill: opt.body || "url(#trainb)"}, tg);
+        for (let j = 0; j < 5; j++) el("rect", {x: x + 8 + j * 13.5, y: y0 + 4, width: 9, height: 8, rx: 1.5, fill: "#fff6c8", opacity: .9}, tg);
+        el("rect", {x, y: y0 + 15, width: 78, height: 3, fill: opt.stripe || "#2f80ed"}, tg);
+      }
+      el("circle", {cx: front > 0 ? cars * 82 - 6 : 2, cy: y0 + 18, r: 2.6, fill: "#fff"}, tg);
+      el("ellipse", {cx: front > 0 ? cars * 82 + 18 : -22, cy: y0 + 18, rx: 24, ry: 4, fill: "#fffbe6", opacity: .18}, tg);
+    };
+    mk(tR, 4, TUN + 4, 1); mk(tW, 3, TUN + 36, -1);
+    sc.io = {tR, tW, xr: -400, xw: W + 100};
+    const hz = el("rect", {x: -80, y: TUN - 2, width: W + 160, height: 68, fill: "transparent"}, g);
+    k.hit("io", g, [W - 260, TUN + 6], opt.name || "Subway", "under", [hz]);
+  };
+
+  /* --- data-driven primitives --- */
+  // CPU: rows of window cells (bottom first). widthAt(y) → [xa, xb]
+  k.cpuRows = (g, yTop, yBot, widthAt, opt = {}) => {
+    const rows = [], dx = opt.dx || 6, dy = opt.dy || 8, cw = opt.w || 2.8, ch = opt.h || 4;
+    for (let y = yBot - dy; y >= yTop; y -= dy){
+      const res = widthAt(y); if (!res) continue;
+      const segs = Array.isArray(res[0]) ? res : [res];
+      let d = "";
+      for (const [xa, xb] of segs){ if (xb - xa < dx) continue; for (let x = xa; x < xb - cw; x += dx) d += `M${f1(x)} ${f1(y)}h${cw}v${ch}h-${cw}z`; }
+      if (!d) continue;
+      rows.push(el("path", {d, fill: opt.color || P.win[0], opacity: .06}, g));
+    }
+    sc.cpu.rows.push(...rows);
+    return rows;
+  };
+  // Memory: glass that fills a shape from the bottom up
+  k.memGlass = (g, d, top, bottom, opt = {}) => {
+    if (!opt.noBase) el("path", {d, fill: opt.base || P.lm, stroke: P.edge, "stroke-width": 1.2}, g);
+    const cp = k.clip("memclip", `<path d="${d}"/>`);
+    const x0 = opt.x0 != null ? opt.x0 : -80, w = opt.w || W + 160;
+    const rect = el("rect", {x: x0, y: bottom, width: w, height: 0, fill: "url(#glass)", "clip-path": cp, opacity: opt.op || .9}, g);
+    sc.mem = {rect, top, bottom};
+    if (opt.lines !== false){ let s = ""; for (let y = top + 12; y < bottom - 4; y += opt.lineGap || 12) s += `M-80 ${y}h${W + 160}`; el("path", {d: s, stroke: "#000", "stroke-opacity": .16, "clip-path": cp, fill: "none"}, g); }
+    return rect;
+  };
+  // Disk: a list of lights; lit count follows free space
+  k.diskLight = (g, attrs, tag = "rect") => { const e = el(tag, Object.assign({fill: "#fff2c4", opacity: .12}, attrs), g); sc.disk.lights.push(e); return e; };
+  // GPU: elements whose opacity follows GPU load
+  k.gpuEl = (e, max = .9, min = 0) => { sc.gpu.els.push({e, max, min}); e.setAttribute("opacity", min); return e; };
+  k.beams = (g, x, y, len = 320, spread = 70, n = 2) => {
+    for (let i = 0; i < n; i++){
+      const sg = i % 2 ? 1 : -1;
+      k.gpuEl(el("path", {d: `M ${x - 2} ${y} L ${x - spread + sg * 40} ${y - len} L ${x + spread + sg * 40} ${y - len} L ${x + 2} ${y} Z`, fill: "url(#beamg)", class: "beam", style: `animation-delay:${-i * 3.5}s`}, g), .9);
+    }
+  };
+  // Temperature: a glow (or a flame) whose colour/size follow the CPU temperature
+  k.heat = (g, x, y, r = 22, opt = {}) => {
+    const halo = el("circle", {cx: x, cy: y, r: r * 2.2, fill: "url(#heatg)", opacity: .7}, g);
+    const core = opt.flame ? el("ellipse", {cx: x, cy: y, rx: 6, ry: 11, fill: "url(#flameg)", class: "flame"}, g) : el("circle", {cx: x, cy: y, r: r * .32, fill: "#ffd27a"}, g);
+    sc.temp = {halo, core, r, flame: !!opt.flame, tint: opt.tint || []};
+    return {halo, core};
+  };
+  // Battery: a vertical gauge clipped to a shape
+  k.gauge = (g, x, y, w, h, opt = {}) => {
+    const cp = k.clip("batclip", opt.clipD ? `<path d="${opt.clipD}"/>` : `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${opt.rx || 2}"/>`);
+    el("rect", {x, y, width: w, height: h, rx: opt.rx || 2, fill: "#000", opacity: .38, "clip-path": cp}, g);
+    const rect = el("rect", {x, y: y + h, width: w, height: 0, fill: "#4cc285", "clip-path": cp}, g);
+    sc.bat = {rect, y, h, bolt: null};
+    return rect;
+  };
+  k.bolt = (g, x, y, s = 1) => { const b = el("path", {d: `M ${x + 2 * s} ${y - 8 * s} l ${-7 * s} ${12 * s} h ${5 * s} l ${-2.5 * s} ${10 * s} l ${8.5 * s} ${-14 * s} h ${-5 * s} l ${2.5 * s} ${-8 * s} Z`, fill: "#fff", opacity: 0}, g); if (sc.bat) sc.bat.bolt = b; return b; };
+  // Fans: steam / smoke puffs or fountain jets
+  k.plume = (g, x, y, kind = "steam", opt = {}) => {
+    const pg = el("g", {opacity: 0}, g);
+    if (kind === "jets"){
+      const n = opt.n || 9, w = opt.w || 160, hmax = opt.h || 120;
+      for (let i = 0; i < n; i++){
+        const jx = x - w / 2 + i * w / (n - 1), hh = hmax * (.55 + .45 * Math.sin(i / (n - 1) * Math.PI));
+        const j = el("g", {class: "jet", style: `transform-origin:${jx}px ${y}px;transform:scaleY(.05)`}, pg);
+        el("path", {d: `M ${jx - 2} ${y} Q ${jx} ${y - hh * 1.05} ${jx + 2} ${y} Z`, fill: "url(#fadeup)", opacity: .85}, j);
+        el("ellipse", {cx: jx, cy: y - hh * .78, rx: 7, ry: hh * .22, fill: "#fff", opacity: .18, filter: "url(#blur4)"}, j);
+        sc.fans.jets.push(j);
+      }
+      el("ellipse", {cx: x, cy: y + 2, rx: w * .6, ry: 4, fill: "#fff", opacity: .25, filter: "url(#blur4)"}, pg);
+    } else {
+      const n = opt.n || 4;
+      for (let i = 0; i < n; i++) el("ellipse", {cx: x + i * 4, cy: y, rx: opt.rx || 10, ry: opt.ry || 8, fill: opt.col || "#fff", class: kind === "smoke" ? "smoke" : "steam", style: `animation-delay:${(i * (kind === "smoke" ? 1.5 : 1)).toFixed(1)}s`, filter: "url(#blur4)"}, pg);
+    }
+    sc.fans.groups.push(pg);
+    return pg;
+  };
+  // To-dos: a screen with a big line, a small line and a scrolling strip
+  k.screen = (g, x, y, w, h, opt = {}) => {
+    el("rect", {x: x - 3, y: y - 3, width: w + 6, height: h + 30, rx: 4, fill: opt.frame || "#05060f", stroke: "#2a2f55"}, g);
+    const cp = k.clip("scrclip", `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2"/>`);
+    el("rect", {x, y, width: w, height: h, fill: opt.bg || "#10133a", "clip-path": cp}, g);
+    const glow = el("rect", {x: x - 10, y: y - 10, width: w + 20, height: h + 20, rx: 8, fill: "#ffcf5a", opacity: 0, filter: "url(#blur8)"}, g);
+    g.insertBefore(glow, g.firstChild);
+    const big = el("text", {x: x + 12, y: y + h * .52, fill: "#fff", "font-size": opt.big || 26, "font-weight": 800, "font-family": "-apple-system,system-ui", "clip-path": cp}, g);
+    const small = el("text", {x: x + 12, y: y + h - 12, fill: "#ffcf5a", "font-size": 12, "font-weight": 700, "font-family": "ui-monospace,Menlo,monospace", "clip-path": cp}, g);
+    const cp2 = k.clip("stripclip", `<rect x="${x}" y="${y + h + 4}" width="${w}" height="20"/>`);
+    el("rect", {x, y: y + h + 4, width: w, height: 20, fill: "#030409"}, g);
+    const strip = el("text", {x: x + w, y: y + h + 19, fill: opt.stripCol || "#ff9f2e", "font-size": 13, "font-weight": 700, "font-family": "ui-monospace,Menlo,monospace", "clip-path": cp2}, g);
+    sc.alerts = {big, small, strip, glow, x, w, avail: w - 24, tx: x + w, tw: 0};
+  };
+  // Network: headlights (download →) and taillights (upload ←) along a lane
+  k.traffic = (g, x0, x1, yR, yL, opt = {}) => { sc.net = {g: el("g", {}, g), x0, x1, yR, yL, cars: [], scale: opt.scale || 1}; };
+  // Apps: vehicles on the street (or boats on water)
+  k.vehicles = (g, x0, x1, yR, yL, make) => { sc.apps = {g: el("g", {}, g), x0, x1, yR, yL, make, list: []}; };
+  // spinning parts (wheel / windmill)
+  k.spin = (e, cx, cy, rate) => { sc.spins.push({e, cx, cy, rate, a: 0}); };
+  // make a landmark hoverable/clickable and remember where its label goes
+  k.hit = (key, g, anchor, name, layer, extras) => {
+    g.classList.add("lm"); g.dataset.k = key;
+    (extras || []).forEach(e => { e.classList.add("lm"); e.dataset.k = key; });
+    sc.anchors[key] = {x: anchor[0], y: anchor[1], layer: layer || "lm", name};
+  };
+  k.blinker = (g, x, y, delay = 0) => el("circle", {cx: x, cy: y, r: 3, fill: "#ff3b30", class: "blink", style: `animation-delay:${delay}s`}, g);
+  k.palm = (g, x, y, s = 1) => {
+    const c = k.day ? "#3f6b4a" : "#0c1a16", t = k.day ? "#6b5640" : "#120f14";
+    el("path", {d: `M ${x} ${y} q ${3 * s} ${-28 * s} ${-2 * s} ${-56 * s}`, stroke: t, "stroke-width": 3 * s, fill: "none"}, g);
+    const tx = x - 2 * s, ty = y - 56 * s;
+    [[-26, 6], [-20, -10], [0, -16], [20, -10], [26, 6], [12, 12], [-12, 12]].forEach(([dx, dy]) => el("path", {d: `M ${tx} ${ty} q ${dx * s * .5} ${(dy - 12) * s} ${dx * s} ${dy * s}`, stroke: c, "stroke-width": 3 * s, fill: "none", "stroke-linecap": "round"}, g));
+  };
+  k.lamp = (g, x, y, h = 34, col = "#ffd27a") => {
+    el("rect", {x: x - 1, y: y - h, width: 2, height: h, fill: k.day ? "#3a3f55" : "#0a0c18"}, g);
+    el("circle", {cx: x, cy: y - h - 2, r: 3, fill: k.night || k.mode === "dawn" ? col : "#e8e8e8"}, g);
+    if (!k.day) el("circle", {cx: x, cy: y - h - 2, r: 12, fill: "url(#halo)", opacity: .8}, g);
+  };
+  return k;
+}
+
+/* standard car / taxi builders shared by cities */
+function carShape(g, o){
+  const b = o.body, cab = o.cab || o.body, glass = "#1b2a44";
+  el("rect", {x: -18, y: -9, width: 36, height: 9, rx: 3, fill: b}, g);
+  el("path", {d: "M -10 -9 L -6 -15 H 7 L 11 -9 Z", fill: cab}, g);
+  el("path", {d: "M -8 -9 L -5 -13.5 H 0 V -9 Z M 1 -9 V -13.5 H 6 L 9 -9 Z", fill: glass, opacity: .85}, g);
+  if (o.sign) el("rect", {x: -3, y: -18, width: 6, height: 3, rx: 1, fill: o.sign}, g);
+  if (o.stripe) el("rect", {x: -18, y: -6, width: 36, height: 1.6, fill: o.stripe}, g);
+  el("circle", {cx: -10, cy: 0, r: 3, fill: "#111"}, g); el("circle", {cx: 10, cy: 0, r: 3, fill: "#111"}, g);
+  el("rect", {x: 16, y: -7, width: 3, height: 2.5, fill: "#fffbe6"}, g); el("rect", {x: -19, y: -7, width: 2, height: 2.5, fill: "#ff3b30"}, g);
+  el("ellipse", {cx: 30, cy: -5, rx: 14, ry: 3, fill: "#fffbe6", opacity: .18}, g);
+}
+function busShape(g, o){
+  const h = o.deck ? 30 : 18, b = o.body;
+  el("rect", {x: -34, y: -h - 3, width: 68, height: h, rx: 4, fill: b}, g);
+  let s = ""; for (let i = 0; i < 6; i++){ s += `<rect x="${-28 + i * 10}" y="${-h + 1}" width="7" height="6" rx="1" fill="#fff4c4" opacity=".85"/>`; if (o.deck) s += `<rect x="${-28 + i * 10}" y="${-h + 13}" width="7" height="6" rx="1" fill="#fff4c4" opacity=".85"/>`; }
+  g.insertAdjacentHTML("beforeend", s);
+  if (o.art) o.art.forEach((c, i) => el("rect", {x: -34 + i * 68 / o.art.length, y: -6, width: 68 / o.art.length, height: 3, fill: c}, g));
+  el("circle", {cx: -22, cy: 0, r: 3.4, fill: "#111"}, g); el("circle", {cx: 22, cy: 0, r: 3.4, fill: "#111"}, g);
+  el("rect", {x: 33, y: -8, width: 2.5, height: 3, fill: "#fffbe6"}, g);
+}
+
+/* ================================================================== CITIES */
+const CITIES = [];
+
+/* ---------------- New York ---------------- */
+CITIES.push({
+  id: "nyc", name: "New York", flag: "🇺🇸", tz: "America/New_York", seed: 722, blurb: "Empire State · One WTC · Brooklyn Bridge",
+  sil: "M0 40V28h5v-8h4v8h6V14h2V6h1v8h2v26h5V5l1-5 1 5v35h6V22h8v18h5V16l2-8 2 8v24h7V26h10v14h6V24h6v16h8V30h7v10z",
+  maps: {cpu: "Floors light up from the bottom as CPU load rises; the crown turns from ice blue to amber to red.",
+    mem: "The glass fills with the memory in use. Amber means memory pressure, red means critical.",
+    disk: "Every lit triangle in the crown is free space. They go dark as the disk fills up.",
+    gpu: "The searchlights get brighter with GPU load.", temp: "Liberty's torch burns bigger and redder as the chip heats up.",
+    net: "Headlights crossing to the right are downloads; red taillights heading left are uploads.",
+    io: "Subway trains: reads run right, writes run left. Faster trains mean more disk throughput.",
+    bat: "The rooftop water tower is your battery. A lightning bolt shows while it charges.",
+    apps: "Roughly one cab for every three open apps. They drive faster when the CPU is busy.",
+    fans: "Manhole steam thickens as the fans spin up.", alerts: "The Times Square billboard counts your to-dos and scrolls them."},
+  build(k){
+    const {P, L} = k, G = HZ, R = k.R;
+    k.sky({moon: [1040, 250]});
+    k.backdrop("nyc");
+    const lm = L.lm;
+    // One World Trade Center — memory
+    const wtc = {x: 520, w: 96, top: 318}, g1 = el("g", {}, lm);
+    const wtcPath = `M ${wtc.x} ${G} V ${G - 70} L ${wtc.x + 8} ${G - 78} L ${wtc.x + wtc.w / 2 - 12} ${wtc.top} H ${wtc.x + wtc.w / 2 + 12} L ${wtc.x + wtc.w - 8} ${G - 78} L ${wtc.x + wtc.w} ${G - 70} V ${G} Z`;
+    k.memGlass(g1, wtcPath, wtc.top, G);
+    el("path", {d: `M ${wtc.x + wtc.w / 2} ${wtc.top} L ${wtc.x + 8} ${G - 78} L ${wtc.x + wtc.w / 2} ${G} Z`, fill: "#fff", opacity: .07}, g1);
+    el("rect", {x: wtc.x + wtc.w / 2 - 2, y: wtc.top - 92, width: 4, height: 92, fill: P.edge}, g1);
+    el("rect", {x: wtc.x + wtc.w / 2 - 6, y: wtc.top - 8, width: 12, height: 8, fill: P.edge}, g1);
+    k.blinker(g1, wtc.x + wtc.w / 2, wtc.top - 94);
+    k.shade(wtcPath, g1);
+    k.hit("mem", g1, [wtc.x + wtc.w / 2, wtc.top - 104], "One World Trade Center");
+    // Empire State — CPU
+    const ex = 850, g2 = el("g", {}, lm);
+    const esPath = `M ${ex} ${G} V ${G - 90} H ${ex + 16} V ${G - 140} H ${ex + 28} V ${G - 300} H ${ex + 38} V ${G - 318} H ${ex + 46} V ${G - 336} H ${ex + 52} V ${G - 352} H ${ex + 98} V ${G - 336} H ${ex + 104} V ${G - 318} H ${ex + 112} V ${G - 300} H ${ex + 122} V ${G - 140} H ${ex + 134} V ${G - 90} H ${ex + 150} V ${G} Z`;
+    el("path", {d: esPath, fill: P.lm, stroke: P.edge, "stroke-width": 1.2}, g2);
+    k.cpuRows(g2, G - 296, G, y => y < G - 140 ? [ex + 32, ex + 118] : y < G - 90 ? [ex + 20, ex + 130] : [ex + 4, ex + 146]);
+    sc.cpu.glow = el("ellipse", {cx: ex + 75, cy: G - 390, rx: 36, ry: 32, fill: "#fff", opacity: 0, filter: "url(#blur4)"}, g2);
+    [[52, 372, 46, 20], [58, 392, 34, 20], [64, 410, 22, 18]].forEach(([dx, dy, w, h]) => sc.cpu.crown.push(el("rect", {x: ex + dx, y: G - dy, width: w, height: h, rx: 2, fill: "#bfe7ff"}, g2)));
+    el("path", {d: `M ${ex + 70} ${G - 410} L ${ex + 75} ${G - 470} L ${ex + 80} ${G - 410} Z`, fill: P.edge}, g2);
+    el("rect", {x: ex + 74, y: G - 520, width: 2, height: 52, fill: P.edge}, g2);
+    k.blinker(g2, ex + 75, G - 522, .7);
+    k.shade(esPath, g2);
+    k.hit("cpu", g2, [ex + 75, G - 532], "Empire State Building");
+    // Chrysler — free disk
+    const ch = {x: 1110, w: 84}, g3 = el("g", {}, lm);
+    const chPath = `M ${ch.x} ${G} V ${G - 230} H ${ch.x + 10} V ${G - 262} H ${ch.x + 20} V ${G - 280} H ${ch.x + ch.w - 20} V ${G - 262} H ${ch.x + ch.w - 10} V ${G - 230} H ${ch.x + ch.w} V ${G} Z`;
+    el("path", {d: chPath, fill: P.lm, stroke: P.edge, "stroke-width": 1.2}, g3);
+    let s = ""; for (let y = G - 222; y < G - 8; y += 9) for (let x = ch.x + 6; x < ch.x + ch.w - 6; x += 7) if (R() < P.winOn + .1) s += `<rect x="${x}" y="${y}" width="2.6" height="3.6" fill="${k.win()}" opacity="${(.3 + R() * .5).toFixed(2)}"/>`;
+    g3.insertAdjacentHTML("beforeend", s);
+    const cx0 = ch.x + ch.w / 2;
+    [[30, G - 280], [24, G - 302], [18, G - 322], [13, G - 340], [8, G - 356]].forEach(([hw, y], ti) => {
+      el("path", {d: `M ${cx0 - hw} ${y} Q ${cx0} ${y - 46} ${cx0 + hw} ${y} Z`, fill: "#c9ccd6", opacity: k.day ? .9 : .55}, g3);
+      const n = 5 - Math.min(3, ti);
+      for (let i = 0; i < n; i++){ const a = Math.PI * (i + .5) / n, cx = cx0 - Math.cos(a) * hw * .82, cy = y - Math.sin(a) * (34 - ti * 4) * .72; k.diskLight(g3, {d: `M ${f1(cx - 3)} ${f1(cy + 4)} L ${f1(cx)} ${f1(cy - 5)} L ${f1(cx + 3)} ${f1(cy + 4)} Z`}, "path"); }
+    });
+    el("path", {d: `M ${cx0 - 2} ${G - 360} L ${cx0} ${G - 430} L ${cx0 + 2} ${G - 360} Z`, fill: "#dfe3ec"}, g3);
+    k.shade(chPath, g3);
+    k.hit("disk", g3, [cx0, G - 440], "Chrysler Building");
+    // searchlight tower — GPU
+    const st = {x: 1290, w: 44, top: G - 330}, g4 = el("g", {}, lm);
+    k.beams(g4, st.x + st.w / 2, st.top, 320, 70);
+    el("rect", {x: st.x, y: st.top, width: st.w, height: G - st.top, fill: P.lm}, g4);
+    s = ""; for (let y = st.top + 8; y < G - 6; y += 10) s += `<rect x="${st.x + 4}" y="${y}" width="${st.w - 8}" height="1.4" fill="#fff" opacity=".08"/>`; g4.insertAdjacentHTML("beforeend", s);
+    el("rect", {x: st.x - 4, y: st.top - 6, width: st.w + 8, height: 8, fill: P.edge}, g4);
+    k.shade(`M ${st.x} ${G} V ${st.top} H ${st.x + st.w} V ${G} Z`, g4);
+    k.hit("gpu", g4, [st.x + st.w / 2, st.top - 14], "Searchlights");
+    // harbour
+    k.water(-80, 900);
+    k.land(900, W + 80);
+    // Statue of Liberty — temperature
+    const lib = {x: 150, y: G + 8}, lg = el("g", {}, lm), libC = k.day ? "#6fb8a4" : "#3e7f78";
+    el("path", {d: `M ${lib.x - 40} ${lib.y + 22} Q ${lib.x} ${lib.y + 6} ${lib.x + 40} ${lib.y + 22} Z`, fill: P.land}, lg);
+    el("path", {d: `M ${lib.x - 14} ${lib.y + 12} L ${lib.x - 10} ${lib.y - 30} H ${lib.x + 10} L ${lib.x + 14} ${lib.y + 12} Z`, fill: P.land}, lg);
+    el("path", {d: `M ${lib.x - 8} ${lib.y - 30} L ${lib.x - 5} ${lib.y - 92} Q ${lib.x} ${lib.y - 100} ${lib.x + 5} ${lib.y - 92} L ${lib.x + 9} ${lib.y - 30} Z`, fill: libC}, lg);
+    el("circle", {cx: lib.x, cy: lib.y - 102, r: 6, fill: libC}, lg);
+    for (let i = -3; i <= 3; i++) el("line", {x1: lib.x, y1: lib.y - 104, x2: lib.x + i * 3, y2: lib.y - 113, stroke: libC, "stroke-width": 1.6}, lg);
+    el("path", {d: `M ${lib.x + 4} ${lib.y - 88} L ${lib.x + 14} ${lib.y - 128} L ${lib.x + 18} ${lib.y - 127} L ${lib.x + 9} ${lib.y - 86} Z`, fill: libC}, lg);
+    el("rect", {x: lib.x + 11, y: lib.y - 134, width: 9, height: 6, rx: 1.5, fill: libC}, lg);
+    k.heat(lg, lib.x + 15.5, lib.y - 142, 14, {flame: true});
+    k.hit("temp", lg, [lib.x + 15, lib.y - 164], "Statue of Liberty");
+    // Brooklyn Bridge — network
+    const bb = {x0: -40, x1: 860, deck: G + 26, t1: 290, t2: 650, ttop: G - 150}, bg = el("g", {}, lm);
+    const cab = el("g", {stroke: P.cable, fill: "none", "stroke-width": 1.6, opacity: .85}, bg);
+    const cat = (xa, xb, ya, sag) => `M ${xa} ${ya} Q ${(xa + xb) / 2} ${ya + sag} ${xb} ${ya}`;
+    el("path", {d: cat(bb.t1, bb.t2, bb.ttop + 18, 150)}, cab); el("path", {d: cat(bb.t1, bb.t2, bb.ttop + 24, 150)}, cab);
+    el("path", {d: `M ${bb.t1} ${bb.ttop + 18} Q ${bb.t1 - 140} ${bb.deck - 60} ${bb.x0} ${bb.deck - 8}`}, cab);
+    el("path", {d: `M ${bb.t2} ${bb.ttop + 18} Q ${bb.t2 + 120} ${bb.deck - 60} ${bb.x1} ${bb.deck - 8}`}, cab);
+    let sus = "";
+    for (let x = bb.t1 + 12; x < bb.t2 - 8; x += 12){ const t = (x - bb.t1) / (bb.t2 - bb.t1), y = bb.ttop + 18 + 150 * 4 * t * (1 - t) / 2; sus += `M${x} ${f1(y)}V${bb.deck}`; }
+    for (let i = 1; i < 9; i++) sus += `M${bb.t1} ${bb.ttop + 22}L${bb.t1 + i * 22} ${bb.deck}M${bb.t2} ${bb.ttop + 22}L${bb.t2 - i * 22} ${bb.deck}M${bb.t1} ${bb.ttop + 22}L${bb.t1 - i * 22} ${bb.deck}M${bb.t2} ${bb.ttop + 22}L${bb.t2 + i * 22} ${bb.deck}`;
+    el("path", {d: sus, stroke: P.cable, "stroke-width": .7, opacity: .55, fill: "none"}, bg);
+    el("rect", {x: bb.x0, y: bb.deck, width: bb.x1 - bb.x0, height: 10, fill: P.stoneD}, bg);
+    el("rect", {x: bb.x0, y: bb.deck, width: bb.x1 - bb.x0, height: 2, fill: P.stone}, bg);
+    [bb.t1, bb.t2].forEach(tx => {
+      const w = 64, x = tx - w / 2;
+      el("path", {d: `M ${x} ${bb.deck + 60} V ${bb.ttop + 10} H ${x + w} V ${bb.deck + 60} Z`, fill: P.stone}, bg);
+      el("rect", {x: x - 4, y: bb.ttop, width: w + 8, height: 12, fill: P.stoneD}, bg);
+      el("rect", {x: x - 2, y: bb.ttop + 30, width: w + 4, height: 5, fill: P.stoneD}, bg);
+      [x + 9, x + 37].forEach(ax => el("path", {d: `M ${ax} ${bb.deck + 2} V ${bb.ttop + 66} Q ${ax + 9} ${bb.ttop + 44} ${ax + 18} ${bb.ttop + 66} V ${bb.deck + 2} Z`, fill: P.sky[k.day ? 2 : 1], opacity: .95}, bg));
+      el("rect", {x, y: bb.deck + 10, width: w, height: 50, fill: P.stoneD}, bg);
+    });
+    k.traffic(bg, bb.x0, bb.x1, bb.deck - 2, bb.deck + 5);
+    k.hit("net", bg, [bb.t2, bb.ttop - 8], "Brooklyn Bridge");
+    // foreground
+    k.blocks(880, W + 80, {skip: [[876, 1024], [1366, 1594]], fireEsc: true});
+    const fg = L.fg, wt = {x: 930, y: ST - 150}, wtg = el("g", {}, fg), wood = k.day ? "#8a5a3a" : "#4a3328";
+    el("rect", {x: 880, y: wt.y + 46, width: 142, height: ST - wt.y - 46, fill: P.near}, wtg);
+    s = ""; for (let y = wt.y + 58; y < ST - 10; y += 14) for (let x = 890; x < 1012; x += 14) if (R() < P.winOn + .1) s += `<rect x="${x}" y="${y}" width="6" height="7" fill="${P.win[0]}" opacity=".7"/>`; wtg.insertAdjacentHTML("beforeend", s);
+    [[wt.x + 6, wt.x + 2], [wt.x + 40, wt.x + 44]].forEach(([a, b]) => el("line", {x1: a, y1: wt.y + 30, x2: b, y2: wt.y + 46, stroke: wood, "stroke-width": 3}, wtg));
+    el("rect", {x: wt.x, y: wt.y - 18, width: 46, height: 48, rx: 4, fill: wood}, wtg);
+    k.gauge(wtg, wt.x + 4, wt.y - 14, 38, 40, {rx: 3});
+    for (let i = 0; i < 4; i++) el("line", {x1: wt.x, x2: wt.x + 46, y1: wt.y - 8 + i * 11, y2: wt.y - 8 + i * 11, stroke: "#000", "stroke-opacity": .35, "stroke-width": 1.5}, wtg);
+    el("path", {d: `M ${wt.x - 4} ${wt.y - 18} L ${wt.x + 23} ${wt.y - 44} L ${wt.x + 50} ${wt.y - 18} Z`, fill: wood}, wtg);
+    k.bolt(wtg, wt.x + 23, wt.y + 6, 1);
+    k.hit("bat", wtg, [wt.x + 23, wt.y - 50], "Rooftop water tower", "fg");
+    // Times Square
+    const tq = {x: 1370, y: ST - 230, w: 220, h: 230}, tg = el("g", {}, fg);
+    el("rect", {x: tq.x, y: tq.y, width: tq.w, height: tq.h, fill: P.near}, tg);
+    k.screen(tg, tq.x + 12, tq.y + 18, tq.w - 24, 66);
+    [["#e83e5a", 126], ["#2f80ed", 160], ["#00b37e", 194]].forEach(([c, dy], i) => {
+      el("rect", {x: tq.x + 14 + (i % 2) * 104, y: tq.y + dy, width: 92, height: 26, rx: 2, fill: c, opacity: k.day ? .75 : .9}, tg);
+      if (!k.day) el("rect", {x: tq.x + 14 + (i % 2) * 104, y: tq.y + dy, width: 92, height: 26, rx: 2, fill: c, opacity: .5, filter: "url(#blur4)"}, tg);
+    });
+    k.hit("alerts", tg, [tq.x + tq.w / 2, tq.y - 6], "Times Square", "fg");
+    k.street(860, W + 80);
+    el("rect", {x: -80, y: ST + 18, width: 960, height: 10, fill: P.land}, fg);
+    const mh = el("g", {}, fg);
+    el("ellipse", {cx: 1186, cy: ST + 9, rx: 12, ry: 2.5, fill: "#000", opacity: .5}, mh);
+    k.plume(mh, 1180, ST + 2, "steam");
+    k.hit("fans", mh, [1186, ST - 40], "Manhole steam", "fg");
+    k.vehicles(fg, 860, W + 40, ST + 16, ST + 5, (g, dir) => carShape(g, {body: "#ffc107", sign: "#fff7c2"}));
+    k.hit("apps", sc.apps.g, [1290, ST - 22], "Yellow cabs", "fg");
+    k.tunnel({name: "Subway", stripe: "#2f80ed"});
+  }
+});
+
+/* ---------------- Dubai ---------------- */
+CITIES.push({
+  id: "dubai", name: "Dubai", flag: "🇦🇪", tz: "Asia/Dubai", seed: 971, blurb: "Burj Khalifa · Burj Al Arab · Dubai Frame",
+  sil: "M0 40V30h8V22h3v18h8V12l2-6 2 6v28h6V1h1l1 8V40h5V20h3l3-6v26h10V28h4v12h6V24a8 8 0 0 1 16 0v16h4V22h10v18z",
+  tint(P, mode){
+    if (mode === "day"){ P.sky = ["#4f8fd0", "#8fbbe3", "#d9d6c6", "#f1e3c6"]; P.far = "#c4b8a2"; P.mid = "#9e9a9e"; P.haze = .12; P.land = "#c9b28a"; P.water = ["#3f9bc0", "#1f6e96"]; P.street = "#5d5a63"; }
+    else if (mode === "night"){ P.glow = "#ff9a5c"; P.glowA = .45; P.water = ["#0a1836", "#04091a"]; P.land = "#16152a"; }
+    else { P.glowA = .45; P.land = mode === "dusk" ? "#2a2238" : "#5a5262"; }
+  },
+  maps: {cpu: "Burj Khalifa's floors light up from the bottom as CPU load rises; the spire turns amber, then red.",
+    mem: "Burj Al Arab's sail fills with the memory in use. Amber means pressure, red means critical.",
+    disk: "Each lit slot climbing the Dubai Frame is free space. They go dark as the disk fills.",
+    gpu: "The calligraphy windows of the Museum of the Future glow with GPU load.",
+    temp: "The tips of the Emirates Towers glow hotter and redder with the chip temperature.",
+    net: "Sheikh Zayed Road: headlights heading right are downloads, taillights heading left are uploads.",
+    io: "Dubai Metro: reads run right, writes run left. Faster trains mean more disk throughput.",
+    bat: "The old wind tower in Al Fahidi is your battery. A bolt shows while charging.",
+    apps: "Roughly one car for every three open apps. They drive faster when the CPU is busy.",
+    fans: "The Dubai Fountain shoots higher as the fans spin up.", alerts: "The big screen on the corner counts your to-dos."},
+  build(k){
+    const {P, L} = k, G = HZ, R = k.R;
+    k.sky({moon: [1250, 200], cloudCol: k.day ? "#fff8ee" : "#fff", clouds: k.day ? 3 : 1});
+    k.backdrop("glass", {farMin: 60, farMax: 240, midMin: 60, midMax: 300, gap: [6, 26]});
+    // Sheikh Zayed Road on the horizon — network
+    const hw = el("g", {}, L.back), dk = k.day ? "#6b6672" : "#141428";
+    el("rect", {x: -80, y: G - 18, width: W + 160, height: 7, fill: dk}, hw);
+    el("rect", {x: -80, y: G - 18, width: W + 160, height: 1.5, fill: P.edge, opacity: .7}, hw);
+    let s = ""; for (let x = -60; x < W + 80; x += 90) s += `M${x} ${G - 11}h5V${G}h-5z`; el("path", {d: s, fill: dk}, hw);
+    s = ""; for (let x = -40; x < W + 80; x += 60) s += `<rect x="${x}" y="${G - 34}" width="1.4" height="16" fill="${dk}"/><circle cx="${x + 1}" cy="${G - 34}" r="${k.day ? 1.4 : 2}" fill="${k.day ? "#ccc" : "#ffd27a"}"/>`; hw.insertAdjacentHTML("beforeend", s);
+    k.traffic(hw, -80, W + 80, G - 21, G - 15, {scale: .9});
+    k.hit("net", hw, [470, G - 26], "Sheikh Zayed Road", "back");
+    k.water(-80, 1000);
+    k.land(1000, W + 80);
+    const lm = L.lm;
+    // Burj Khalifa — CPU
+    const cx = 820, lv = [[110, 46, 40], [200, 40, 33], [280, 33, 27], [350, 27, 21], [410, 21, 15], [460, 15, 10], [505, 10, 6], [540, 6, 3.5], [570, 3.5, 2]];
+    const wAt = (h, off) => { let w = 46; for (const [lh, , wa] of lv) if (h >= lh + off) w = wa; return w; };
+    let d = `M ${cx - 46} ${G}`;
+    lv.forEach(([h, , wa]) => { d += ` V ${G - h} H ${cx - wa}`; });
+    d += ` V ${G - 600} L ${cx - .7} ${G - 652} H ${cx + .7} L ${cx + 2} ${G - 600}`;
+    lv.slice().reverse().forEach(([h, wb]) => { d += ` V ${G - h - 28} H ${cx + wb}`; });
+    d += ` V ${G} Z`;
+    const bk = el("g", {}, lm);
+    el("path", {d, fill: k.day ? "#8ea3bd" : P.lm, stroke: P.edge, "stroke-width": 1}, bk);
+    el("rect", {x: cx - 1, y: G - 570, width: 2, height: 570, fill: "#fff", opacity: .1}, bk);
+    k.cpuRows(bk, G - 556, G, y => { const h = G - y; return [cx - wAt(h, 0) + 3, cx + wAt(h, 28) - 3]; }, {dx: 5, dy: 7, w: 2.2, h: 3.4, color: "#d6ecff"});
+    sc.cpu.glow = el("ellipse", {cx, cy: G - 622, rx: 9, ry: 26, fill: "#fff", opacity: 0, filter: "url(#blur4)"}, bk);
+    sc.cpu.crown.push(el("path", {d: `M ${cx - 2} ${G - 600} L ${cx - .7} ${G - 652} H ${cx + .7} L ${cx + 2} ${G - 600} Z`, fill: "#bfe7ff"}, bk));
+    k.blinker(bk, cx, G - 654);
+    k.shade(d, bk);
+    k.hit("cpu", bk, [cx, G - 664], "Burj Khalifa");
+    // Dubai Fountain — fans
+    const fn = el("g", {}, lm);
+    k.plume(fn, cx, G + 34, "jets", {n: 13, w: 260, h: 170});
+    el("rect", {x: cx - 140, y: G + 34, width: 280, height: 30, fill: "transparent"}, fn);
+    k.hit("fans", fn, [cx - 150, G + 6], "Dubai Fountain");
+    // Burj Al Arab — memory
+    const ba = el("g", {}, lm), bx = 230;
+    el("ellipse", {cx: bx + 40, cy: G + 18, rx: 90, ry: 11, fill: k.day ? "#d8c9a4" : "#1c1b30"}, ba);
+    el("path", {d: `M ${bx + 120} ${G + 16} L ${bx + 330} ${G + 30}`, stroke: k.day ? "#d8c9a4" : "#2a2a40", "stroke-width": 4}, ba);
+    const sail = `M ${bx - 25} ${G + 8} C ${bx - 28} ${G - 120} ${bx - 22} ${G - 250} ${bx - 8} ${G - 330} C ${bx + 70} ${G - 262} ${bx + 115} ${G - 150} ${bx + 120} ${G + 8} Z`;
+    k.memGlass(ba, sail, G - 330, G + 8, {base: k.day ? "#eef1f6" : "#2a3164", lineGap: 10});
+    el("path", {d: `M ${bx - 40} ${G + 12} Q ${bx - 34} ${G - 200} ${bx + 6} ${G - 372}`, stroke: k.day ? "#f4f6fa" : "#8d96c8", "stroke-width": 5, fill: "none"}, ba);
+    el("path", {d: `M ${bx + 6} ${G - 372} L ${bx + 10} ${G - 394}`, stroke: k.day ? "#f4f6fa" : "#8d96c8", "stroke-width": 2}, ba);
+    s = ""; for (let i = 1; i < 7; i++){ const y = G - i * 48; s += `M ${bx - 38 + i * 2.6} ${y} L ${bx - 22 + i * .8} ${y - 24} M ${bx - 22 + i * .8} ${y} L ${bx - 38 + i * 2.6} ${y - 24}`; }
+    el("path", {d: s, stroke: k.day ? "#dfe4ee" : "#6870a8", "stroke-width": 1.2, fill: "none"}, ba);
+    el("rect", {x: bx + 98, y: G - 218, width: 10, height: 18, fill: k.day ? "#c9ced8" : "#3a4070"}, ba);
+    el("ellipse", {cx: bx + 116, cy: G - 220, rx: 22, ry: 4.5, fill: k.day ? "#e2e6ee" : "#4a5288"}, ba);
+    k.blinker(ba, bx + 10, G - 396, .4);
+    k.hit("mem", ba, [bx + 10, G - 404], "Burj Al Arab");
+    // dhows
+    [[520, G + 56, 1], [660, G + 40, .7]].forEach(([x, y, sc2]) => {
+      const dh = el("g", {class: "bob"}, L.water);
+      el("path", {d: `M ${x - 30 * sc2} ${y} Q ${x} ${y + 9 * sc2} ${x + 34 * sc2} ${y - 4 * sc2} L ${x + 26 * sc2} ${y - 2 * sc2} Z`, fill: k.day ? "#7a5232" : "#0c0c18"}, dh);
+      el("path", {d: `M ${x - 4 * sc2} ${y - 2} L ${x} ${y - 40 * sc2} L ${x + 26 * sc2} ${y - 6 * sc2} Z`, fill: k.day ? "#efe6d4" : "#3a3a5a"}, dh);
+    });
+    // Emirates Towers — temperature
+    const et = el("g", {}, lm), etc = k.day ? "#9aa6b8" : "#1e2448";
+    const t1 = `M 990 ${G} V ${G - 300} L 1030 ${G - 362} V ${G} Z`, t2 = `M 1048 ${G} V ${G - 250} L 1082 ${G - 300} V ${G} Z`;
+    el("path", {d: t1, fill: etc, stroke: P.edge}, et); el("path", {d: t2, fill: etc, stroke: P.edge}, et);
+    s = ""; for (let y = G - 290; y < G - 6; y += 8) s += `M992 ${y}h36` + (y > G - 244 ? `M1050 ${y}h30` : ""); el("path", {d: s, stroke: "#fff", "stroke-opacity": .07}, et);
+    const tipA = el("path", {d: `M 1022 ${G - 340} L 1030 ${G - 362} L 1030 ${G - 330} Z`, fill: "#ffd27a"}, et);
+    const tipB = el("path", {d: `M 1076 ${G - 284} L 1082 ${G - 300} L 1082 ${G - 276} Z`, fill: "#ffd27a"}, et);
+    k.heat(et, 1030, G - 352, 16, {tint: [tipA, tipB]});
+    k.shade(t1, et); k.shade(t2, et);
+    k.hit("temp", et, [1030, G - 380], "Emirates Towers");
+    // Dubai Frame — free disk
+    const fr = el("g", {}, lm), gold = k.day ? "#d2a446" : "#9c7428", gold2 = k.day ? "#f0cd78" : "#c99c42";
+    el("path", {d: `M 1130 ${G} V ${G - 262} H 1232 V ${G} H 1210 V ${G - 236} H 1152 V ${G} Z`, fill: gold, stroke: gold2, "stroke-width": 1.5}, fr);
+    el("rect", {x: 1152, y: G - 262, width: 58, height: 26, fill: k.day ? "#7fa8c9" : "#2a3a5a", opacity: .55}, fr);
+    for (let i = 0; i < 11; i++){ const y = G - 22 - i * 20; k.diskLight(fr, {x: 1135, y, width: 12, height: 4, rx: 1}); k.diskLight(fr, {x: 1215, y, width: 12, height: 4, rx: 1}); }
+    k.hit("disk", fr, [1181, G - 276], "Dubai Frame");
+    // Museum of the Future — GPU
+    const mf = el("g", {}, lm), mcx = 1335, mcy = G - 84;
+    el("path", {d: `M 1250 ${G} Q 1335 ${G - 34} 1420 ${G} Z`, fill: k.day ? "#7f9a6a" : "#13221a"}, mf);
+    el("path", {d: `M ${mcx - 80} ${mcy} a 80 70 0 1 0 160 0 a 80 70 0 1 0 -160 0 Z M ${mcx - 22} ${mcy - 6} a 34 30 0 1 1 68 0 a 34 30 0 1 1 -68 0 Z`, fill: k.day ? "#cfd5de" : "#353c66", "fill-rule": "evenodd", stroke: P.edge}, mf);
+    let cal = "";
+    for (let i = 0; i < 170; i++){
+      const a = R() * Math.PI * 2, t = .1 + R() * .8, rx = 38 + t * 38, ry = 33 + t * 33, ox = 12 * (1 - t);
+      const x = mcx + ox + Math.cos(a) * rx, y = mcy - 6 * (1 - t) + Math.sin(a) * ry, l = 3 + R() * 6;
+      cal += `M${f1(x)} ${f1(y)}q${f1(l / 2)} ${f1(-2 - R() * 3)} ${f1(l)} 0`;
+    }
+    k.gpuEl(el("path", {d: cal, stroke: k.day ? "#3d4a66" : "#9fe8ff", "stroke-width": 1.6, fill: "none", "stroke-linecap": "round"}, mf), 1, k.day ? .5 : .12);
+    k.gpuEl(el("ellipse", {cx: mcx, cy: mcy, rx: 96, ry: 86, fill: "#7fe0ff", filter: "url(#blur8)"}, mf), k.day ? 0 : .22, 0);
+    mf.insertBefore(mf.lastChild, mf.children[1]);
+    k.hit("gpu", mf, [mcx, G - 168], "Museum of the Future");
+    // promenade palms
+    [1100, 1240, 1260, 1430].forEach((x, i) => k.palm(L.fg, x, ST + 2, .9 + (i % 2) * .15));
+    // foreground
+    const fg = L.fg;
+    k.blocks(960, 1100, {skip: [[968, 1092]], hMin: 70, hVar: 60});
+    // Al Fahidi wind tower — battery
+    const wtg = el("g", {}, fg), sand = k.day ? "#d2b48a" : "#2c2430", sandD = k.day ? "#b8976a" : "#221c26";
+    el("rect", {x: 968, y: ST - 64, width: 124, height: 64, fill: sand}, wtg);
+    s = ""; for (let x = 968; x < 1092; x += 12) s += `M${x} ${ST - 64}h7v-6h-7z`; el("path", {d: s, fill: sand}, wtg);
+    el("rect", {x: 1000, y: ST - 136, width: 44, height: 72, fill: sand}, wtg);
+    el("rect", {x: 996, y: ST - 140, width: 52, height: 6, fill: sandD}, wtg);
+    [1004, 1034].forEach(x => el("rect", {x, y: ST - 128, width: 6, height: 48, rx: 3, fill: sandD}, wtg));
+    k.gauge(wtg, 1016, ST - 128, 12, 54, {rx: 5});
+    k.bolt(wtg, 1022, ST - 100, .8);
+    s = ""; for (let x = 980; x < 1090; x += 22) s += `<rect x="${x}" y="${ST - 44}" width="9" height="16" rx="4.5" fill="${k.day ? "#7a5a3a" : P.win[0]}" opacity="${k.day ? .7 : .55}"/>`; wtg.insertAdjacentHTML("beforeend", s);
+    k.hit("bat", wtg, [1022, ST - 150], "Al Fahidi wind tower", "fg");
+    // corner screen — to-dos
+    const sg = el("g", {}, fg);
+    el("rect", {x: 1408, y: ST - 250, width: 200, height: 250, fill: k.day ? "#5d7390" : "#0d1430"}, sg);
+    s = ""; for (let y = ST - 140; y < ST - 6; y += 10) s += `M1408 ${y}h200`; el("path", {d: s, stroke: "#fff", "stroke-opacity": .08}, sg);
+    k.screen(sg, 1420, ST - 236, 150, 70, {bg: "#0b1636"});
+    k.hit("alerts", sg, [1495, ST - 258], "Downtown screen", "fg");
+    k.street(960, W + 80);
+    el("rect", {x: -80, y: ST + 18, width: 1080, height: 10, fill: P.land}, fg);
+    k.vehicles(fg, 960, W + 40, ST + 16, ST + 5, (g, dir) => Math.random() < .5 ? carShape(g, {body: "#f2ead8", cab: "#d6262b", sign: "#fff"}) : carShape(g, {body: "#f5f6f8", cab: "#e8eaee"}));
+    k.hit("apps", sc.apps.g, [1360, ST - 22], "Dubai taxis", "fg");
+    k.tunnel({name: "Dubai Metro", stripe: "#d6262b"});
+  }
+});
+/* ---------------- Karachi ---------------- */
+function rickshaw(g, o){
+  el("path", {d: "M -15 -4 V -16 Q -14 -24 -2 -24 H 8 Q 15 -24 16 -14 L 17 -4 Z", fill: o.top}, g);
+  el("rect", {x: -15, y: -12, width: 31, height: 9, rx: 2, fill: o.body}, g);
+  el("path", {d: "M 4 -21 H 13 L 14 -13 H 4 Z", fill: "#1b2a44", opacity: .8}, g);
+  el("rect", {x: -15, y: -7, width: 31, height: 1.6, fill: o.stripe}, g);
+  el("circle", {cx: -9, cy: -1, r: 3.2, fill: "#111"}, g); el("circle", {cx: 12, cy: -1, r: 3.2, fill: "#111"}, g);
+  el("rect", {x: 16, y: -9, width: 2.5, height: 2.5, fill: "#fffbe6"}, g);
+  el("ellipse", {cx: 28, cy: -7, rx: 11, ry: 2.5, fill: "#fffbe6", opacity: .18}, g);
+}
+CITIES.push({
+  id: "karachi", name: "Karachi", flag: "🇵🇰", tz: "Asia/Karachi", seed: 92, blurb: "Mazar-e-Quaid · Teen Talwar · Clifton",
+  sil: "M0 40V32h10v-6h6v6h8V30a10 10 0 0 1 20 0v10h4V8h5l1-6 1 6v32h4V16a4 4 0 0 1 8 0v24h5V12h5v28h8V20l2-4 2 4v20h12z",
+  tint(P, mode){
+    if (mode === "day"){ P.sky = ["#5d97cc", "#93bde0", "#d6dbd0", "#eee5cf"]; P.far = "#b9b1a2"; P.mid = "#968f88"; P.haze = .14; P.water = ["#3f93a8", "#1f6a80"]; P.land = "#c4ae88"; P.street = "#5e5a5a"; }
+    else if (mode === "night"){ P.glow = "#ff9a5c"; P.glowA = .42; P.water = ["#0a1a2c", "#040b16"]; P.land = "#17142a"; }
+    else { P.glowA = .42; }
+  },
+  maps: {cpu: "Bahria Icon Tower's floors light up from the bottom as CPU load rises; its crown turns amber, then red.",
+    mem: "Habib Bank Plaza fills with the memory in use. Amber means pressure, red means critical.",
+    disk: "Each lit segment climbing MCB Tower is free space. They go dark as the disk fills.",
+    gpu: "Mazar-e-Quaid's green floodlights get brighter with GPU load.",
+    temp: "The tips of Teen Talwar, the Three Swords, glow hotter and redder with the chip temperature.",
+    net: "Native Jetty Bridge: headlights heading right are downloads, taillights heading left are uploads.",
+    io: "Karachi Circular Railway: reads run right, writes run left. Faster trains mean more throughput.",
+    bat: "Merewether Clock Tower is your battery. A bolt shows while charging.",
+    apps: "Roughly one rickshaw or bus for every three open apps. They speed up when the CPU is busy.",
+    fans: "Steam from the chai dhaba thickens as the fans spin up.", alerts: "The billboard on Shahrah-e-Faisal counts your to-dos."},
+  build(k){
+    const {P, L} = k, G = HZ, R = k.R;
+    k.sky({moon: [1210, 210], clouds: k.day ? 4 : 1});
+    k.backdrop("karachi", {farMin: 30, farMax: 150, midMin: 40, midMax: 170, gap: [1, 5]});
+    k.water(-80, 690);
+    k.land(690, W + 80);
+    // port cranes + a container ship
+    const port = el("g", {}, L.back), pc = k.day ? "#8a8f9c" : "#1a1c34";
+    [40, 130, 220].forEach((x, i) => {
+      el("path", {d: `M ${x} ${G} V ${G - 90} M ${x + 30} ${G} V ${G - 90} M ${x - 30} ${G - 90} H ${x + 90} M ${x} ${G - 50} L ${x + 30} ${G - 90} M ${x + 30} ${G - 50} L ${x} ${G - 90}`, stroke: pc, "stroke-width": 3, fill: "none"}, port);
+      if (!k.day) k.blinker(port, x + 88, G - 92, i * .5);
+    });
+    const ship = el("g", {class: "bob"}, L.water);
+    el("path", {d: `M 30 ${G + 18} H 300 L 286 ${G + 34} H 44 Z`, fill: k.day ? "#7a2e2e" : "#1a0f18"}, ship);
+    ["#d9534f", "#2f80ed", "#f0ad4e", "#5cb85c", "#8e44ad", "#16a085"].forEach((c, i) => el("rect", {x: 60 + i * 32, y: G + 6, width: 30, height: 12, fill: c, opacity: k.day ? .85 : .45}, ship));
+    el("rect", {x: 250, y: G - 10, width: 26, height: 28, fill: k.day ? "#e8e8e8" : "#2a2a44"}, ship);
+    // Native Jetty Bridge — network
+    const nj = el("g", {}, L.lm), deck = G + 44, stone = k.day ? "#b8a487" : "#3d3540";
+    el("rect", {x: -80, y: deck, width: 760, height: 9, fill: stone}, nj);
+    el("rect", {x: -80, y: deck, width: 760, height: 2, fill: k.day ? "#d8c7a8" : "#5d5262"}, nj);
+    let s = ""; for (let x = -60; x < 680; x += 74) s += `M ${x} ${deck + 9} V ${deck + 40} H ${x + 10} V ${deck + 22} Q ${x + 37} ${deck + 12} ${x + 64} ${deck + 22} V ${deck + 40} H ${x + 74} V ${deck + 9} Z`;
+    el("path", {d: s, fill: stone}, nj);
+    s = ""; for (let x = -40; x < 680; x += 74) s += `<rect x="${x}" y="${deck - 22}" width="2" height="22" fill="${k.day ? "#555" : "#0c0c18"}"/><circle cx="${x + 1}" cy="${deck - 24}" r="2.4" fill="${k.day ? "#eee" : "#ffd27a"}"/>${k.day ? "" : `<circle cx="${x + 1}" cy="${deck - 24}" r="10" fill="url(#halo)"/>`}`;
+    nj.insertAdjacentHTML("beforeend", s);
+    k.traffic(nj, -80, 690, deck - 2, deck + 4);
+    k.hit("net", nj, [420, deck - 30], "Native Jetty Bridge");
+    const lm = L.lm;
+    // Mazar-e-Quaid — GPU
+    const mz = el("g", {}, lm), mx = 905, marble = k.day ? "#f3f1ea" : "#c9d3dc";
+    k.defs.insertAdjacentHTML("beforeend", `<linearGradient id="gbeam" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#7dffb8" stop-opacity=".55"/><stop offset="1" stop-color="#7dffb8" stop-opacity="0"/></linearGradient>`);
+    const glow = el("ellipse", {cx: mx, cy: G - 150, rx: 150, ry: 120, fill: "#2dff8f", filter: "url(#blur8)"}, mz);
+    k.gpuEl(glow, k.day ? .12 : .45, k.day ? 0 : .06);
+    k.beams(mz, mx - 40, G - 30, 340, 40, 1); k.beams(mz, mx + 40, G - 30, 340, 40, 1);
+    sc.gpu.els.slice(-2).forEach(o => o.e.setAttribute("fill", "url(#gbeam)"));
+    el("rect", {x: mx - 130, y: G - 14, width: 260, height: 14, fill: k.day ? "#ddd6c8" : "#4a4e60"}, mz);
+    el("rect", {x: mx - 100, y: G - 26, width: 200, height: 12, fill: k.day ? "#e8e2d4" : "#5a5f74"}, mz);
+    el("rect", {x: mx - 66, y: G - 134, width: 132, height: 108, fill: marble}, mz);
+    el("path", {d: `M ${mx - 58} ${G - 134} C ${mx - 58} ${G - 210} ${mx - 20} ${G - 232} ${mx} ${G - 240} C ${mx + 20} ${G - 232} ${mx + 58} ${G - 210} ${mx + 58} ${G - 134} Z`, fill: marble}, mz);
+    el("path", {d: `M ${mx - 58} ${G - 134} C ${mx - 58} ${G - 210} ${mx - 20} ${G - 232} ${mx} ${G - 240} L ${mx} ${G - 134} Z`, fill: "#fff", opacity: .25}, mz);
+    el("rect", {x: mx - 1, y: G - 262, width: 2, height: 22, fill: marble}, mz);
+    el("path", {d: `M ${mx + 4} ${G - 270} a 6 6 0 1 0 0 9 a 4.6 4.6 0 1 1 0 -9 Z`, fill: marble}, mz);
+    const arch = `M ${mx - 26} ${G - 26} V ${G - 96} Q ${mx - 26} ${G - 118} ${mx} ${G - 126} Q ${mx + 26} ${G - 118} ${mx + 26} ${G - 96} V ${G - 26} Z`;
+    el("path", {d: arch, fill: k.day ? "#b9c2c8" : "#0d1c18"}, mz);
+    k.gpuEl(el("path", {d: arch, fill: "#3dff9a"}, mz), k.day ? .25 : .85, k.day ? 0 : .12);
+    s = ""; for (let y = G - 118; y < G - 30; y += 9) s += `M ${mx - 24} ${y} H ${mx + 24}`; for (let x = mx - 20; x < mx + 24; x += 8) s += `M ${x} ${G - 118} V ${G - 28}`;
+    el("path", {d: s, stroke: k.day ? "#8a959c" : "#0a1a14", "stroke-width": 1, opacity: .7}, mz);
+    [mx - 54, mx + 38].forEach(x => el("path", {d: `M ${x} ${G - 30} V ${G - 80} Q ${x + 8} ${G - 92} ${x + 16} ${G - 80} V ${G - 30} Z`, fill: k.day ? "#c9d0d4" : "#1a2a26"}, mz));
+    k.hit("gpu", mz, [mx, G - 280], "Mazar-e-Quaid");
+    // Bahria Icon Tower — CPU
+    const bi = el("g", {}, lm), bx0 = 1060, bx1 = 1132;
+    const biPath = `M ${bx0} ${G} V ${G - 410} Q ${bx0 + 6} ${G - 470} ${bx1 - 4} ${G - 486} L ${bx1} ${G - 480} V ${G} Z`;
+    el("path", {d: biPath, fill: k.day ? "#7d9cbc" : P.lm, stroke: P.edge, "stroke-width": 1.2}, bi);
+    k.cpuRows(bi, G - 404, G, () => [bx0 + 4, bx1 - 3], {dx: 5, dy: 7, w: 2.4, h: 3.6});
+    const cap = el("path", {d: `M ${bx0} ${G - 410} Q ${bx0 + 6} ${G - 470} ${bx1 - 4} ${G - 486} L ${bx1} ${G - 480} V ${G - 452} Q ${bx0 + 20} ${G - 440} ${bx0} ${G - 404} Z`, fill: "#bfe7ff", opacity: .85}, bi);
+    sc.cpu.crown.push(cap);
+    sc.cpu.glow = el("ellipse", {cx: bx1 - 20, cy: G - 460, rx: 40, ry: 22, fill: "#fff", opacity: 0, filter: "url(#blur4)"}, bi);
+    el("rect", {x: bx1 - 3, y: G - 560, width: 2, height: 80, fill: P.edge}, bi);
+    k.blinker(bi, bx1 - 2, G - 562, .3);
+    k.shade(biPath, bi);
+    k.hit("cpu", bi, [bx1 - 2, G - 572], "Bahria Icon Tower");
+    // Habib Bank Plaza — memory
+    const hb = el("g", {}, lm), hx0 = 1170, hx1 = 1244;
+    const hbPath = `M ${hx0} ${G} V ${G - 300} Q ${hx0} ${G - 322} ${hx0 + 20} ${G - 322} H ${hx1 - 20} Q ${hx1} ${G - 322} ${hx1} ${G - 300} V ${G} Z`;
+    k.memGlass(hb, hbPath, G - 322, G, {lineGap: 9});
+    s = ""; for (let x = hx0 + 9; x < hx1 - 4; x += 9) s += `M ${x} ${G - 316} V ${G}`;
+    el("path", {d: s, stroke: k.day ? "#e9eef4" : "#3b4478", "stroke-width": 2.2, opacity: .8}, hb);
+    el("rect", {x: hx0 + 8, y: G - 346, width: hx1 - hx0 - 16, height: 24, rx: 3, fill: k.day ? "#e9eef4" : "#23295a"}, hb);
+    el("rect", {x: hx0 + 14, y: G - 340, width: hx1 - hx0 - 28, height: 12, rx: 2, fill: k.day ? "#1f6f50" : "#2dc28a", opacity: k.day ? .8 : .9}, hb);
+    k.shade(hbPath, hb);
+    k.hit("mem", hb, [(hx0 + hx1) / 2, G - 352], "Habib Bank Plaza");
+    // MCB Tower — free disk
+    const mc = el("g", {}, lm), mx0 = 1290, mx1 = 1352;
+    const mcPath = `M ${mx0} ${G} V ${G - 360} H ${mx0 + 8} V ${G - 380} H ${mx1 - 8} V ${G - 360} H ${mx1} V ${G} Z`;
+    el("path", {d: mcPath, fill: k.day ? "#8b98ad" : P.lm, stroke: P.edge, "stroke-width": 1.2}, mc);
+    s = ""; for (let y = G - 350; y < G - 6; y += 9) for (let x = mx0 + 5; x < mx1 - 5; x += 7) if (x < mx0 + 24 || x > mx1 - 26) if (R() < P.winOn + .1) s += `<rect x="${x}" y="${y}" width="2.6" height="3.6" fill="${k.win()}" opacity="${(.3 + R() * .5).toFixed(2)}"/>`;
+    mc.insertAdjacentHTML("beforeend", s);
+    for (let i = 0; i < 14; i++) k.diskLight(mc, {x: (mx0 + mx1) / 2 - 5, y: G - 30 - i * 23, width: 10, height: 16, rx: 2});
+    el("rect", {x: (mx0 + mx1) / 2 - 1, y: G - 440, width: 2, height: 60, fill: P.edge}, mc);
+    k.blinker(mc, (mx0 + mx1) / 2, G - 442, 1.1);
+    k.shade(mcPath, mc);
+    k.hit("disk", mc, [(mx0 + mx1) / 2, G - 452], "MCB Tower");
+    // foreground: Teen Talwar, garden, stall, clock tower, billboard
+    const fg = L.fg;
+    k.blocks(690, W + 80, {skip: [[700, 810], [810, 1040], [1060, 1160], [1166, 1236], [1390, 1600]], tanks: true, hMin: 80, hVar: 80,
+      color: r => k.day ? ["#d9c7a3", "#c9b79a", "#bfae97", "#d6c3b0", "#cdb89a"][(r() * 5) | 0] : P.near});
+    el("rect", {x: 810, y: ST - 14, width: 230, height: 14, fill: k.day ? "#5d8a4a" : "#0d1a14"}, fg);
+    for (let x = 820; x < 1040; x += 44) k.lamp(fg, x, ST - 12, 28, "#ffe7a8");
+    const tt = el("g", {}, fg), tx = 755, marbleT = k.day ? "#efede6" : "#a9b0c8";
+    el("rect", {x: tx - 30, y: ST - 32, width: 60, height: 32, fill: k.day ? "#cfc6b4" : "#2a2a40"}, tt);
+    el("rect", {x: tx - 36, y: ST - 8, width: 72, height: 8, fill: k.day ? "#bdb3a0" : "#22223a"}, tt);
+    const tips = [];
+    [-34, 0, 34].forEach(dx => {
+      const bx = tx + dx * .25, ty = ST - 210, txp = tx + dx;
+      el("path", {d: `M ${bx - 3} ${ST - 34} L ${txp - 3.5} ${ty + 16} L ${txp} ${ty} L ${txp + 3.5} ${ty + 16} L ${bx + 3} ${ST - 34} Z`, fill: marbleT}, tt);
+      el("rect", {x: bx - 9, y: ST - 58, width: 18, height: 4, rx: 2, fill: marbleT, transform: `rotate(${dx * .4} ${bx} ${ST - 56})`}, tt);
+      tips.push(el("path", {d: `M ${txp - 2.6} ${ty + 12} L ${txp} ${ty} L ${txp + 2.6} ${ty + 12} Z`, fill: "#ffd27a"}, tt));
+    });
+    k.heat(tt, tx, ST - 206, 18, {tint: tips});
+    k.hit("temp", tt, [tx, ST - 232], "Teen Talwar", "fg");
+    // chai dhaba
+    const ch = el("g", {}, fg);
+    el("rect", {x: 1070, y: ST - 48, width: 80, height: 48, fill: k.day ? "#b07a4a" : "#2a1e22"}, ch);
+    el("path", {d: `M 1062 ${ST - 48} H 1158 L 1150 ${ST - 62} H 1070 Z`, fill: k.day ? "#2e8b57" : "#1d5a3a"}, ch);
+    s = ""; for (let i = 0; i < 6; i++) s += `<path d="M ${1066 + i * 15} ${ST - 48} h 15 l -3 7 h -9 z" fill="${i % 2 ? "#f2c230" : "#d6262b"}"/>`; ch.insertAdjacentHTML("beforeend", s);
+    el("rect", {x: 1078, y: ST - 34, width: 64, height: 20, fill: k.day ? "#3a2a1a" : P.win[0], opacity: k.day ? .6 : .5}, ch);
+    el("path", {d: `M 1102 ${ST - 26} q 8 -10 16 0 v 10 h -16 z`, fill: "#c0c4cc"}, ch);
+    k.plume(ch, 1104, ST - 66, "steam", {n: 4, rx: 8, ry: 7});
+    k.hit("fans", ch, [1110, ST - 100], "Chai dhaba", "fg");
+    // Merewether Clock Tower — battery
+    const ct = el("g", {}, fg), cx = 1201, sand = k.day ? "#caa477" : "#3a2f2c", sandD = k.day ? "#a8845a" : "#2a2224";
+    el("rect", {x: cx - 22, y: ST - 156, width: 44, height: 156, fill: sand}, ct);
+    el("rect", {x: cx - 26, y: ST - 30, width: 52, height: 30, fill: sandD}, ct);
+    el("path", {d: `M ${cx - 24} ${ST - 156} L ${cx} ${ST - 206} L ${cx + 24} ${ST - 156} Z`, fill: sandD}, ct);
+    [-22, 22].forEach(dx => el("path", {d: `M ${cx + dx - 4} ${ST - 156} L ${cx + dx} ${ST - 176} L ${cx + dx + 4} ${ST - 156} Z`, fill: sandD}, ct));
+    el("circle", {cx, cy: ST - 136, r: 12, fill: k.day ? "#f6efe0" : "#ffe9a8"}, ct);
+    el("path", {d: `M ${cx} ${ST - 136} V ${ST - 144} M ${cx} ${ST - 136} L ${cx + 6} ${ST - 133}`, stroke: "#2a2a2a", "stroke-width": 1.4}, ct);
+    k.gauge(ct, cx - 7, ST - 116, 14, 76, {rx: 7});
+    k.bolt(ct, cx, ST - 78, .8);
+    k.hit("bat", ct, [cx, ST - 216], "Merewether Clock Tower", "fg");
+    // billboard on poles
+    const bbg = el("g", {}, fg);
+    [1440, 1560].forEach(x => el("rect", {x, y: ST - 160, width: 6, height: 160, fill: k.day ? "#6a6a70" : "#0c0c18"}, bbg));
+    k.screen(bbg, 1408, ST - 250, 186, 74, {bg: "#151036"});
+    k.hit("alerts", bbg, [1500, ST - 262], "Shahrah-e-Faisal billboard", "fg");
+    k.street(690, W + 80);
+    el("rect", {x: -80, y: ST + 18, width: 780, height: 10, fill: P.land}, fg);
+    const art = ["#d6262b", "#f2c230", "#2e8b57", "#2f80ed", "#e85dbb", "#f08a24"];
+    k.vehicles(fg, 690, W + 40, ST + 16, ST + 5, (g, dir) => {
+      const r = Math.random();
+      if (r < .55) rickshaw(g, r < .3 ? {top: "#111", body: "#1e8f4e", stripe: "#f2c230"} : {top: "#1e3a8a", body: "#f2c230", stripe: "#d6262b"});
+      else if (r < .8) busShape(g, {body: k.day ? "#3a7bd5" : "#2a4a9a", art});
+      else carShape(g, {body: "#e9e9ee"});
+    });
+    k.hit("apps", sc.apps.g, [1300, ST - 26], "Rickshaws & buses", "fg");
+    k.tunnel({name: "Karachi Circular Railway", stripe: "#1e8f4e"});
+  }
+});
+
+/* ---------------- Paris ---------------- */
+function bateau(g){
+  el("path", {d: "M -40 -3 H 40 L 34 5 H -34 Z", fill: "#e9edf3"}, g);
+  el("path", {d: "M -32 -3 V -11 Q -30 -15 -24 -15 H 30 Q 34 -15 35 -11 V -3 Z", fill: "#bcd2ec", opacity: .85}, g);
+  let s = ""; for (let i = 0; i < 9; i++) s += `<rect x="${-28 + i * 7}" y="-12" width="5" height="6" rx="1" fill="#fff2c4" opacity=".9"/>`; g.insertAdjacentHTML("beforeend", s);
+  el("rect", {x: -38, y: -21, width: 1.2, height: 10, fill: "#555"}, g);
+  ["#2b5fae", "#fff", "#d6262b"].forEach((c, i) => el("rect", {x: -36.8, y: -21 + i * 2, width: 6, height: 2, fill: c}, g));
+  el("ellipse", {cx: 0, cy: 7, rx: 40, ry: 2.5, fill: "#fff2c4", opacity: .15}, g);
+}
+CITIES.push({
+  id: "paris", name: "Paris", flag: "🇫🇷", tz: "Europe/Paris", seed: 33, blurb: "Eiffel Tower · Arc de Triomphe · the Seine",
+  sil: "M0 40V30h12v-4h10v14h8l6-14h1l3-12 2-10 1 0 1 10 3 12h1l6 14h6V26h22v14h8V12h6v28h10z",
+  tint(P, mode){
+    if (mode === "night"){ P.glow = "#ffb46e"; P.glowA = .38; P.win = ["#ffd58a", "#ffe9b8", "#ffcf7a"]; P.land = "#16132a"; }
+    if (mode === "day"){ P.sky = ["#5b92d6", "#8fbbe9", "#c8dcf2", "#eaeef2"]; P.far = "#b2b8c8"; P.mid = "#9298ac"; P.land = "#b9ad96"; P.water = ["#5f8fb0", "#3e6c8c"]; }
+    if (mode === "dusk"){ P.sky = ["#24204e", "#5a3f82", "#d27886", "#ffb88a"]; }
+  },
+  maps: {cpu: "Eiffel Tower's golden lights climb from the bottom as CPU load rises. Above 70% it starts to sparkle.",
+    mem: "Tour Montparnasse fills with the memory in use. Amber means pressure, red means critical.",
+    disk: "Each lit lamp along the Arc de Triomphe is free space. They go dark as the disk fills.",
+    gpu: "The beacon on top of the Eiffel Tower sweeps brighter with GPU load.",
+    temp: "Sacré-Cœur's dome glows hotter and redder with the chip temperature.",
+    net: "Pont Alexandre III: headlights heading right are downloads, taillights heading left are uploads.",
+    io: "The Métro: reads run right, writes run left. Faster trains mean more throughput.",
+    bat: "The Moulin Rouge windmill is your battery. Its sails turn faster while it charges.",
+    apps: "One bateau-mouche on the Seine for roughly every three open apps.",
+    fans: "The Trocadéro fountains shoot higher as the fans spin up.", alerts: "The marquee on the boulevard counts your to-dos."},
+  build(k){
+    const {P, L} = k, G = HZ, R = k.R;
+    k.sky({moon: [1000, 230]});
+    // Montmartre hill
+    el("path", {d: `M -80 ${G} L -80 ${G - 60} Q 60 ${G - 120} 170 ${G - 118} Q 300 ${G - 116} 440 ${G - 40} L 470 ${G} Z`, fill: P.far}, L.far);
+    k.backdrop("paris", {farMin: 36, farMax: 96, midMin: 46, midMax: 112, gap: [0, 3]});
+    k.skyline(L.far, "glass", P.far, 80, 190, P.winOn * .5, 7, {x0: 1430, x1: 1700, haze: k.day ? .35 : .12, gap: [4, 12]});
+    // Sacré-Cœur — temperature
+    const sc2 = el("g", {stroke: k.day ? "#c9c1ad" : "none", "stroke-width": .8}, L.back), wh = k.day ? "#f4f1e8" : k.mode === "dusk" ? "#d9d0dc" : "#e9dfc6";
+    el("rect", {x: 112, y: G - 146, width: 118, height: 30, fill: wh}, sc2);
+    el("rect", {x: 150, y: G - 176, width: 40, height: 30, fill: wh}, sc2);
+    el("path", {d: `M 148 ${G - 176} Q 148 ${G - 214} 170 ${G - 222} Q 192 ${G - 214} 192 ${G - 176} Z`, fill: wh}, sc2);
+    el("rect", {x: 166, y: G - 236, width: 8, height: 14, fill: wh}, sc2);
+    [[126, 12], [214, 12]].forEach(([x, r]) => el("path", {d: `M ${x - r} ${G - 146} Q ${x - r} ${G - 146 - r * 2} ${x} ${G - 146 - r * 2.2} Q ${x + r} ${G - 146 - r * 2} ${x + r} ${G - 146} Z`, fill: wh}, sc2));
+    el("rect", {x: 232, y: G - 206, width: 14, height: 90, fill: wh}, sc2);
+    el("path", {d: `M 230 ${G - 206} Q 239 ${G - 226} 248 ${G - 206} Z`, fill: wh}, sc2);
+    el("path", {d: `M 104 ${G - 116} Q 170 ${G - 124} 250 ${G - 112} L 260 ${G - 100} H 96 Z`, fill: P.mid}, sc2);
+    const lantern = el("rect", {x: 167, y: G - 232, width: 6, height: 8, fill: "#ffd27a"}, sc2);
+    k.heat(sc2, 170, G - 214, 16, {tint: [lantern]});
+    k.hit("temp", sc2, [170, G - 252], "Sacré-Cœur", "back");
+    k.water(-80, 1020);
+    k.land(1020, W + 80);
+    const lm = L.lm;
+    // Eiffel Tower — CPU (its beacon is the GPU)
+    const ex = 640, top = G - 540;
+    const hw = h => h < 100 ? 110 - 46 * Math.pow(h / 100, .8) : h < 200 ? 64 - 28 * (h - 100) / 100 : h < 483 ? 36 - 22 * (h - 200) / 283 : 14 - 8 * (h - 483) / 57;
+    let d = `M ${ex - 110} ${G}`;
+    for (let h = 0; h <= 540; h += 10) d += ` L ${f1(ex - hw(h))} ${G - h}`;
+    for (let h = 540; h >= 0; h -= 10) d += ` L ${f1(ex + hw(h))} ${G - h}`;
+    d += ` Z M ${ex - 84} ${G} Q ${ex - 80} ${G - 76} ${ex} ${G - 84} Q ${ex + 80} ${G - 76} ${ex + 84} ${G} Z`;
+    k.defs.insertAdjacentHTML("beforeend", `<pattern id="lattice" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0L8 8M8 0L0 8" stroke="${k.day ? "#4e4232" : "#7a6440"}" stroke-width="1"/></pattern>`);
+    const gb = el("g", {}, lm), et = el("g", {}, lm);
+    k.beams(gb, ex, top - 8, 440, 64, 2);
+    k.gpuEl(el("circle", {cx: ex, cy: top - 10, r: 18, fill: "url(#whalo)"}, gb), .9, .1);
+    k.hit("gpu", gb, [ex + 110, top - 120], "Eiffel beacon");
+    el("path", {d, fill: k.day ? "#8a7658" : "#2b2433", "fill-rule": "evenodd"}, et);
+    el("path", {d, fill: "url(#lattice)", "fill-rule": "evenodd", opacity: .55}, et);
+    [[100, 70, 8], [200, 42, 7], [483, 17, 6]].forEach(([h, w, th]) => el("rect", {x: ex - w, y: G - h - th / 2, width: w * 2, height: th, fill: k.day ? "#6e5d45" : "#3a3040"}, et));
+    k.cpuRows(et, top + 8, G, y => {
+      const h = G - y, w = hw(h) - 4;
+      if (h < 82){ const t = h / 84, iw = 84 * Math.sqrt(1 - t * t) * .96; return [[ex - w, ex - iw - 2], [ex + iw + 2, ex + w]]; }
+      return [ex - w, ex + w];
+    }, {dx: 6, dy: 9, w: 2.4, h: 2.4, color: "#ffcf6e"});
+    const sp = el("g", {display: "none"}, et); let ss = "";
+    for (let i = 0; i < 70; i++){ const h = R() * 520, w = hw(h) - 4, x = ex - w + R() * w * 2; ss += `<circle cx="${f1(x)}" cy="${f1(G - h)}" r="1.6" fill="#fff" class="sparkle" style="animation-delay:${(R() * .9).toFixed(2)}s"/>`; }
+    sp.innerHTML = ss; sc.sparkles = sp;
+    el("rect", {x: ex - 1.5, y: top - 34, width: 3, height: 34, fill: k.day ? "#6e5d45" : "#3a3040"}, et);
+    sc.cpu.crown.push(el("circle", {cx: ex, cy: top - 8, r: 4, fill: "#bfe7ff"}, et));
+    sc.cpu.glow = el("circle", {cx: ex, cy: top - 8, r: 16, fill: "#fff", opacity: 0, filter: "url(#blur4)"}, et);
+    k.blinker(et, ex, top - 36, .2);
+    k.hit("cpu", et, [ex, top - 46], "Eiffel Tower");
+    // Trocadéro fountains — fans
+    const tf = el("g", {}, lm);
+    k.plume(tf, ex, G + 18, "jets", {n: 9, w: 190, h: 100});
+    el("rect", {x: ex - 100, y: G + 6, width: 200, height: 16, fill: "transparent"}, tf);
+    k.hit("fans", tf, [ex - 160, G + 2], "Trocadéro fountains");
+    // Arc de Triomphe — free disk
+    const ac = el("g", {}, lm), ax = 1060, stone = k.day ? "#ddd3bb" : k.mode === "dusk" ? "#a39684" : "#c9ae7c";
+    const arcD = `M ${ax} ${G} V ${G - 150} H ${ax - 4} V ${G - 158} H ${ax + 154} V ${G - 150} H ${ax + 150} V ${G} Z M ${ax + 50} ${G} V ${G - 70} A 25 25 0 0 1 ${ax + 100} ${G - 70} V ${G} Z`;
+    el("path", {d: arcD, fill: stone, "fill-rule": "evenodd"}, ac);
+    el("rect", {x: ax - 4, y: G - 182, width: 158, height: 24, fill: stone}, ac);
+    el("rect", {x: ax - 6, y: G - 186, width: 162, height: 5, fill: k.day ? "#c7bca2" : "#a88f62"}, ac);
+    [[ax + 8, G - 140], [ax + 110, G - 140]].forEach(([x, y]) => el("rect", {x, y, width: 32, height: 46, fill: "#000", opacity: .08}, ac));
+    if (!k.day) ["#2b5fae", "#fff", "#d6262b"].forEach((c, i) => el("rect", {x: ax + 62 + i * 9, y: G - 88, width: 9, height: 40, fill: c, opacity: .75}, ac));
+    for (let i = 0; i < 14; i++) k.diskLight(ac, {x: ax + 4 + i * 10.8, y: G - 176, width: 6, height: 12, rx: 1});
+    k.hit("disk", ac, [ax + 75, G - 196], "Arc de Triomphe");
+    // Tour Montparnasse — memory
+    const tm = el("g", {}, lm), tx0 = 1268, tx1 = 1330;
+    const tmD = `M ${tx0} ${G} V ${G - 300} Q ${(tx0 + tx1) / 2} ${G - 308} ${tx1} ${G - 300} V ${G} Z`;
+    k.memGlass(tm, tmD, G - 306, G, {base: k.day ? "#4a5466" : "#14182e", lineGap: 8});
+    el("rect", {x: (tx0 + tx1) / 2 - 1, y: G - 336, width: 2, height: 30, fill: P.edge}, tm);
+    k.blinker(tm, (tx0 + tx1) / 2, G - 338, .9);
+    k.shade(tmD, tm);
+    k.hit("mem", tm, [(tx0 + tx1) / 2, G - 348], "Tour Montparnasse");
+    // Pont Alexandre III — network
+    const pa = el("g", {}, lm), deck = G + 46, pst = k.day ? "#cfc6b0" : "#3d3646";
+    el("path", {d: `M -80 ${deck} H 1020 V ${deck + 8} H -80 Z`, fill: pst}, pa);
+    el("path", {d: `M 60 ${deck + 8} Q 540 ${deck + 40} 960 ${deck + 8}`, stroke: pst, "stroke-width": 5, fill: "none"}, pa);
+    let s = ""; for (let x = 60; x < 1010; x += 64) s += `<rect x="${x}" y="${deck - 18}" width="2" height="18" fill="${k.day ? "#3a3a44" : "#0a0a14"}"/>${[-4, 0, 4].map(o => `<circle cx="${x + 1 + o}" cy="${deck - 19 - (o ? 0 : 3)}" r="2" fill="${k.day ? "#eee" : "#ffd27a"}"/>`).join("")}`;
+    pa.insertAdjacentHTML("beforeend", s);
+    [40, 970].forEach(x => { el("rect", {x, y: deck - 70, width: 16, height: 78, fill: pst}, pa); el("circle", {cx: x + 8, cy: deck - 78, r: 9, fill: "#d9b64a"}, pa); });
+    k.traffic(pa, -80, 1020, deck - 2, deck + 4);
+    k.hit("net", pa, [330, deck - 26], "Pont Alexandre III");
+    // bateaux-mouches — apps
+    k.vehicles(lm, -60, 1000, G + 72, G + 62, g => bateau(g));
+    k.hit("apps", sc.apps.g, [860, G + 52], "Bateaux-mouches");
+    // foreground: Haussmann blocks, Moulin Rouge, Métro, marquee
+    const fg = L.fg, cream = k.day ? "#e2d6bd" : "#262236", zinc = k.day ? "#7d8796" : "#1a1c2c";
+    k.blocks(1020, W + 80, {skip: [[1086, 1190], [1236, 1342], [1394, 1600]], hMin: 66, hVar: 46, wx: 13, wy: 18, ww: 5, wh: 10, awning: true, mansard: zinc, color: () => cream});
+    // Moulin Rouge — battery
+    const mr = el("g", {}, fg), mcx = 1274;
+    el("rect", {x: 1240, y: ST - 70, width: 100, height: 70, fill: k.day ? "#b8242a" : "#5a0f1a"}, mr);
+    el("text", {x: 1290, y: ST - 50, "text-anchor": "middle", fill: k.day ? "#fff4c4" : "#ff5a6a", "font-size": 11, "font-weight": 800, "font-family": "-apple-system,system-ui", "letter-spacing": "1"}, mr).textContent = "MOULIN ROUGE";
+    el("rect", {x: 1240, y: ST - 44, width: 100, height: 3, fill: "#ffd27a", opacity: .8}, mr);
+    el("path", {d: `M ${mcx - 14} ${ST - 70} L ${mcx - 11} ${ST - 128} H ${mcx + 11} L ${mcx + 14} ${ST - 70} Z`, fill: k.day ? "#c0282e" : "#7a1420"}, mr);
+    el("path", {d: `M ${mcx - 14} ${ST - 128} L ${mcx} ${ST - 146} L ${mcx + 14} ${ST - 128} Z`, fill: k.day ? "#7a1a1e" : "#3a0a10"}, mr);
+    k.gauge(mr, mcx - 5, ST - 122, 10, 44, {rx: 5});
+    k.bolt(mr, mcx, ST - 102, .7);
+    const sails = el("g", {}, mr), hubY = ST - 134;
+    [0, 90, 180, 270].forEach(a => { const g2 = el("g", {transform: `rotate(${a} ${mcx} ${hubY})`}, sails); el("rect", {x: mcx - 1.5, y: hubY - 46, width: 3, height: 46, fill: k.day ? "#5a3a2a" : "#2a1a1a"}, g2); el("rect", {x: mcx + 1.5, y: hubY - 44, width: 9, height: 34, fill: k.day ? "#e8e0d0" : "#ff6a7a", opacity: k.day ? .9 : .75}, g2); });
+    el("circle", {cx: mcx, cy: hubY, r: 3, fill: "#ffd27a"}, mr);
+    k.spin(sails, mcx, hubY, () => (V._ && V._.b && V._.b.charging) ? 70 : 8);
+    k.hit("bat", mr, [mcx, ST - 190], "Moulin Rouge", "fg");
+    // Métro entrance (part of disk activity)
+    const me = el("g", {class: "lm"}, fg); me.dataset.k = "io";
+    const iron = k.day ? "#2e5d3a" : "#3f7a4c";
+    el("path", {d: `M 1196 ${ST} V ${ST - 40} Q 1196 ${ST - 52} 1206 ${ST - 52} M 1232 ${ST} V ${ST - 40} Q 1232 ${ST - 52} 1222 ${ST - 52}`, stroke: iron, "stroke-width": 3, fill: "none"}, me);
+    el("rect", {x: 1194, y: ST - 58, width: 40, height: 8, rx: 2, fill: "#f2d98a"}, me);
+    el("text", {x: 1214, y: ST - 52, "text-anchor": "middle", "font-size": 5.2, "font-weight": 700, fill: "#2e5d3a", "font-family": "Georgia,serif"}, me).textContent = "MÉTROPOLITAIN";
+    [1196, 1232].forEach(x => el("circle", {cx: x, cy: ST - 42, r: 3.2, fill: "#ff9a3c"}, me));
+    // marquee
+    const mq = el("g", {}, fg);
+    el("rect", {x: 1394, y: ST - 260, width: 210, height: 260, fill: cream}, mq);
+    el("path", {d: `M 1390 ${ST - 260} L 1402 ${ST - 280} H 1596 L 1608 ${ST - 260} Z`, fill: zinc}, mq);
+    k.screen(mq, 1410, ST - 240, 178, 70, {bg: "#180c2a", frame: "#0a0610", stripCol: "#ffd27a"});
+    s = ""; for (let y = ST - 128; y < ST - 20; y += 22) for (let x = 1406; x < 1596; x += 16) s += `<rect x="${x}" y="${y}" width="6" height="12" fill="${k.win()}" opacity="${k.day ? .5 : (.4 + R() * .5).toFixed(2)}"/>`;
+    mq.insertAdjacentHTML("beforeend", s);
+    k.hit("alerts", mq, [1500, ST - 290], "Boulevard marquee", "fg");
+    k.street(1020, W + 80);
+    el("rect", {x: -80, y: ST + 18, width: 1100, height: 10, fill: k.day ? "#a89c84" : P.land}, fg);
+    k.tunnel({name: "Métro", stripe: "#2b5fae"});
+  }
+});
+/* ---------------- London ---------------- */
+CITIES.push({
+  id: "london", name: "London", flag: "🇬🇧", tz: "Europe/London", seed: 44, blurb: "The Shard · Big Ben · London Eye",
+  sil: "M0 40V30h6V18h3v22h8V14h4l2-6 2 6h4v26h6l8-36 8 36h4V22a6 7 0 0 1 12 0v18h4V6l1-4 1 4v34h4V24a12 12 0 0 1 24 0v16z",
+  tint(P, mode){
+    if (mode === "day"){ P.sky = ["#7896ba", "#a1b7d0", "#cbd6e1", "#e4e9ee"]; P.far = "#aab3c2"; P.mid = "#8d97a8"; P.water = ["#5f7d94", "#3e5a70"]; P.land = "#8f8a80"; P.haze = .12; }
+    if (mode === "night"){ P.glow = "#ffae6e"; P.glowA = .3; P.land = "#13142a"; }
+  },
+  maps: {cpu: "The Shard's floors light up from the bottom as CPU load rises; its tip turns amber, then red.",
+    mem: "The Gherkin fills with the memory in use. Amber means pressure, red means critical.",
+    disk: "Each lit mark on Big Ben's clock face is free space. They go dark as the disk fills.",
+    gpu: "The London Eye's capsules light up and the wheel turns faster with GPU load.",
+    temp: "The lantern on St Paul's dome glows hotter and redder with the chip temperature.",
+    net: "Tower Bridge: headlights heading right are downloads, taillights heading left are uploads.",
+    io: "The Tube: reads run right, writes run left. Faster trains mean more throughput.",
+    bat: "The red phone box is your battery. A bolt shows while charging.",
+    apps: "Roughly one bus or black cab for every three open apps. They speed up when the CPU is busy.",
+    fans: "Battersea's chimneys smoke more as the fans spin up.", alerts: "The screens at Piccadilly Circus count your to-dos."},
+  build(k){
+    const {P, L} = k, G = HZ, R = k.R;
+    k.sky({moon: [1040, 210], clouds: k.day ? 8 : k.mode === "night" ? 3 : 5, cloudCol: k.day ? "#f2f4f7" : "#fff"});
+    k.backdrop("london", {farMin: 40, farMax: 150, midMin: 50, midMax: 160});
+    // Battersea Power Station — fans
+    const bp = el("g", {}, L.back), brick = k.day ? "#9a6a52" : "#2a1e26", chim = k.day ? "#efeae0" : "#9da2b8";
+    el("rect", {x: 30, y: G - 84, width: 164, height: 84, fill: brick}, bp);
+    el("rect", {x: 60, y: G - 104, width: 104, height: 22, fill: brick}, bp);
+    [42, 66, 158, 182].forEach(x => { el("path", {d: `M ${x - 7} ${G - 84} L ${x - 5} ${G - 176} H ${x + 5} L ${x + 7} ${G - 84} Z`, fill: chim}, bp); el("rect", {x: x - 6, y: G - 150, width: 12, height: 3, fill: "#000", opacity: .15}, bp); });
+    [42, 66, 158, 182].forEach((x, i) => k.plume(bp, x - 4, G - 182, "smoke", {n: 3, rx: 9, ry: 7, col: k.day ? "#f4f4f4" : "#c9cbe0"}));
+    k.hit("fans", bp, [112, G - 196], "Battersea Power Station", "back");
+    k.water(-80, 1040);
+    k.land(1040, W + 80);
+    const lm = L.lm;
+    // Tower Bridge — network
+    const tb = el("g", {}, lm), deck = G + 30, stone = k.day ? "#c9b99a" : "#4a4250", blue = k.day ? "#4d86c4" : "#3a6fb8";
+    el("rect", {x: 120, y: deck, width: 680, height: 10, fill: k.day ? "#8a95a8" : "#2a2c44"}, tb);
+    el("rect", {x: 120, y: deck, width: 680, height: 2, fill: blue}, tb);
+    el("path", {d: `M 120 ${deck - 2} Q 200 ${deck - 70} 272 ${G - 96} M 828 ${deck - 2} Q 720 ${deck - 70} 648 ${G - 96}`, stroke: blue, "stroke-width": 4, fill: "none"}, tb);
+    let s = ""; for (let x = 140; x < 272; x += 14){ const t = (x - 120) / 152; s += `M ${x} ${f1(deck - 2 - (deck - G + 96) * t * t)} V ${deck}`; } for (let x = 660; x < 820; x += 14){ const t = (828 - x) / 180; s += `M ${x} ${f1(deck - 2 - (deck - G + 96) * t * t)} V ${deck}`; }
+    el("path", {d: s, stroke: blue, "stroke-width": 1, opacity: .6}, tb);
+    [[G - 132, 10], [G - 116, 10]].forEach(([y, h]) => el("rect", {x: 300, y, width: 320, height: h, fill: blue}, tb));
+    s = ""; for (let x = 306; x < 616; x += 12) s += `M ${x} ${G - 122} L ${x + 6} ${G - 116} M ${x + 6} ${G - 122} L ${x} ${G - 116}`; el("path", {d: s, stroke: blue, "stroke-width": 1}, tb);
+    [300, 620].forEach(x => {
+      el("rect", {x: x - 28, y: G - 150, width: 56, height: deck - G + 150 + 40, fill: stone}, tb);
+      el("path", {d: `M ${x - 30} ${G - 150} L ${x} ${G - 206} L ${x + 30} ${G - 150} Z`, fill: k.day ? "#5a6478" : "#262a40"}, tb);
+      [-26, 26].forEach(dx => { el("rect", {x: x + dx - 5, y: G - 172, width: 10, height: 24, fill: stone}, tb); el("path", {d: `M ${x + dx - 6} ${G - 172} L ${x + dx} ${G - 188} L ${x + dx + 6} ${G - 172} Z`, fill: k.day ? "#5a6478" : "#262a40"}, tb); });
+      el("path", {d: `M ${x - 14} ${deck} V ${G - 40} Q ${x} ${G - 66} ${x + 14} ${G - 40} V ${deck} Z`, fill: P.sky[k.day ? 2 : 1], opacity: .95}, tb);
+      s = ""; for (let y = G - 140; y < G - 70; y += 18) s += `<rect x="${x - 3}" y="${y}" width="6" height="12" rx="3" fill="${k.day ? "#3a3f55" : P.win[0]}" opacity="${k.day ? .7 : .8}"/>`; tb.insertAdjacentHTML("beforeend", s);
+      k.blinker(tb, x, G - 208, x / 400);
+    });
+    k.traffic(tb, 120, 800, deck - 2, deck + 4);
+    k.hit("net", tb, [460, G - 146], "Tower Bridge");
+    // St Paul's — temperature
+    const sp = el("g", {}, lm), sx = 820, pw = k.day ? "#e2dccd" : k.mode === "night" ? "#6e6a7c" : "#8e8a96";
+    el("rect", {x: sx - 74, y: G - 96, width: 148, height: 96, fill: pw}, sp);
+    s = ""; for (let x = sx - 66; x < sx + 66; x += 14) s += `<rect x="${x}" y="${G - 80}" width="7" height="22" rx="3.5" fill="${k.day ? "#8a8270" : P.win[0]}" opacity="${k.day ? .5 : .55}"/><rect x="${x}" y="${G - 44}" width="7" height="22" rx="3.5" fill="${k.day ? "#8a8270" : P.win[0]}" opacity="${k.day ? .5 : .4}"/>`; sp.insertAdjacentHTML("beforeend", s);
+    el("path", {d: `M ${sx - 80} ${G - 96} L ${sx} ${G - 118} L ${sx + 80} ${G - 96} Z`, fill: pw}, sp);
+    [sx - 66, sx + 54].forEach(x => { el("rect", {x, y: G - 150, width: 14, height: 54, fill: pw}, sp); el("path", {d: `M ${x - 1} ${G - 150} Q ${x + 7} ${G - 170} ${x + 15} ${G - 150} Z`, fill: pw}, sp); });
+    el("rect", {x: sx - 32, y: G - 160, width: 64, height: 46, fill: pw}, sp);
+    s = ""; for (let x = sx - 28; x < sx + 30; x += 7) s += `M ${x} ${G - 156} V ${G - 118}`; el("path", {d: s, stroke: "#000", "stroke-opacity": .18, "stroke-width": 2}, sp);
+    el("path", {d: `M ${sx - 34} ${G - 160} C ${sx - 34} ${G - 206} ${sx - 14} ${G - 216} ${sx} ${G - 218} C ${sx + 14} ${G - 216} ${sx + 34} ${G - 206} ${sx + 34} ${G - 160} Z`, fill: k.day ? "#8e9aa2" : "#5e6878"}, sp);
+    el("rect", {x: sx - 6, y: G - 236, width: 12, height: 18, fill: pw}, sp);
+    const lan = el("rect", {x: sx - 3, y: G - 232, width: 6, height: 9, fill: "#ffd27a"}, sp);
+    el("circle", {cx: sx, cy: G - 240, r: 3.4, fill: "#d9b64a"}, sp);
+    el("path", {d: `M ${sx} ${G - 244} V ${G - 254} M ${sx - 3} ${G - 250} H ${sx + 3}`, stroke: "#d9b64a", "stroke-width": 1.6}, sp);
+    k.heat(sp, sx, G - 228, 16, {tint: [lan]});
+    k.hit("temp", sp, [sx, G - 266], "St Paul's Cathedral");
+    // The Shard — CPU
+    const sh = el("g", {}, lm);
+    const shD = `M 900 ${G} L 960 ${G - 470} L 957 ${G - 500} L 965 ${G - 478} L 970 ${G - 510} L 974 ${G - 478} L 983 ${G - 498} L 979 ${G - 470} L 1040 ${G} Z`;
+    el("path", {d: shD, fill: k.day ? "#8fa6c0" : P.lm, stroke: P.edge, "stroke-width": 1.2}, sh);
+    k.cpuRows(sh, G - 462, G, y => { const t = (G - y) / 470; return [900 + 60 * t + 4, 1040 - 61 * t - 4]; }, {dx: 6, dy: 8, w: 2.6, h: 3.6});
+    el("path", {d: `M 970 ${G - 470} L 986 ${G}`, stroke: "#fff", "stroke-opacity": .14, "stroke-width": 1.5}, sh);
+    sc.cpu.crown.push(el("path", {d: `M 960 ${G - 470} L 957 ${G - 500} L 965 ${G - 478} L 970 ${G - 510} L 974 ${G - 478} L 983 ${G - 498} L 979 ${G - 470} Z`, fill: "#bfe7ff"}, sh));
+    sc.cpu.glow = el("ellipse", {cx: 970, cy: G - 486, rx: 22, ry: 30, fill: "#fff", opacity: 0, filter: "url(#blur4)"}, sh);
+    k.shade(shD, sh);
+    k.hit("cpu", sh, [970, G - 522], "The Shard");
+    // The Gherkin — memory
+    const gk = el("g", {}, lm), gx = 1110;
+    const gD = `M ${gx - 30} ${G} C ${gx - 46} ${G - 120} ${gx - 36} ${G - 214} ${gx} ${G - 262} C ${gx + 36} ${G - 214} ${gx + 46} ${G - 120} ${gx + 30} ${G} Z`;
+    k.memGlass(gk, gD, G - 262, G, {lineGap: 11});
+    s = ""; for (let x = gx - 120; x < gx + 60; x += 14) s += `M ${x} ${G} L ${x + 70} ${G - 262} M ${x + 60} ${G} L ${x - 10} ${G - 262}`;
+    const cp = gk.querySelector("rect").getAttribute("clip-path");
+    el("path", {d: s, stroke: k.day ? "#2e3e58" : "#0a0e24", "stroke-opacity": .35, "stroke-width": 1.2, "clip-path": cp, fill: "none"}, gk);
+    k.shade(gD, gk);
+    k.hit("mem", gk, [gx, G - 276], "The Gherkin");
+    // Big Ben — free disk
+    const bb = el("g", {}, lm), bx = 1196, bst = k.day ? "#c9b27e" : "#5a4a3a", bstD = k.day ? "#a8925e" : "#3a3026";
+    el("rect", {x: bx - 16, y: G - 214, width: 32, height: 214, fill: bst}, bb);
+    el("rect", {x: bx - 20, y: G - 262, width: 40, height: 48, fill: bst}, bb);
+    el("rect", {x: bx - 18, y: G - 286, width: 36, height: 24, fill: bstD}, bb);
+    s = ""; for (let x = bx - 14; x < bx + 14; x += 7) s += `<rect x="${x}" y="${G - 282}" width="4" height="16" rx="2" fill="${k.day ? "#3a3020" : P.win[0]}" opacity="${k.day ? .6 : .55}"/>`; bb.insertAdjacentHTML("beforeend", s);
+    el("path", {d: `M ${bx - 20} ${G - 286} L ${bx} ${G - 340} L ${bx + 20} ${G - 286} Z`, fill: k.day ? "#55607a" : "#262a40"}, bb);
+    el("rect", {x: bx - 1, y: G - 356, width: 2, height: 18, fill: "#d9b64a"}, bb);
+    [-18, 18].forEach(dx => el("path", {d: `M ${bx + dx - 3} ${G - 286} L ${bx + dx} ${G - 300} L ${bx + dx + 3} ${G - 286} Z`, fill: bstD}, bb));
+    s = ""; for (let y = G - 200; y < G - 10; y += 14) s += `M ${bx - 10} ${y} V ${y + 9} M ${bx} ${y} V ${y + 9} M ${bx + 10} ${y} V ${y + 9}`; el("path", {d: s, stroke: bstD, "stroke-width": 2.4}, bb);
+    const dial = {x: bx, y: G - 238};
+    el("circle", {cx: dial.x, cy: dial.y, r: 15, fill: k.day ? "#f4ecd6" : "#ffe7a0"}, bb);
+    if (!k.day) el("circle", {cx: dial.x, cy: dial.y, r: 24, fill: "url(#halo)", opacity: .9}, bb);
+    for (let i = 0; i < 12; i++){ const a = (i / 12) * Math.PI * 2 - Math.PI / 2; k.diskLight(bb, {cx: f1(dial.x + Math.cos(a) * 11), cy: f1(dial.y + Math.sin(a) * 11), r: 1.9}, "circle"); }
+    sc.disk.on = "#1d2a44"; sc.disk.lights.forEach(e => e.setAttribute("fill", "#1d2a44"));
+    el("path", {d: `M ${dial.x} ${dial.y} V ${dial.y - 8} M ${dial.x} ${dial.y} L ${dial.x + 5} ${dial.y + 2}`, stroke: "#1d2a44", "stroke-width": 1.4}, bb);
+    k.hit("disk", bb, [bx, G - 366], "Big Ben");
+    // London Eye — GPU
+    const ey = el("g", {}, lm), ecx = 1340, ecy = G - 150, er = 120, legC = k.day ? "#e8ecf2" : "#9aa3c4";
+    el("path", {d: `M ${ecx} ${ecy} L ${ecx - 70} ${G} M ${ecx} ${ecy} L ${ecx - 36} ${G}`, stroke: legC, "stroke-width": 3.5}, ey);
+    const wheel = el("g", {}, ey);
+    el("circle", {cx: ecx, cy: ecy, r: er, fill: "none", stroke: legC, "stroke-width": 2.6}, wheel);
+    el("circle", {cx: ecx, cy: ecy, r: er - 8, fill: "none", stroke: legC, "stroke-width": 1, opacity: .7}, wheel);
+    s = ""; for (let i = 0; i < 32; i++){ const a = i / 32 * Math.PI * 2; s += `M ${ecx} ${ecy} L ${f1(ecx + Math.cos(a) * (er - 8))} ${f1(ecy + Math.sin(a) * (er - 8))}`; }
+    el("path", {d: s, stroke: legC, "stroke-width": .6, opacity: .55}, wheel);
+    const caps = el("g", {}, wheel); s = "";
+    for (let i = 0; i < 32; i++){ const a = i / 32 * Math.PI * 2; s += `<ellipse cx="${f1(ecx + Math.cos(a) * (er + 4))}" cy="${f1(ecy + Math.sin(a) * (er + 4))}" rx="3.6" ry="2.6" fill="${i % 2 ? "#ff7ac8" : "#7ad0ff"}"/>`; }
+    caps.innerHTML = s;
+    k.gpuEl(caps, 1, k.day ? .55 : .2);
+    const rim = el("circle", {cx: ecx, cy: ecy, r: er, fill: "none", stroke: "#ff7ac8", "stroke-width": 6, filter: "url(#blur4)"}, wheel);
+    k.gpuEl(rim, k.day ? .15 : .6, 0);
+    el("circle", {cx: ecx, cy: ecy, r: 6, fill: legC}, ey);
+    k.spin(wheel, ecx, ecy, () => 1.5 + shown.gpu * .2);
+    k.hit("gpu", ey, [ecx, ecy - er - 16], "London Eye");
+    // foreground
+    const fg = L.fg;
+    k.blocks(1040, W + 80, {skip: [[1210, 1470], [1460, 1600]], hMin: 80, hVar: 70, wx: 13, wy: 16, ww: 6, wh: 9, color: r => k.day ? ["#8a4b3a", "#9b5a44", "#7a4434", "#a8826a"][(r() * 4) | 0] : P.near});
+    // phone box — battery
+    const pb = el("g", {}, fg), px = 1250, red = "#d4231d";
+    el("rect", {x: px - 12, y: ST - 70, width: 24, height: 70, rx: 2, fill: red}, pb);
+    el("path", {d: `M ${px - 13} ${ST - 70} Q ${px} ${ST - 80} ${px + 13} ${ST - 70} Z`, fill: red}, pb);
+    el("rect", {x: px - 10, y: ST - 68, width: 20, height: 5, fill: k.day ? "#f4f4f4" : "#fff6d0"}, pb);
+    k.gauge(pb, px - 8, ST - 58, 16, 46, {rx: 1});
+    let gl = ""; for (let y = ST - 58; y < ST - 12; y += 8) gl += `M ${px - 8} ${y} H ${px + 8}`; gl += `M ${px} ${ST - 58} V ${ST - 12}`;
+    el("path", {d: gl, stroke: red, "stroke-width": 1.2}, pb);
+    k.bolt(pb, px, ST - 36, .8);
+    k.hit("bat", pb, [px, ST - 90], "Red phone box", "fg");
+    // Tube roundel (disk activity)
+    const tr = el("g", {class: "lm"}, fg); tr.dataset.k = "io";
+    el("rect", {x: 1299, y: ST - 50, width: 2, height: 50, fill: k.day ? "#555" : "#0c0c18"}, tr);
+    el("circle", {cx: 1300, cy: ST - 62, r: 13, fill: "none", stroke: "#dc241f", "stroke-width": 5}, tr);
+    el("rect", {x: 1282, y: ST - 66, width: 36, height: 8, fill: "#0019a8"}, tr);
+    el("text", {x: 1300, y: ST - 60, "text-anchor": "middle", "font-size": 4.6, "font-weight": 700, fill: "#fff", "font-family": "-apple-system,system-ui"}, tr).textContent = "UNDERGROUND";
+    // Piccadilly Circus — to-dos
+    const pc = el("g", {}, fg);
+    el("rect", {x: 1460, y: ST - 270, width: 160, height: 270, fill: k.day ? "#b8a890" : "#1a1828"}, pc);
+    k.screen(pc, 1470, ST - 254, 124, 64, {big: 22});
+    [["#ff3b6b", 0], ["#2f80ed", 1], ["#ffcf3a", 2]].forEach(([c, i]) => { el("rect", {x: 1472 + i * 42, y: ST - 152, width: 38, height: 30, fill: c, opacity: k.day ? .75 : .9}, pc); if (!k.day) el("rect", {x: 1472 + i * 42, y: ST - 152, width: 38, height: 30, fill: c, opacity: .5, filter: "url(#blur4)"}, pc); });
+    k.hit("alerts", pc, [1532, ST - 284], "Piccadilly Circus", "fg");
+    k.street(1040, W + 80);
+    el("rect", {x: -80, y: ST + 18, width: 1120, height: 10, fill: P.land}, fg);
+    for (let x = 1230; x < 1460; x += 70) k.lamp(fg, x, ST, 40);
+    k.vehicles(fg, 1040, W + 40, ST + 16, ST + 5, (g, dir) => Math.random() < .5 ? busShape(g, {body: "#d4231d", deck: true}) : carShape(g, {body: "#16161a", cab: "#16161a", sign: "#ffb43a"}));
+    k.hit("apps", sc.apps.g, [1120, ST - 40], "Buses & black cabs", "fg");
+    k.tunnel({name: "The Tube", stripe: "#dc241f"});
+  }
+});
+
+/* ---------------- Tokyo ---------------- */
+CITIES.push({
+  id: "tokyo", name: "Tokyo", flag: "🇯🇵", tz: "Asia/Tokyo", seed: 81, blurb: "Skytree · Tokyo Tower · Mt Fuji",
+  sil: "M0 40V30L14 14h4L32 30v10h6V24h6v16h4V22h4V2h2v20h4v18h6V10l3-6 3 6v30h8V20a6 8 0 0 1 12 0v20h8V26h8v14z",
+  tint(P, mode){
+    if (mode === "night"){ P.sky = ["#05061a", "#0f0f3a", "#2a1650", "#5a2560"]; P.glow = "#ff5ab4"; P.glowA = .3; P.land = "#12102a"; }
+    if (mode === "day"){ P.far = "#a9b6cc"; P.mid = "#8796b0"; P.land = "#8d93a0"; }
+  },
+  maps: {cpu: "Tokyo Skytree lights up from the base as CPU load rises; the observation decks turn amber, then red.",
+    mem: "The Cocoon Tower fills with the memory in use. Amber means pressure, red means critical.",
+    disk: "Each lit lamp on Tokyo Tower is free space. They go dark as the disk fills.",
+    gpu: "The neon signs get brighter with GPU load.",
+    temp: "Mt Fuji glows red, the famous Aka-Fuji, as the chip heats up.",
+    net: "Rainbow Bridge: headlights heading right are downloads, taillights heading left are uploads.",
+    io: "Tokyo Metro: reads run right, writes run left. Faster trains mean more throughput.",
+    bat: "The vending machine is your battery. A bolt shows while charging.",
+    apps: "Roughly one taxi for every three open apps. They speed up when the CPU is busy.",
+    fans: "Steam from the ramen stall thickens as the fans spin up.", alerts: "The giant screen at Shibuya counts your to-dos."},
+  build(k){
+    const {P, L} = k, G = HZ, R = k.R;
+    k.sky({moon: [1160, 200]});
+    // Mt Fuji — temperature
+    const fz = el("g", {class: "ly"}, k.svg); k.svg.insertBefore(fz, L.far); fz.dataset.px = .08; k.L.fuji = fz;
+    const fuji = `M -20 ${G} C 180 ${G - 80} 330 ${G - 210} 392 ${G - 262} L 448 ${G - 262} C 510 ${G - 210} 660 ${G - 80} 860 ${G} Z`;
+    el("path", {d: fuji, fill: k.day ? "#6f82ad" : k.mode === "night" ? "#1a1c44" : "#4a4878"}, fz);
+    el("path", {d: `M 392 ${G - 262} L 448 ${G - 262} C 470 ${G - 244} 492 ${G - 226} 512 ${G - 210} L 494 ${G - 214} L 478 ${G - 200} L 462 ${G - 216} L 444 ${G - 198} L 424 ${G - 218} L 404 ${G - 200} L 388 ${G - 216} L 360 ${G - 206} C 372 ${G - 226} 382 ${G - 244} 392 ${G - 262} Z`, fill: k.day ? "#f6f8fc" : "#c9cde6", opacity: k.day ? 1 : .75}, fz);
+    const aka = el("path", {d: fuji, fill: "#ffd27a", opacity: .18}, fz);
+    k.heat(fz, 420, G - 264, 30, {tint: [aka]});
+    sc.temp.halo.setAttribute("opacity", .5);
+    k.hit("temp", fz, [420, G - 300], "Mt Fuji", "fuji");
+    k.backdrop("tokyo", {farMin: 50, farMax: 200, midMin: 60, midMax: 230, gap: [1, 4]});
+    k.water(-80, 900);
+    k.land(900, W + 80);
+    const lm = L.lm;
+    // Rainbow Bridge — network
+    const rb = el("g", {}, lm), deck = G + 32, wht = k.day ? "#f0f2f6" : "#c9cde0";
+    el("rect", {x: -80, y: deck, width: 980, height: 9, fill: k.day ? "#b8bfcc" : "#2a2c48"}, rb);
+    el("rect", {x: -80, y: deck + 14, width: 980, height: 4, fill: k.day ? "#b8bfcc" : "#2a2c48"}, rb);
+    const cable = `M -80 ${deck - 4} Q 60 ${deck - 60} 190 ${G - 150} Q 370 ${G - 20} 550 ${G - 150} Q 700 ${deck - 60} 900 ${deck - 4}`;
+    el("path", {d: cable, stroke: wht, "stroke-width": 2.4, fill: "none"}, rb);
+    let s = ""; for (let x = 200; x < 550; x += 14){ const t = (x - 190) / 360, y = G - 150 + 130 * 4 * t * (1 - t) * .5; s += `M ${x} ${f1(y)} V ${deck}`; }
+    el("path", {d: s, stroke: wht, "stroke-width": .8, opacity: .6}, rb);
+    [190, 550].forEach(x => { el("path", {d: `M ${x - 12} ${deck + 40} V ${G - 150} H ${x - 4} V ${deck + 40} Z M ${x + 4} ${deck + 40} V ${G - 150} H ${x + 12} V ${deck + 40} Z`, fill: wht}, rb); [G - 120, G - 60, G].forEach(y => el("rect", {x: x - 12, y, width: 24, height: 6, fill: wht}, rb)); k.blinker(rb, x, G - 154, x / 300); });
+    if (!k.day){ s = ""; const cols = ["#ff5a5a", "#ffb43a", "#ffe94a", "#5aff8a", "#4ad2ff", "#7a7aff", "#d65aff"]; for (let i = 0; i <= 50; i++){ const x = 190 + i * 7.2, t = (x - 190) / 360, y = G - 150 + 130 * 4 * t * (1 - t) * .5; s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="1.8" fill="${cols[i % 7]}" opacity=".9"/>`; } rb.insertAdjacentHTML("beforeend", s); }
+    k.traffic(rb, -80, 900, deck - 2, deck + 4);
+    k.hit("net", rb, [370, G - 110], "Rainbow Bridge");
+    // Tokyo Skytree — CPU
+    const st = el("g", {}, lm), cx = 1000;
+    const prof = [[0, 42], [60, 30], [330, 16], [520, 6], [600, 2]];
+    const sw = h => { for (let i = 1; i < prof.length; i++) if (h <= prof[i][0]){ const [h0, w0] = prof[i - 1], [h1, w1] = prof[i]; return w0 + (w1 - w0) * (h - h0) / (h1 - h0); } return 2; };
+    let d = `M ${cx - 42} ${G}`; for (let h = 0; h <= 600; h += 10) d += ` L ${f1(cx - sw(h))} ${G - h}`; for (let h = 600; h >= 0; h -= 10) d += ` L ${f1(cx + sw(h))} ${G - h}`; d += " Z";
+    k.defs.insertAdjacentHTML("beforeend", `<pattern id="lattice2" width="7" height="7" patternUnits="userSpaceOnUse"><path d="M0 0L7 7M7 0L0 7" stroke="${k.day ? "#d8dde8" : "#3a4070"}" stroke-width=".8"/></pattern>`);
+    el("path", {d, fill: k.day ? "#c9d0dc" : "#1a1e40"}, st);
+    el("path", {d, fill: "url(#lattice2)", opacity: .7}, st);
+    k.cpuRows(st, G - 590, G, y => { const w = sw(G - y) - 3; return w > 2 ? [cx - w, cx + w] : null; }, {dx: 5, dy: 8, w: 2.2, h: 2.6, color: "#8fd4ff"});
+    [[G - 352, 30, 20], [G - 444, 20, 12]].forEach(([y, w, h]) => { el("rect", {x: cx - w, y, width: w * 2, height: h, rx: 3, fill: k.day ? "#e9edf4" : "#2a3060"}, st); sc.cpu.crown.push(el("rect", {x: cx - w + 2, y: y + h / 2 - 1.5, width: w * 2 - 4, height: 3, rx: 1.5, fill: "#bfe7ff"}, st)); });
+    sc.cpu.glow = el("ellipse", {cx, cy: G - 400, rx: 22, ry: 56, fill: "#fff", opacity: 0, filter: "url(#blur8)"}, st);
+    st.insertBefore(sc.cpu.glow, st.firstChild);
+    k.blinker(st, cx, G - 602, .5);
+    k.hit("cpu", st, [cx, G - 614], "Tokyo Skytree");
+    // Tokyo Tower — free disk
+    const tt = el("g", {}, lm), tx = 1180, org = "#ff5a1f", wtt = k.day ? "#f4f4f4" : "#ffe6cc";
+    const th = h => h < 150 ? 60 - 38 * Math.pow(h / 150, .7) : h < 300 ? 22 - 14 * (h - 150) / 150 : 8 - 6 * (h - 300) / 40;
+    let td = `M ${tx - 60} ${G}`; for (let h = 0; h <= 340; h += 10) td += ` L ${f1(tx - th(h))} ${G - h}`; for (let h = 340; h >= 0; h -= 10) td += ` L ${f1(tx + th(h))} ${G - h}`;
+    td += ` Z M ${tx - 40} ${G} Q ${tx - 36} ${G - 50} ${tx} ${G - 56} Q ${tx + 36} ${G - 50} ${tx + 40} ${G} Z`;
+    const ttc = "ttclip"; el("clipPath", {id: ttc}, k.defs).innerHTML = `<path d="${td}" fill-rule="evenodd"/>`;
+    el("path", {d: td, fill: org, "fill-rule": "evenodd", opacity: k.day ? .95 : .85}, tt);
+    s = ""; for (let i = 0; i < 9; i++) s += `M ${tx - 70} ${G - 30 - i * 36} h 140 v 12 h -140 z`; el("path", {d: s, fill: wtt, "clip-path": `url(#${ttc})`, opacity: .85}, tt);
+    el("path", {d: td, fill: "url(#lattice)", "fill-rule": "evenodd", opacity: .3}, tt);
+    k.defs.insertAdjacentHTML("beforeend", `<pattern id="lattice" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0L8 8M8 0L0 8" stroke="#000" stroke-width="1"/></pattern>`);
+    [[150, 24, 14], [250, 12, 8]].forEach(([h, w, hh]) => el("rect", {x: tx - w, y: G - h - hh / 2, width: w * 2, height: hh, rx: 2, fill: k.day ? "#e8e8ee" : "#2a2030"}, tt));
+    for (let i = 0; i < 7; i++){ const h = 24 + i * 44, w = th(h); k.diskLight(tt, {cx: f1(tx - w + 3), cy: G - h, r: 2.6}, "circle"); k.diskLight(tt, {cx: f1(tx + w - 3), cy: G - h, r: 2.6}, "circle"); }
+    sc.disk.on = "#fff2c4";
+    k.blinker(tt, tx, G - 342, .8);
+    k.hit("disk", tt, [tx, G - 354], "Tokyo Tower");
+    // Cocoon Tower — memory
+    const cc = el("g", {}, lm), ccx = 1336;
+    const cD = `M ${ccx - 26} ${G} C ${ccx - 40} ${G - 140} ${ccx - 32} ${G - 250} ${ccx} ${G - 300} C ${ccx + 32} ${G - 250} ${ccx + 40} ${G - 140} ${ccx + 26} ${G} Z`;
+    k.memGlass(cc, cD, G - 300, G, {lineGap: 9});
+    const cp = cc.querySelector("rect").getAttribute("clip-path");
+    s = ""; for (let i = -6; i < 8; i++) s += `M ${ccx - 60 + i * 14} ${G} Q ${ccx + i * 4} ${G - 150} ${ccx + 60 + i * 10} ${G - 300} M ${ccx + 60 - i * 14} ${G} Q ${ccx - i * 4} ${G - 150} ${ccx - 60 - i * 10} ${G - 300}`;
+    el("path", {d: s, stroke: "#fff", "stroke-opacity": .35, "stroke-width": 1.2, fill: "none", "clip-path": cp}, cc);
+    k.shade(cD, cc);
+    k.hit("mem", cc, [ccx, G - 316], "Cocoon Tower");
+    // foreground
+    const fg = L.fg;
+    k.blocks(900, W + 80, {skip: [[1130, 1300], [1410, 1600]], hMin: 90, hVar: 110, wx: 12, wy: 12, ww: 6, wh: 6, color: r => k.day ? ["#9aa3b4", "#b0b6c2", "#8a93a4", "#c4c0b8"][(r() * 4) | 0] : P.near});
+    // neon signs — GPU
+    const ng = el("g", {}, fg), neon = ["#ff3d9a", "#3ff0ff", "#a6ff4d", "#ffd23f", "#ff6a3d"];
+    [[908, ST - 210, 92], [956, ST - 180, 70], [1012, ST - 230, 110], [1072, ST - 196, 84], [1316, ST - 150, 70], [1372, ST - 176, 96]].forEach(([x, y, h], i) => {
+      const c = neon[i % neon.length], sg2 = el("g", {}, ng);
+      el("rect", {x, y, width: 16, height: h, rx: 2, fill: "#0a0818"}, sg2);
+      el("rect", {x: x + 1, y: y + 1, width: 14, height: h - 2, rx: 2, fill: "none", stroke: c, "stroke-width": 1.4}, sg2);
+      let gs = ""; for (let yy = y + 8; yy < y + h - 12; yy += 16) gs += `M ${x + 4} ${yy} h 8 M ${x + 8} ${yy - 3} v 10 M ${x + 4} ${yy + 6} l 8 -4`;
+      el("path", {d: gs, stroke: c, "stroke-width": 1.6, fill: "none", "stroke-linecap": "round"}, sg2);
+      el("rect", {x: x - 6, y: y - 6, width: 28, height: h + 12, rx: 6, fill: c, opacity: .5, filter: "url(#blur8)"}, sg2);
+      sg2.insertBefore(sg2.lastChild, sg2.firstChild);
+      k.gpuEl(sg2, 1, .18);
+    });
+    k.hit("gpu", ng, [1020, ST - 246], "Neon signs", "fg");
+    // ramen stall — fans
+    const rs = el("g", {}, fg);
+    el("rect", {x: 1140, y: ST - 44, width: 70, height: 44, fill: k.day ? "#7a4a2a" : "#2a1a14"}, rs);
+    el("path", {d: `M 1134 ${ST - 44} H 1216 L 1210 ${ST - 58} H 1140 Z`, fill: "#b8242a"}, rs);
+    s = ""; for (let i = 0; i < 5; i++) s += `<rect x="${1142 + i * 14}" y="${ST - 44}" width="12" height="16" fill="${k.day ? "#2a3a6a" : "#1d2a5c"}"/>`; rs.insertAdjacentHTML("beforeend", s);
+    [1146, 1204].forEach(x => { el("ellipse", {cx: x, cy: ST - 66, rx: 5, ry: 7, fill: "#ff5a3d"}, rs); if (!k.day) el("circle", {cx: x, cy: ST - 66, r: 14, fill: "url(#halo)"}, rs); });
+    k.plume(rs, 1170, ST - 60, "steam", {n: 4, rx: 8, ry: 7});
+    k.hit("fans", rs, [1176, ST - 102], "Ramen stall", "fg");
+    // vending machine — battery
+    const vm = el("g", {}, fg), vx = 1236;
+    el("rect", {x: vx, y: ST - 58, width: 30, height: 58, rx: 2, fill: k.day ? "#e9e9ee" : "#c9cde0"}, vm);
+    el("rect", {x: vx + 3, y: ST - 54, width: 17, height: 26, fill: "#fff6d8"}, vm);
+    s = ""; for (let r2 = 0; r2 < 3; r2++) for (let c = 0; c < 3; c++) s += `<rect x="${vx + 5 + c * 5}" y="${ST - 52 + r2 * 8}" width="3" height="6" rx="1" fill="${neon[(r2 * 3 + c) % 5]}"/>`; vm.insertAdjacentHTML("beforeend", s);
+    k.gauge(vm, vx + 22, ST - 54, 5, 40, {rx: 2});
+    el("rect", {x: vx + 4, y: ST - 14, width: 22, height: 6, rx: 1, fill: "#333"}, vm);
+    if (!k.day) el("rect", {x: vx - 8, y: ST - 66, width: 46, height: 66, fill: "#fff6d8", opacity: .25, filter: "url(#blur8)"}, vm);
+    k.bolt(vm, vx + 12, ST - 22, .6);
+    k.hit("bat", vm, [vx + 15, ST - 72], "Vending machine", "fg");
+    // Shibuya screen — to-dos
+    const sb = el("g", {}, fg);
+    el("rect", {x: 1410, y: ST - 280, width: 200, height: 280, fill: k.day ? "#7c8698" : "#121028"}, sb);
+    k.screen(sb, 1424, ST - 262, 166, 80, {bg: "#0c0a2a", big: 28});
+    s = ""; for (let y = ST - 150; y < ST - 10; y += 12) for (let x = 1418; x < 1600; x += 12) if (R() < P.winOn + .1) s += `<rect x="${x}" y="${y}" width="6" height="6" fill="${k.win()}" opacity=".7"/>`; sb.insertAdjacentHTML("beforeend", s);
+    k.hit("alerts", sb, [1507, ST - 292], "Shibuya screen", "fg");
+    k.street(900, W + 80);
+    el("rect", {x: -80, y: ST + 18, width: 980, height: 10, fill: P.land}, fg);
+    // zebra crossing
+    s = ""; for (let x = 1290; x < 1400; x += 12) s += `M ${x} ${ST + 3} h 7 v 22 h -7 z`; el("path", {d: s, fill: "#fff", opacity: .35}, fg);
+    k.vehicles(fg, 900, W + 40, ST + 16, ST + 5, (g, dir) => Math.random() < .55 ? carShape(g, {body: "#1d2a5c", cab: "#1d2a5c", sign: "#ffd23f"}) : Math.random() < .5 ? carShape(g, {body: "#2e8b57", cab: "#f2d14b", sign: "#fff"}) : carShape(g, {body: "#f4f4f6"}));
+    k.hit("apps", sc.apps.g, [1110, ST - 26], "Taxis", "fg");
+    k.tunnel({name: "Tokyo Metro", stripe: "#f39700"});
+  }
+});
+/*__CITIES__*/
+
+/* ================================================================== UI */
+const prefs = Object.assign({ui_city: "nyc", ui_sky: "auto", ui_labels: "values"}, DM.prefs || {});
+try { const l = JSON.parse(localStorage.getItem("dm-city") || "{}"); if (!DM.prefs || !DM.prefs.ui_city) Object.assign(prefs, l); } catch(e){}
+function savePref(k, v){
+  prefs[k] = v;
+  try { localStorage.setItem("dm-city", JSON.stringify({ui_city: prefs.ui_city, ui_sky: prefs.ui_sky, ui_labels: prefs.ui_labels})); } catch(e){}
+  if (DM.savePref) DM.savePref(k, v);
+}
+const cityById = id => CITIES.find(c => c.id === id) || CITIES[0];
+let CITY = cityById(prefs.ui_city);
+function currentMode(){
+  const s = prefs.ui_sky;
+  if (s === "auto"){ const d = new Date(); return modeForHour(d.getHours() + d.getMinutes() / 60); }
+  if (s === "city") return modeForHour(hourIn(CITY.tz));
+  return PAL[s] ? s : "night";
+}
+
+root.innerHTML = `<div class="cityview" id="cv">
+  <svg class="scape" id="scape" preserveAspectRatio="xMidYMax slice" role="img" aria-label="Live city view of your Mac"></svg>
+  <div class="cv-labels" id="cv-labels"></div>
+  <div class="cv-top">
+    <div class="cv-hello"><div class="t" id="cv-date"></div><h2 id="cv-greet"></h2><p id="cv-status"></p></div>
+    <div class="cv-ctrl">
+      <button class="cv-btn cv-glass" id="cv-city" title="Choose a city  ( [ and ] to cycle )"></button>
+      <div class="cv-seg cv-glass" id="cv-sky" title="Sky"></div>
+      <button class="cv-btn cv-glass" id="cv-lbl" title="Labels (L)"></button>
+    </div>
+  </div>
+  <div class="cv-pop cv-glass" id="cv-pop"></div>
+  <div class="cv-tip cv-glass" id="cv-tip"></div>
+  <aside class="cv-insp cv-glass" id="cv-insp"></aside>
+  <div class="cv-hint" id="cv-hint">Hover any landmark · click it for details and actions · press [ or ] to change city</div>
+  <div class="cv-dock" id="cv-dock"></div>
+</div>`;
+const cv = $("cv"), svg = $("scape"), labelsEl = $("cv-labels"), tip = $("cv-tip"), insp = $("cv-insp"), dock = $("cv-dock"), pop = $("cv-pop");
+
+/* ---------- scene build ---------- */
+function newScene(city, mode){
+  return {city, mode, cpu: {rows: [], crown: [], glow: null}, mem: null, disk: {lights: [], on: "#fff2c4"}, gpu: {els: []}, temp: null, bat: null,
+          fans: {groups: [], jets: []}, alerts: null, net: null, apps: null, io: null, spins: [], anchors: {}, rings: {}, sparkles: null, maps: city.maps || {}};
+}
+function buildScene(){
+  const mode = currentMode();
+  sc = newScene(CITY, mode);
+  const k = makeKit(svg, CITY, mode);
+  CITY.build(k);
+  for (const key in sc.anchors){
+    const a = sc.anchors[key];
+    const g = el("g", {class: "ring", display: "none"}, k.L[a.layer] || k.L.lm);
+    el("circle", {cx: a.x, cy: a.y, r: 12, class: "r1", stroke: "#ff5a4a"}, g);
+    el("circle", {cx: a.x, cy: a.y, r: 4.5, fill: "#ff5a4a"}, g);
+    sc.rings[key] = g;
+  }
+  sc.layers = [...svg.querySelectorAll(":scope > g.ly")];
+  sc.L = k.L;
+  cv.classList.toggle("day", mode === "day" || mode === "dawn");
+  fitView();
+  buildLabels(); renderControls(); renderDock();
+  if (DM.S) applyData();
+  if (spotKey) spot(spotKey);
+}
+function switchCity(id){
+  const c = cityById(id); if (c === CITY && sc) return;
+  CITY = c; savePref("ui_city", c.id);
+  cv.classList.add("swap");
+  setTimeout(() => { buildScene(); requestAnimationFrame(() => cv.classList.remove("swap")); if (inspKey) renderInspector(); }, 260);
+}
+function cycleCity(d){ const i = CITIES.indexOf(CITY); switchCity(CITIES[(i + d + CITIES.length) % CITIES.length].id); toast(`${CITY.flag} ${esc(CITY.name)}`, 1600); }
+
+/* ---------- values ---------- */
+const V = {};
+function level(k){ return (V[k] && V[k].lvl) || "na"; }
+function computeValues(){
+  const S = DM.S; if (!S) return;
+  const hw = S.hw || {}, hs = S.hw_slow || {}, m = S.mem, d = S.disk, T = hw.temps || {}, b = hw.battery || {}, N = hw.net || {}, IO = hw.io || {};
+  const fans = hw.fans || [], fan = fans.length ? Math.max(...fans.map(f => f.max ? f.rpm / f.max : 0)) : 0;
+  const sug = DM.suggestions(), hi = sug.filter(x => x.sev === "high"), med = sug.filter(x => x.sev === "med");
+  const userApps = S.apps.filter(a => a.kind === "app" && !a.system);
+  const freePct = d.free / d.total;
+  V.cpu = {v: S.cpu.total, txt: Math.round(S.cpu.total) + "%", sub: `load ${S.cpu.load[0].toFixed(1)}`, hist: S.cpu.hist, max: 100, lvl: S.cpu.total > 85 ? "bad" : S.cpu.total > 65 ? "warn" : "ok"};
+  V.mem = {v: m.used / m.total * 100, txt: fmt(m.used).replace(" ", " "), sub: `of ${fmt(m.total)}${m.swap > 1e9 ? " · swap " + fmt(m.swap) : ""}`, hist: m.hist, max: 100, lvl: m.pressure === "critical" ? "bad" : m.pressure === "warning" ? "warn" : "ok", pressure: m.pressure};
+  V.gpu = S.gpu ? {v: S.gpu.util, txt: Math.round(S.gpu.util) + "%", sub: S.gpu.mem ? fmt(S.gpu.mem) + " in use" : "graphics", hist: S.gpu.hist, max: 100, lvl: S.gpu.util > 92 ? "warn" : "ok"} : {v: 0, txt: "–", sub: "not available", lvl: "na"};
+  V.temp = T.cpu_max != null ? {v: T.cpu_max, txt: Math.round(T.cpu_max) + "°", sub: hw.thermal && hw.thermal !== "nominal" ? "throttling: " + hw.thermal : "CPU hottest", hist: T.hist, max: 110, lvl: T.cpu_max >= 95 ? "bad" : T.cpu_max >= 85 || (hw.thermal && hw.thermal !== "nominal") ? "warn" : "ok"} : {v: null, txt: "–", sub: "no sensor", lvl: "na"};
+  V.disk = {v: freePct, txt: fmt(d.free).replace(" ", " "), sub: `free of ${fmt(d.total)}`, lvl: freePct < .05 || d.free < 10e9 ? "bad" : freePct < .12 ? "warn" : "ok"};
+  V.net = {v: N.down || 0, txt: "↓" + DM.rate(N.down || 0), sub: "↑ " + DM.rate(N.up || 0), hist: N.hist_down, max: Math.max(1e5, ...(N.hist_down || [0])) * 1.1, lvl: "ok"};
+  V.io = {v: IO.read || 0, txt: DM.rate((IO.read || 0) + (IO.write || 0)), sub: `R ${DM.rate(IO.read || 0)} · W ${DM.rate(IO.write || 0)}`, hist: IO.hist_r, max: Math.max(1e6, ...(IO.hist_r || [0])) * 1.1, lvl: "ok"};
+  V.bat = b.percent != null ? {v: b.percent, txt: Math.round(b.percent) + "%", sub: b.charging ? "charging" : b.plugged ? "plugged in" : b.time_min ? DM.dur(b.time_min * 60) + " left" : "on battery", lvl: !b.plugged && b.percent <= 10 ? "bad" : !b.plugged && b.percent <= 20 ? "warn" : "ok"} : {v: null, txt: "AC", sub: "no battery", lvl: "na"};
+  V.apps = {v: userApps.length, txt: String(userApps.length), sub: `${S.procs} processes`, lvl: "ok"};
+  V.fans = {v: fan, txt: fans.length ? Math.round(fans[0].rpm) + "" : "–", sub: fans.length ? "rpm" : "fanless", lvl: fan > .85 ? "warn" : fans.length ? "ok" : "na"};
+  V.alerts = {v: hi.length + med.length, txt: String(hi.length + med.length), sub: hi.length ? `${hi.length} urgent` : med.length ? "suggestions" : "all clear", lvl: hi.length ? "bad" : med.length ? "warn" : "ok", list: hi.concat(med)};
+  V._ = {S, hw, hs, m, d, T, b, N, IO, fan, sug, hi, med, userApps, freePct};
+}
+
+/* ---------- live data → scene ---------- */
+const tgt = {cpu: 0, mem: 0, gpu: 0, down: 0, up: 0, read: 0, write: 0, apps: 0, fan: 0};
+const shown = {cpu: 0, mem: 0, gpu: 0, fan: 0};
+function applyData(){
+  computeValues();
+  if (!sc || !V._) return;
+  const X = V._;
+  tgt.cpu = V.cpu.v; tgt.mem = X.m.used / X.m.total; tgt.gpu = V.gpu.v || 0; tgt.fan = X.fan;
+  tgt.down = X.N.down || 0; tgt.up = X.N.up || 0; tgt.read = X.IO.read || 0; tgt.write = X.IO.write || 0; tgt.apps = V.apps.v;
+  if (sc.mem) sc.mem.rect.setAttribute("fill", X.m.pressure === "critical" ? "url(#glassCrit)" : X.m.pressure === "warning" ? "url(#glassWarn)" : (sc.mem.fill || "url(#glass)"));
+  const L = sc.disk.lights, lit = Math.round(L.length * clamp(X.freePct / .4, 0, 1));
+  const lowCol = X.freePct < .05 ? "#ff6b5b" : X.freePct < .12 ? "#ffb84d" : null;
+  L.forEach((e, i) => { e.setAttribute("opacity", i < lit ? .95 : .12); if (lowCol || e._c) { e.setAttribute("fill", i < lit && lowCol ? lowCol : (sc.disk.on)); e._c = !!lowCol; } });
+  if (sc.temp){
+    const t = V.temp.v, c = heatCol(t), s = t == null ? .4 : clamp((t - 30) / 70, .15, 1);
+    const st = document.getElementById("heatstop"); if (st) st.setAttribute("stop-color", c);
+    sc.temp.halo.setAttribute("r", f1(sc.temp.r * (1.4 + s * 1.8))); sc.temp.halo.setAttribute("opacity", (.35 + s * .6).toFixed(2));
+    if (sc.temp.flame){ sc.temp.core.setAttribute("ry", f1(8 + s * 10)); sc.temp.core.setAttribute("rx", f1(4.5 + s * 3.5)); sc.temp.core.style.filter = `hue-rotate(${t != null ? Math.max(-40, -(t - 50)) : 0}deg)`; }
+    else sc.temp.core.setAttribute("fill", c);
+    sc.temp.tint.forEach(e => e.setAttribute("fill", c));
+  }
+  if (sc.bat && V.bat.v != null){
+    const h = sc.bat.h * V.bat.v / 100;
+    sc.bat.rect.setAttribute("y", f1(sc.bat.y + sc.bat.h - h)); sc.bat.rect.setAttribute("height", f1(h));
+    sc.bat.rect.setAttribute("fill", V.bat.lvl === "bad" ? "#ff5a4a" : V.bat.lvl === "warn" ? "#ffb84d" : "#4cc285");
+    if (sc.bat.bolt) sc.bat.bolt.setAttribute("opacity", X.b.charging ? .95 : 0);
+  }
+  sc.fans.groups.forEach(g => g.setAttribute("opacity", clamp(.18 + X.fan * 1.2 + (V.temp.v > 75 ? .25 : 0), 0, .95).toFixed(2)));
+  if (sc.sparkles) sc.sparkles.setAttribute("display", V.cpu.v > 70 ? "inline" : "none");
+  // the screen
+  if (sc.alerts){
+    const A = sc.alerts, n = V.alerts.v;
+    A.big.textContent = n ? `${n} TO-DO${n > 1 ? "S" : ""}` : "ALL GOOD";
+    A.big.setAttribute("fill", X.hi.length ? "#ff6b5b" : n ? "#ffcf5a" : "#7dffb0");
+    A.big.removeAttribute("textLength");
+    try { if (A.big.getComputedTextLength() > A.avail) { A.big.setAttribute("textLength", A.avail); A.big.setAttribute("lengthAdjust", "spacingAndGlyphs"); } } catch(e){}
+    A.small.textContent = `CPU ${Math.round(V.cpu.v)}% · MEM ${Math.round(tgt.mem * 100)}% · ${fmt(X.d.free)} FREE`;
+    A.small.removeAttribute("textLength");
+    try { if (A.small.getComputedTextLength() > A.avail) { A.small.setAttribute("textLength", A.avail); A.small.setAttribute("lengthAdjust", "spacingAndGlyphs"); } } catch(e){}
+    A.glow.setAttribute("opacity", X.hi.length ? .35 : n ? .18 : .08);
+    A.glow.setAttribute("fill", X.hi.length ? "#ff5a4a" : n ? "#ffcf5a" : "#7dffb0");
+    const txt = (V.alerts.list.length ? V.alerts.list.map(x => "⚠ " + x.title.toUpperCase()) : ["★ NOTHING NEEDS YOUR ATTENTION ★"]).join("      ") + "      ";
+    if (A.strip.textContent !== txt){ A.strip.textContent = txt; try { A.tw = A.strip.getComputedTextLength(); } catch(e){ A.tw = 600; } }
+  }
+  // alert rings
+  for (const key in sc.rings){ const lv = level(key), g = sc.rings[key]; const on = lv === "bad" || lv === "warn"; g.setAttribute("display", on ? "inline" : "none"); if (on) g.querySelectorAll("circle").forEach((c, i) => c.setAttribute(i ? "fill" : "stroke", lv === "bad" ? "#ff5a4a" : "#ffb84d")); }
+  updateLabels(); updateDock(); updateHello();
+  if (inspKey && !insp.matches(":hover")) renderInspector();
+}
+
+/* ---------- labels ---------- */
+let labelEls = {};
+function buildLabels(){
+  labelsEl.innerHTML = ""; labelEls = {};
+  for (const key in sc.anchors){
+    const a = sc.anchors[key], d = document.createElement("div");
+    d.className = "cv-lb"; d.dataset.k = key;
+    d.innerHTML = `<div class="c"><span class="dt"></span>${icon(key)}<b></b><em>${esc(a.name)}</em></div><div class="st"></div>`;
+    labelsEl.appendChild(d); labelEls[key] = d;
+  }
+  cv.classList.toggle("lbl-off", prefs.ui_labels === "off");
+  cv.classList.toggle("lbl-names", prefs.ui_labels === "names");
+  requestAnimationFrame(placeLabels);
+}
+function updateLabels(){
+  for (const key in labelEls){
+    const d = labelEls[key], v = V[key]; if (!v) continue;
+    d.querySelector("b").textContent = key === "net" ? `↓${DM.rate(tgt.down)} ↑${DM.rate(tgt.up)}` : key === "io" ? V.io.sub : key === "fans" ? (v.txt + (v.sub === "rpm" ? " rpm" : "")) : key === "alerts" ? (v.v ? v.v + " to-do" + (v.v > 1 ? "s" : "") : "All good") : v.txt;
+    d.querySelector(".dt").style.background = v.lvl === "bad" ? "#ff5a4a" : v.lvl === "warn" ? "#ffb84d" : STATS[key].col;
+    d.classList.toggle("warn", v.lvl === "warn"); d.classList.toggle("bad", v.lvl === "bad");
+  }
+  placeLabels();
+}
+const par = {x: 0, y: 0, tx: 0, ty: 0};
+function toScreen(x, y, depth){
+  const m = svg.getScreenCTM(); if (!m) return null;
+  const r = cv.getBoundingClientRect();
+  const X = x - par.x * depth * 28, Y = y - par.y * depth * 8;
+  return [m.a * X + m.c * Y + m.e - r.left, m.b * X + m.d * Y + m.f - r.top, r.width, r.height];
+}
+function placeLabels(){
+  if (!sc) return;
+  const placed = [], cr = cv.getBoundingClientRect();
+  const obst = [cv.querySelector(".cv-hello"), cv.querySelector(".cv-ctrl")].map(e => { const r = e.getBoundingClientRect(); return {l: r.left - cr.left - 8, r: r.right - cr.left + 8, t: r.top - cr.top - 8, b: r.bottom - cr.top + 8}; });
+  const keys = Object.keys(labelEls).sort((a, b) => sc.anchors[b].y - sc.anchors[a].y);
+  for (const key of keys){
+    const a = sc.anchors[key], d = labelEls[key], depth = +(sc.L[a.layer] || sc.L.lm).dataset.px;
+    const p = toScreen(a.x, a.y, depth); if (!p) continue;
+    let [x, y, w, h] = p;
+    const vis = x > 30 && x < w - 30 && y > 40 && y < h - 20;
+    d.style.display = vis ? "" : "none"; if (!vis) continue;
+    const bw = d.offsetWidth || 110, bh = 30;
+    y -= 6;
+    for (let pass = 0; pass < 4; pass++) for (const q of placed) if (Math.abs(q.x - x) < (q.w + bw) / 2 + 4 && Math.abs(q.y - y) < bh) y = q.y - bh - 2;
+    for (const o of obst) if (x + bw / 2 > o.l && x - bw / 2 < o.r && y > o.t && y - bh < o.b) y = o.b + bh;
+    placed.push({x, y, w: bw});
+    d.style.left = x.toFixed(1) + "px"; d.style.top = y.toFixed(1) + "px";
+  }
+}
+labelsEl.addEventListener("mouseover", e => { const d = e.target.closest(".cv-lb"); if (d) spot(d.dataset.k); });
+labelsEl.addEventListener("mouseout", e => { const d = e.target.closest(".cv-lb"); if (d && !d.contains(e.relatedTarget)) unspot(); });
+labelsEl.addEventListener("click", e => { const d = e.target.closest(".cv-lb"); if (d) openInspector(d.dataset.k); });
+
+/* ---------- spotlight ---------- */
+let spotKey = null;
+function spot(key){
+  spotKey = key;
+  svg.classList.add("spot");
+  svg.querySelectorAll(".lm").forEach(g => g.classList.toggle("hl", g.dataset.k === key));
+  for (const k in labelEls) labelEls[k].classList.toggle("hl", k === key);
+  dock.querySelectorAll(".cv-tile").forEach(t => t.classList.toggle("hl", t.dataset.k === key));
+}
+function unspot(){
+  spotKey = inspKey || null;
+  if (inspKey) return spot(inspKey);
+  svg.classList.remove("spot");
+  svg.querySelectorAll(".lm.hl").forEach(g => g.classList.remove("hl"));
+  for (const k in labelEls) labelEls[k].classList.remove("hl");
+  dock.querySelectorAll(".cv-tile.hl").forEach(t => t.classList.remove("hl"));
+}
+
+/* ---------- hover tooltip ---------- */
+let hovKey = null;
+svg.addEventListener("mousemove", e => {
+  const g = e.target.closest("[data-k]"), key = g ? g.dataset.k : null;
+  if (key !== hovKey){
+    svg.querySelectorAll(".lm.hov").forEach(x => x.classList.remove("hov"));
+    hovKey = key;
+    if (key && !inspKey) svg.querySelectorAll(`.lm[data-k="${key}"]`).forEach(x => { if (x.tagName === "g" && !x.classList.contains("ly")) x.classList.add("hov"); });
+  }
+  if (!key){ tip.classList.remove("on"); return; }
+  const v = V[key] || {}, a = sc.anchors[key] || {};
+  tip.innerHTML = `<div class="k">${esc(STATS[key].label)} · ${esc(a.name || "")}</div><div class="n">${esc(v.txt || "–")}<small>${esc(v.sub || "")}</small></div><div class="m">${esc(sc.maps[key] || "")}</div><div class="h">Click for details and actions</div>`;
+  const r = cv.getBoundingClientRect(); let x = e.clientX - r.left + 18, y = e.clientY - r.top + 18;
+  if (x + 290 > r.width) x = e.clientX - r.left - 300;
+  if (y + 150 > r.height - 100) y = e.clientY - r.top - 160;
+  tip.style.left = x + "px"; tip.style.top = y + "px"; tip.classList.add("on");
+});
+svg.addEventListener("mouseleave", () => { tip.classList.remove("on"); svg.querySelectorAll(".lm.hov").forEach(x => x.classList.remove("hov")); hovKey = null; });
+svg.addEventListener("click", e => {
+  const g = e.target.closest("[data-k]");
+  if (g) openInspector(g.dataset.k); else if (inspKey) closeInspector();
+  pop.classList.remove("on");
+});
+cv.addEventListener("mousemove", e => { const r = cv.getBoundingClientRect(); par.tx = (e.clientX - r.left) / r.width - .5; par.ty = (e.clientY - r.top) / r.height - .5; });
+cv.addEventListener("mouseleave", () => { par.tx = 0; par.ty = 0; });
+
+/* ---------- inspector ---------- */
+let inspKey = null;
+function openInspector(key){
+  inspKey = key; tip.classList.remove("on"); panFor(key);
+  renderInspector(); insp.classList.add("on"); spot(key);
+  dock.querySelectorAll(".cv-tile").forEach(t => t.classList.toggle("sel", t.dataset.k === key));
+}
+function closeInspector(){
+  inspKey = null; insp.classList.remove("on"); unspot(); pan.t = 0;
+  dock.querySelectorAll(".cv-tile.sel").forEach(t => t.classList.remove("sel"));
+}
+function bigSpark(vals, max, col){
+  if (!vals || vals.length < 2) return "";
+  const n = vals.length, w = 300, h = 70, mx = max || Math.max(...vals) * 1.1 || 1;
+  const pts = vals.map((v, i) => [i / (n - 1) * w, h - 3 - clamp(v / mx, 0, 1) * (h - 6)]);
+  const d = "M" + pts.map(p => f1(p[0]) + " " + f1(p[1])).join(" L");
+  return `<svg class="isp" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path class="a" fill="${col}" d="${d} L${w} ${h} L0 ${h} Z"/><path class="l" stroke="${col}" d="${d}"/></svg><div class="ispl"><span>${Math.round(n * 2 / 60) || 1} min ago</span><span>now</span></div>`;
+}
+const kv = (a, b) => `<div class="kv2"><span>${esc(a)}</span><b>${esc(b)}</b></div>`;
+function appRows(list, val, max, col){
+  return list.map(a => `<div class="ar"><div class="nm">${esc(a.name)}<small>${a.n > 1 ? a.n + " processes" : a.kind === "app" ? "app" : "process"}${a.age ? " · open " + DM.dur(a.age) : ""}</small>
+      <div class="bar2"><i style="width:${clamp(val(a) / max * 100, 2, 100).toFixed(0)}%;background:${col}"></i></div></div>
+      <span class="v">${a._v}</span>${!a.protected && a.kind === "app" && a.app ? actBtn({label: "Quit", kind: "quit_app", app: a.app, confirm: `Quit ${a.name}?`}) : "<span></span>"}</div>`).join("");
+}
+function sugFor(kinds, ids){
+  const list = (V._ ? V._.sug : []).filter(x => kinds.includes(x.kind) || (ids || []).some(i => String(x.id).startsWith(i)));
+  return list.slice(0, 3).map(x => `<div class="sgx"><div class="t"><span class="dot sev-${x.sev}"></span>${esc(x.title)}</div><div class="s">${esc(x.sub)}</div><div class="btns">${(x.actions || []).slice(0, 2).map(a => actBtn(a, "dark")).join("")}</div></div>`).join("");
+}
+function renderInspector(){
+  const key = inspKey; if (!key || !V._) return;
+  const X = V._, v = V[key], st = STATS[key], a = sc.anchors[key] || {}, S = X.S;
+  let body = "", foot = "";
+  const lead = `<div class="iv"><b>${esc(v.txt)}</b><span>${esc(v.sub || "")}</span></div><div class="im">${CITY.flag} <b>${esc(a.name || "")}</b> · ${esc(sc.maps[key] || "")}</div>`;
+  if (key === "cpu"){
+    const top = S.apps.slice().sort((p, q) => q.cpu - p.cpu).slice(0, 6).map(x => Object.assign({}, x, {_v: x.cpu.toFixed(0) + "%"}));
+    body = bigSpark(v.hist, 100, st.col) + `<h4>Details</h4>` + kv("Load average", S.cpu.load.map(x => x.toFixed(2)).join(" · ")) + kv("Cores", S.cpu.cores) + (S.cpu.user != null ? kv("User / system", `${Math.round(S.cpu.user)}% / ${Math.round(S.cpu.sys)}%`) : "") + kv("Processes · threads", `${S.procs} · ${S.threads || "–"}`) +
+      (X.hw.power && X.hw.power.cpu != null ? kv("CPU power", X.hw.power.cpu.toFixed(1) + " W") : "") +
+      `<h4>Using the CPU</h4>` + appRows(top, x => x.cpu, Math.max(100, top[0] ? top[0].cpu : 1), st.col) + sugFor(["cpu", "hog"], ["hog"]);
+  } else if (key === "mem"){
+    const m = X.m, top = S.apps.slice().sort((p, q) => q.mem - p.mem).slice(0, 6).map(x => Object.assign({}, x, {_v: fmt(x.mem)}));
+    const seg = (n, c, l) => n > 0 ? `<i style="width:${(n / m.total * 100).toFixed(1)}%;background:${c}" title="${l}"></i>` : "";
+    body = bigSpark(v.hist, 100, st.col) + `<div class="membar" style="background:rgba(255,255,255,.1)">${seg(m.app, "#9d93ff", "Apps")}${seg(m.wired, "#e7a24a", "Wired")}${seg(m.compressed, "#f3a3c1", "Compressed")}${seg(m.cached, "#4b6a8a", "Cached")}</div>` +
+      `<h4>Details</h4>` + kv("Pressure", m.pressure) + kv("Apps", fmt(m.app || 0)) + kv("Wired", fmt(m.wired || 0)) + kv("Compressed", fmt(m.compressed || 0)) + kv("Swap used", fmt(m.swap || 0)) +
+      (S.models && S.models.length ? kv("AI models loaded", S.models.map(x => x.name).join(", ")) : "") +
+      `<h4>Using the most memory</h4>` + appRows(top, x => x.mem, top[0] ? top[0].mem : 1, st.col) + sugFor(["mem", "ollama", "tabs", "growth"], ["mem", "ollama", "tabs", "grow"]);
+    if (S.models && S.models.length) foot += S.models.map(md => actBtn({label: `Unload ${md.name}`, kind: "unload_model", model: md.name})).join("");
+  } else if (key === "gpu"){
+    const pw = X.hw.power || {};
+    body = bigSpark(v.hist, 100, st.col) + `<h4>Details</h4>` + (S.gpu ? kv("Utilisation", S.gpu.util + "%") + (S.gpu.mem ? kv("GPU memory in use", fmt(S.gpu.mem)) : "") : kv("GPU", "not available")) + (pw.gpu != null ? kv("GPU power", pw.gpu.toFixed(1) + " W") : "") + (pw.ane != null ? kv("Neural Engine", pw.ane.toFixed(1) + " W") : "") +
+      (S.models && S.models.length ? `<h4>Local AI models</h4>` + S.models.map(md => kv(md.name, fmt(md.vram || md.size))).join("") : "");
+    if (S.models && S.models.length) foot += S.models.map(md => actBtn({label: `Unload ${md.name}`, kind: "unload_model", model: md.name})).join("");
+  } else if (key === "temp" || key === "fans"){
+    const T = X.T, sens = (T.sensors || []).slice().sort((p, q) => q.c - p.c).slice(0, 6), fans = X.hw.fans || [];
+    const top = S.apps.slice().sort((p, q) => (q.power || 0) - (p.power || 0)).slice(0, 4).map(x => Object.assign({}, x, {_v: (x.power || 0).toFixed(1)}));
+    body = (key === "temp" ? bigSpark(T.hist, 110, st.col) : "") + `<h4>Details</h4>` + kv("Thermal state", X.hw.thermal || "–") + (T.cpu_avg != null ? kv("CPU average", Math.round(T.cpu_avg) + " °C") : "") + (T.gpu != null ? kv("GPU", Math.round(T.gpu) + " °C") : "") + (T.ssd != null ? kv("SSD", Math.round(T.ssd) + " °C") : "") +
+      fans.map(f => kv(`Fan ${f.id + 1}`, `${Math.round(f.rpm)} rpm${f.max ? " · " + Math.round(f.rpm / f.max * 100) + "%" : ""}`)).join("") + (X.hw.sys_power != null ? kv("Whole system", X.hw.sys_power.toFixed(1) + " W") : "") +
+      (sens.length ? `<h4>Hottest sensors</h4>` + sens.map(s => kv(s.name, s.c.toFixed(1) + " °C")).join("") : "") +
+      `<h4>Most energy (impact)</h4>` + appRows(top, x => x.power || 0, Math.max(1, top[0] ? top[0].power || 1 : 1), st.col) + sugFor(["heat", "fan", "cpu"], ["heat", "fan"]);
+  } else if (key === "disk"){
+    const safe = DM.tierSum("safe"), rev = DM.tierSum("review");
+    body = `<div class="membar" style="background:rgba(255,255,255,.12);height:8px"><i style="width:${((1 - X.freePct) * 100).toFixed(1)}%;background:${X.freePct < .05 ? "#ff5a4a" : X.freePct < .12 ? "#ffb84d" : "#9fe3ff"}"></i></div>` +
+      `<h4>Details</h4>` + kv("Used", fmt(X.d.used || X.d.total - X.d.free)) + kv("Free", `${fmt(X.d.free)} (${(X.freePct * 100).toFixed(1)}%)`) + kv("Safe to clean", fmt(safe)) + kv("Worth a look", fmt(rev)) +
+      ((X.hs.volumes || []).length > 1 ? `<h4>Other volumes</h4>` + X.hs.volumes.slice(1).map(x => kv(x.name, `${fmt(x.free)} free`)).join("") : "") + sugFor(["disk"], ["disk", "clean"]);
+    if (safe > 5e8 && DM.D) foot += actBtn({label: `Clean ${fmt(safe)} of caches`, kind: "__cleansafe", confirm: `Clean ${fmt(safe)}?`}, "dark");
+    foot += actBtn({label: "Rescan", kind: "rescan"});
+  } else if (key === "net"){
+    const nt = (X.hs.nettop || []).slice(0, 6), wifi = X.hs.wifi || {};
+    body = bigSpark(v.hist, v.max, st.col) + `<h4>Details</h4>` + kv("Download", DM.rate(tgt.down)) + kv("Upload", DM.rate(tgt.up)) + (X.hs.ping_internet != null ? kv("Internet ping", Math.round(X.hs.ping_internet) + " ms") : "") + (X.hs.ping_gateway != null ? kv("Router ping", Math.round(X.hs.ping_gateway) + " ms") : "") +
+      (wifi.ssid || wifi.signal ? kv("Wi-Fi", `${wifi.ssid || ""}${wifi.signal ? " · " + wifi.signal + " dBm" : ""}`) : "") +
+      (nt.length ? `<h4>Apps using the network</h4>` + nt.map(x => `<div class="ar"><div class="nm">${esc(x.app || x.name)}</div><span class="v">↓${DM.rate(x.down)}</span><span class="v">↑${DM.rate(x.up)}</span></div>`).join("") : "") + sugFor(["net", "wifi", "lan"], ["net", "wifi", "ping"]);
+  } else if (key === "io"){
+    const IO = X.IO;
+    body = bigSpark(IO.hist_r, v.max, st.col) + `<h4>Details</h4>` + kv("Reading", DM.rate(IO.read || 0)) + kv("Writing", DM.rate(IO.write || 0)) + (IO.riops != null ? kv("Operations", `${IO.riops} read · ${IO.wiops} write /s`) : "") +
+      (IO.total_read ? kv("Read since boot", fmt(IO.total_read)) : "") + (IO.total_write ? kv("Written since boot", fmt(IO.total_write)) : "") + `<div class="im" style="margin-top:12px">The ${esc(a.name || "train")} heading right carries reads, the one heading left carries writes. They speed up with throughput and stop when the disk is idle.</div>`;
+  } else if (key === "bat"){
+    const b = X.b;
+    body = b.percent == null ? `<div class="ok">This Mac runs on mains power.</div>` : `<h4>Details</h4>` + kv("Charge", b.percent + "%" + (b.charging ? " · charging" : "")) + kv("Health", b.health != null ? b.health + "%" : "–") + kv("Cycles", b.cycles ?? "–") + (b.temp != null ? kv("Temperature", b.temp + " °C") : "") +
+      (b.watts != null ? kv(b.charging ? "Charging at" : "Draw", Math.abs(b.watts).toFixed(1) + " W") : "") + (b.adapter_name ? kv("Adapter", b.adapter_name) : "") + (b.time_min ? kv("Time left", DM.dur(b.time_min * 60)) : "") + sugFor(["battery"], ["bat"]);
+  } else if (key === "apps"){
+    const top = X.userApps.slice().sort((p, q) => q.mem - p.mem).slice(0, 10).map(x => Object.assign({}, x, {_v: fmt(x.mem)}));
+    body = `<h4>Open apps</h4>` + appRows(top, x => x.mem, top[0] ? top[0].mem : 1, st.col);
+  } else if (key === "alerts"){
+    const list = X.sug.slice(0, 8);
+    body = list.length ? list.map(x => `<div class="sgx"><div class="t"><span class="dot sev-${x.sev}"></span>${esc(x.title)}</div><div class="s">${esc(x.sub)}</div><div class="btns">${(x.actions || []).slice(0, 2).map(a => actBtn(a, x.sev === "high" ? "dark" : "")).join("")}</div></div>`).join("") : `<div class="ok">Nothing needs your attention right now.</div>`;
+  }
+  insp.innerHTML = `<div class="ih"><span class="ic" style="background:${st.col}22;color:${st.col}">${icon(key)}</span><div><div class="k">${esc(st.label)}</div><h3>${esc(a.name || st.label)}</h3></div><button class="x" data-close title="Close (Esc)">×</button></div>
+    <div class="ib">${lead}${body}</div>
+    <div class="if">${foot}<button class="btn sm" data-gotab="${st.tab}">Open ${esc(st.tabName)} ›</button></div>`;
+}
+insp.addEventListener("click", e => {
+  if (e.target.closest("[data-close]")) return closeInspector();
+  const g = e.target.closest("[data-gotab]"); if (g) DM.go(g.dataset.gotab);
+});
+
+/* ---------- dock ---------- */
+function renderDock(){
+  dock.innerHTML = DOCK.map(k => `<button class="cv-tile cv-glass" data-k="${k}"><span class="lvl lv-na"></span><div class="tl" style="color:${STATS[k].col}">${icon(k)}<span style="color:#fff">${esc(STATS[k].label)}</span></div><div class="tv">–</div><div class="ts">${esc((sc.anchors[k] || {}).name || "")}</div><svg class="tsp" viewBox="0 0 100 30" preserveAspectRatio="none"></svg></button>`).join("");
+}
+function miniSpark(vals, max, col){
+  if (!vals || vals.length < 2) return "";
+  const n = Math.min(60, vals.length), vv = vals.slice(-n), mx = max || Math.max(...vv) * 1.1 || 1;
+  const d = "M" + vv.map((v, i) => f1(i / (n - 1) * 100) + " " + f1(29 - clamp(v / mx, 0, 1) * 24)).join(" L");
+  return `<path d="${d} L100 30 L0 30 Z" fill="${col}" opacity=".18"/><path d="${d}" fill="none" stroke="${col}" stroke-width="1.4" vector-effect="non-scaling-stroke"/>`;
+}
+function updateDock(){
+  dock.querySelectorAll(".cv-tile").forEach(t => {
+    const k = t.dataset.k, v = V[k]; if (!v) return;
+    t.querySelector(".tv").innerHTML = k === "net" ? `${esc(DM.rate(tgt.down))}<small>↓</small>` : k === "io" ? `${esc(v.txt)}` : `${esc(v.txt)}${k === "temp" && v.v != null ? "<small>C</small>" : ""}`;
+    t.querySelector(".lvl").className = "lvl lv-" + v.lvl;
+    t.querySelector(".ts").textContent = (k === "alerts" ? v.sub : (sc.anchors[k] || {}).name || v.sub);
+    if (v.hist) t.querySelector(".tsp").innerHTML = miniSpark(v.hist, v.max, STATS[k].col);
+  });
+}
+dock.addEventListener("mouseover", e => { const t = e.target.closest(".cv-tile"); if (t) spot(t.dataset.k); });
+dock.addEventListener("mouseleave", () => unspot());
+dock.addEventListener("click", e => { const t = e.target.closest(".cv-tile"); if (!t) return; inspKey === t.dataset.k ? closeInspector() : openInspector(t.dataset.k); });
+
+/* ---------- header text ---------- */
+function greeting(){ const h = new Date().getHours(); return h < 5 ? "Up late" : h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : h < 22 ? "Good evening" : "Good night"; }
+function updateHello(){
+  const d = new Date(), mine = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  $("cv-date").innerHTML = esc(d.toLocaleDateString([], {weekday: "long", month: "long", day: "numeric"})) + (DM.D && DM.D.host ? " · " + esc(DM.D.host) : "") +
+    (CITY.tz !== mine ? ` · ${CITY.flag} ${esc(timeIn(CITY.tz))} in ${esc(CITY.name)}` : "");
+  $("cv-greet").textContent = greeting();
+  const X = V._; if (!X) return;
+  const hi = X.hi.length, med = X.med.length;
+  $("cv-status").innerHTML = (hi ? `${hi} urgent issue${hi > 1 ? "s" : ""}${med ? ` and ${med} suggestion${med > 1 ? "s" : ""}` : ""}.` : med ? `Running fine. ${med} suggestion${med > 1 ? "s" : ""} could make it faster.` : "Everything is running smoothly.") +
+    (hi || med ? ` <a data-open="alerts">Show me</a> <a href="#/home">Today ›</a>` : ` <a href="#/home">Today ›</a>`);
+}
+$("cv-status").addEventListener("click", e => { const a = e.target.closest("[data-open]"); if (a){ e.preventDefault(); openInspector(a.dataset.open); } });
+
+/* ---------- controls: city picker, sky, labels ---------- */
+const SKY = [["auto", "Auto", "Follow your clock"], ["city", "City time", "Use the city's own clock"], ["dawn", "🌅", "Dawn"], ["day", "☀️", "Day"], ["dusk", "🌆", "Dusk"], ["night", "🌙", "Night"]];
+function renderControls(){
+  $("cv-city").innerHTML = `<span class="fl">${CITY.flag}</span>${esc(CITY.name)}<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 4.5l3 3 3-3"/></svg>`;
+  $("cv-sky").innerHTML = SKY.map(([k, l, t]) => `<button data-sky="${k}" class="${prefs.ui_sky === k ? "on" : ""}" title="${t}">${l}</button>`).join("");
+  $("cv-lbl").innerHTML = `${icon("apps")}<span>Labels: ${prefs.ui_labels === "off" ? "Off" : prefs.ui_labels === "names" ? "Names" : "Values"}</span>`;
+  $("cv-lbl").querySelector("svg").style.cssText = "width:13px;height:13px";
+}
+function renderPicker(){
+  pop.innerHTML = `<h4>Choose your city</h4><div class="cv-cities">${CITIES.map(c => `<button class="cv-cc ${c === CITY ? "on" : ""}" data-city="${c.id}"><span class="fl">${c.flag}</span><b>${esc(c.name)}</b><span>${esc(c.blurb)}</span><i>${esc(timeIn(c.tz))}</i>
+      <svg viewBox="0 0 100 40" preserveAspectRatio="xMaxYMax meet"><path d="${c.sil}" fill="#fff"/></svg></button>`).join("")}</div>
+    <div class="cv-foot">Every city maps the same stats to its own landmarks. Hover a landmark to see what it shows. Tip: press <b>[</b> and <b>]</b> to flip between cities.</div>`;
+}
+$("cv-city").onclick = e => { e.stopPropagation(); if (pop.classList.toggle("on")) renderPicker(); };
+pop.addEventListener("click", e => { const b = e.target.closest("[data-city]"); if (b){ pop.classList.remove("on"); switchCity(b.dataset.city); } });
+$("cv-sky").onclick = e => { const b = e.target.closest("[data-sky]"); if (!b) return; savePref("ui_sky", b.dataset.sky); cv.classList.add("swap"); setTimeout(() => { buildScene(); cv.classList.remove("swap"); }, 200); };
+$("cv-lbl").onclick = () => { const order = ["values", "names", "off"]; savePref("ui_labels", order[(order.indexOf(prefs.ui_labels) + 1) % 3]); buildLabels(); renderControls(); updateLabels(); };
+document.addEventListener("keydown", e => {
+  if (DM.view !== "city" || e.metaKey || e.ctrlKey || e.altKey || /INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ""))) return;
+  if (e.key === "[") cycleCity(-1);
+  else if (e.key === "]") cycleCity(1);
+  else if (e.key === "Escape"){ if (pop.classList.contains("on")) pop.classList.remove("on"); else closeInspector(); }
+  else if (e.key === "l" || e.key === "L") $("cv-lbl").click();
+});
+document.addEventListener("click", e => { if (pop.classList.contains("on") && !e.target.closest("#cv-pop") && !e.target.closest("#cv-city")) pop.classList.remove("on"); });
+
+/* ---------- animation ---------- */
+let lastT = 0, labelTick = 0;
+function frame(t){
+  requestAnimationFrame(frame);
+  if (!sc || DM.view !== "city" || document.hidden) { lastT = t; return; }
+  const dt = Math.min(.05, (t - lastT) / 1000 || 0); lastT = t;
+  const kk = 1 - Math.pow(.02, dt);
+  shown.cpu = lerp(shown.cpu, tgt.cpu, kk); shown.mem = lerp(shown.mem, tgt.mem, kk); shown.gpu = lerp(shown.gpu, tgt.gpu, kk); shown.fan = lerp(shown.fan, tgt.fan, kk);
+  // inspector pan
+  if (Math.abs(pan.t - pan.x) > .5){ pan.x = lerp(pan.x, pan.t, 1 - Math.pow(.004, dt)); if (Math.abs(pan.t - pan.x) <= .5) pan.x = pan.t; fitView(); placeLabels(); }
+  // parallax
+  par.x = lerp(par.x, par.tx, 1 - Math.pow(.05, dt)); par.y = lerp(par.y, par.ty, 1 - Math.pow(.05, dt));
+  if (Math.abs(par.x - (sc._px || 0)) > .001 || Math.abs(par.y - (sc._py || 0)) > .001){
+    sc._px = par.x; sc._py = par.y;
+    sc.layers.forEach(g => { const d = +g.dataset.px; g.setAttribute("transform", `translate(${f1(-par.x * d * 28)} ${f1(-par.y * d * 8)})`); });
+    if (++labelTick % 3 === 0) placeLabels();
+  }
+  // memory glass
+  if (sc.mem){ const hh = (sc.mem.bottom - sc.mem.top) * clamp(shown.mem, .02, 1); sc.mem.rect.setAttribute("y", f1(sc.mem.bottom - hh)); sc.mem.rect.setAttribute("height", f1(hh)); }
+  // CPU floors
+  const rows = sc.cpu.rows, on = Math.round(rows.length * clamp(shown.cpu / 100, 0, 1));
+  for (let i = 0; i < rows.length; i++){ const want = i < on ? .95 : .07; if (rows[i]._o !== want){ rows[i]._o = want; rows[i].setAttribute("opacity", want); } }
+  const cc = loadCol(shown.cpu);
+  if (sc._cc !== cc){ sc._cc = cc; sc.cpu.crown.forEach(p => p.setAttribute("fill", cc)); if (sc.cpu.glow) sc.cpu.glow.setAttribute("fill", cc); }
+  if (sc.cpu.glow) sc.cpu.glow.setAttribute("opacity", (.14 + Math.min(.35, shown.cpu / 230)).toFixed(2));
+  // GPU
+  const gq = Math.round(shown.gpu);
+  if (sc._gq !== gq){ sc._gq = gq; sc.gpu.els.forEach(o => o.e.setAttribute("opacity", (o.min + (o.max - o.min) * clamp(shown.gpu / 70, 0, 1)).toFixed(2))); }
+  // fountain jets
+  if (sc.fans.jets.length){ const s = clamp(.15 + shown.fan * 1.1 + (V.temp && V.temp.v > 75 ? .2 : 0), .1, 1).toFixed(2); if (sc._js !== s){ sc._js = s; sc.fans.jets.forEach(j => j.style.transform = `scaleY(${s})`); } }
+  // spins
+  sc.spins.forEach(s => { s.a = (s.a + s.rate() * dt) % 360; s.e.setAttribute("transform", `rotate(${s.a.toFixed(2)} ${s.cx} ${s.cy})`); });
+  // traffic (network)
+  const N = sc.net;
+  if (N){
+    const want = r => Math.min(16, Math.round(Math.log10(1 + r / 2e3) * 3.6));
+    const cnt = dir => N.cars.reduce((a, c) => a + (c.dir === dir), 0);
+    if (cnt(1) < want(tgt.down) && Math.random() < .08) N.cars.push(mkLight(N, 1));
+    if (cnt(-1) < want(tgt.up) && Math.random() < .08) N.cars.push(mkLight(N, -1));
+    for (let i = N.cars.length - 1; i >= 0; i--){
+      const c = N.cars[i], sp = (60 + Math.log10(1 + (c.dir > 0 ? tgt.down : tgt.up) / 1e3) * 40) * N.scale;
+      c.x += c.dir * sp * dt;
+      c.e.setAttribute("transform", `translate(${f1(c.x)} ${c.dir > 0 ? N.yR : N.yL})`);
+      if (c.x > N.x1 + 20 || c.x < N.x0 - 20){ c.e.remove(); N.cars.splice(i, 1); }
+    }
+  }
+  // vehicles (apps)
+  const A = sc.apps;
+  if (A){
+    const want = Math.min(10, Math.max(2, Math.round(tgt.apps / 3)));
+    if (A.list.length < want && Math.random() < .03){
+      const dir = Math.random() < .55 ? 1 : -1, g = el("g", {}, A.g); A.make(g, dir);
+      A.list.push({e: g, dir, x: dir > 0 ? A.x0 - 40 : A.x1 + 40, y: dir > 0 ? A.yR : A.yL, v: .8 + Math.random() * .4});
+    }
+    for (let i = A.list.length - 1; i >= 0; i--){
+      const x = A.list[i]; x.x += x.dir * (36 + shown.cpu * 1.1) * x.v * dt;
+      x.e.setAttribute("transform", `translate(${f1(x.x)} ${x.y})${x.dir < 0 ? " scale(-1 1)" : ""}`);
+      if (x.x > A.x1 + 60 || x.x < A.x0 - 60){ x.e.remove(); A.list.splice(i, 1); }
+    }
+  }
+  // trains (disk I/O)
+  if (sc.io){
+    const sp = r => r < 1e5 ? 0 : 120 + Math.log10(r / 1e5) * 180, io = sc.io;
+    const vr = sp(tgt.read), vw = sp(tgt.write);
+    // a train keeps going until it leaves the tunnel, then waits off-screen while the disk is idle
+    if (vr > 0 || io.xr > -400) io.xr += Math.max(vr, 90) * dt;
+    if (io.xr > W + 40) io.xr = -420;
+    if (vw > 0 || io.xw < W + 80) io.xw -= Math.max(vw, 90) * dt;
+    if (io.xw < -320) io.xw = W + 100;
+    io.tR.setAttribute("transform", `translate(${f1(io.xr)} 0)`); io.tW.setAttribute("transform", `translate(${f1(io.xw)} 0)`);
+  }
+  // ticker strip
+  const T = sc.alerts;
+  if (T && T.tw){ T.tx -= 70 * dt; if (T.tx < T.x - T.tw) T.tx = T.x + T.w; T.strip.setAttribute("x", f1(T.tx)); }
+}
+function mkLight(N, dir){
+  const g = el("g", {}, N.g);
+  if (dir > 0){ el("circle", {cx: 0, cy: 0, r: 2.2, fill: "#fffbe6"}, g); el("circle", {cx: 4, cy: 0, r: 1.4, fill: "#fffbe6", opacity: .8}, g); el("ellipse", {cx: 11, cy: 0, rx: 11, ry: 2.5, fill: "#fffbe6", opacity: .25}, g); }
+  else { el("circle", {cx: 0, cy: 0, r: 2, fill: "#ff3b30"}, g); el("circle", {cx: 4, cy: 0, r: 1.4, fill: "#ff3b30", opacity: .85}, g); }
+  return {e: g, dir, x: dir > 0 ? N.x0 - 10 : N.x1 + 10};
+}
+
+/* ---------- layout + lifecycle ---------- */
+// fit the viewBox so the important part of the city (x 100–1500, y 50–900) is always visible
+const pan = {x: 0, t: 0};
+let view = {x: 0, w: W, px: 1};
+function fitView(){
+  const r = svg.getBoundingClientRect(); if (!r.width || !r.height) return;
+  const A = r.width / r.height, core = 1400 / 850;
+  let vw, vh;
+  if (A >= core){ vh = 850; vw = vh * A; if (vw > 1700){ vw = 1700; vh = vw / A; } }
+  else { vw = 1400; vh = vw / A; if (vh > 940){ vh = 940; vw = vh * A; } }
+  const px = r.width / vw, room = pan.t > 0 || pan.x > 1 ? 386 / px : 0;   // the inspector covers the right edge, so we may slide past it
+  const x = clamp(800 - vw / 2 + pan.x, -60, Math.max(-60, W + 60 - vw) + room);
+  view = {x, w: vw, px};
+  svg.setAttribute("viewBox", `${f1(x)} ${f1(900 - vh)} ${f1(vw)} ${f1(vh)}`);
+}
+// slide the city so the landmark being inspected isn't hidden under the inspector
+function panFor(key){
+  if (!key || innerWidth < 760){ pan.t = 0; return; }
+  const a = sc && sc.anchors[key]; if (!a) return;
+  const cw = cv.clientWidth, free = cw - 400;
+  const base = clamp(800 - view.w / 2, -60, Math.max(-60, W + 60 - view.w));
+  const sx = (a.x - base) * view.px;   // where it would be on screen without panning
+  pan.t = sx > free - 60 ? (sx - free * .55) / view.px : 0;
+}
+function layout(){
+  const on = DM.view === "city";
+  document.body.classList.toggle("v-city", on);
+  if (!on) return;
+  const nav = document.getElementById("nav");
+  if (nav) document.documentElement.style.setProperty("--cityTop", Math.round(nav.getBoundingClientRect().bottom + 10) + "px");
+  const dh = dock.offsetHeight; if (dh) cv.style.setProperty("--dockH", (dh + 22) + "px");
+  requestAnimationFrame(() => { fitView(); placeLabels(); });
+}
+let builtMode = null;
+function ensure(){
+  if (!sc){ buildScene(); builtMode = sc.mode; }
+  else if (currentMode() !== builtMode){ buildScene(); builtMode = sc.mode; }
+}
+(window.DM_hooks = window.DM_hooks || []).push(s => { if (DM.view === "city"){ ensure(); applyData(); if (++hookN % 5 === 1) layout(); } else computeValues(); });
+let hookN = 0;
+window.addEventListener("hashchange", () => { layout(); if (DM.view === "city"){ window.scrollTo(0, 0); ensure(); if (DM.S) applyData(); } else { pop.classList.remove("on"); tip.classList.remove("on"); } });
+window.addEventListener("resize", () => { layout(); placeLabels(); });
+window.DM_cmds = () => CITIES.map(c => ({g: "City", t: `Show ${c.name} ${c.flag}`, run: () => { DM.go("city"); setTimeout(() => switchCity(c.id), 50); }}))
+  .concat([{g: "City", t: "Next city", run: () => cycleCity(1)}, {g: "City", t: "Toggle city labels", run: () => $("cv-lbl").click()}]);
+window.DM_city = {switchCity, cycleCity, openInspector, closeInspector, get city(){ return CITY.id; }, cities: () => CITIES.map(c => c.id), get scene(){ return sc; },
+  compute: computeValues, get values(){ return V; }, stats: STATS, icon: k => icon(k),
+  info: () => ({id: CITY.id, name: CITY.name, flag: CITY.flag, blurb: CITY.blurb, sil: CITY.sil, day: ["day", "dawn"].includes(currentMode())}),
+  get names(){ const o = {}; if (sc) for (const k in sc.anchors) o[k] = sc.anchors[k].name; return o; }};
+buildScene(); builtMode = sc.mode;
+layout();
+requestAnimationFrame(frame);
+setInterval(() => { if (DM.view === "city"){ ensure(); updateHello(); } }, 60000);
+let hinted = false; try { hinted = !!localStorage.getItem("dm-city-hint"); } catch(e){}
+if (!hinted){ setTimeout(() => $("cv-hint").classList.add("on"), 1500); setTimeout(() => $("cv-hint").classList.remove("on"), 9000); try { localStorage.setItem("dm-city-hint", "1"); } catch(e){} }
+})();
+</script>
