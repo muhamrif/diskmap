@@ -1,82 +1,92 @@
 # diskmap
 
-A one-stop live dashboard for your Mac: everything about it, plus one-click fixes.
+**A live dashboard for your Mac, drawn as a city.** Every landmark is one of your Mac's stats: the Empire State lights up
+with CPU load, One World Trade fills up with memory, the subway trains carry your disk reads and writes. Click anything
+for details and one-click fixes: quit the app that's eating memory, clear gigabytes of caches, close duplicate tabs.
 
-Nothing is quit, deleted or changed until you click (and confirm) it.
+![diskmap's City view](docs/city.jpg)
 
-## Install on your Mac
+Free, private and runs only on your Mac. Nothing is quit, deleted or changed until you click and confirm it.
 
-Open **Terminal** and paste:
+---
+
+## Install (about 2 minutes)
+
+1. Open **Terminal**: press **⌘ Space**, type `Terminal`, press **Return**.
+2. Copy this line, paste it into Terminal and press **Return**:
+
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/muhamrif/diskmap/main/install.sh | bash
+   ```
+
+3. diskmap opens by itself. It's in your **Applications** folder from now on.
+
+Works on any Mac with **macOS 12 Monterey or newer**, Apple silicon or Intel. You don't need Python, Xcode or anything
+else; everything diskmap needs is inside the app.
+
+### First time you open it
+
+macOS asks permission for a few things. They're all optional, but each one unlocks part of diskmap:
+
+| Permission | Where | What it unlocks |
+|---|---|---|
+| **Full Disk Access** | System Settings › Privacy & Security › Full Disk Access › turn on **diskmap** (if it's not listed, click **+** and pick it from Applications). Then quit diskmap from its menu bar icon and open it again. | The complete disk map and cleanup suggestions |
+| **Automation** | Click **Allow** when diskmap asks to control Safari, Chrome, Finder or System Events | Closing browser tabs, moving files to the Trash, login items |
+| **Notifications** | Click **Allow** when asked | Alerts like "Disk almost full" with a fix button |
+
+Open the **Diagnostics** tab any time: it shows what's working and has a button for anything that isn't.
+
+### Prefer not to use Terminal?
+
+1. Go to the [latest release](https://github.com/muhamrif/diskmap/releases/latest) and download
+   **diskmap-macos-arm64.zip** (Apple silicon: M1, M2, M3, M4…) or **diskmap-macos-x86_64.zip** (older Intel Macs).
+   Not sure which? Apple menu  › About This Mac › Chip/Processor.
+2. Double-click the zip, then drag **diskmap** into your **Applications** folder.
+3. Open it. macOS will say it can't check the app. diskmap is a free personal project that isn't registered with Apple,
+   so this is expected. Click **Done**, then go to **System Settings › Privacy & Security**, scroll down and click
+   **Open Anyway** next to "diskmap was blocked", and confirm with your password.
+
+You'll have to repeat step 3 after each update this way, which is why the Terminal install is easier.
+
+### Update
+
+diskmap tells you when a new version is out (a notification, and a card in the Live tab's suggestions). To update, paste the same install
+command into Terminal again. Your history and settings are kept.
+
+### Uninstall
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/diskmap/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/muhamrif/diskmap/main/install.sh | bash -s -- --uninstall
 ```
 
-It downloads the code, builds the app on your Mac (about a minute) and opens it from `~/Applications`.
-If it says you need Apple's Command Line Tools, click **Install** in the window that pops up, wait for it to finish,
-then paste the command again. Nothing else gets installed.
+That removes the app and keeps your history in case you come back. To delete the history too, use `--purge` instead of
+`--uninstall`.
 
-Because the app is built on your own Mac, macOS opens it without the "unidentified developer" warning.
+### Something's not right?
 
-- **Update:** run the same command again.
-- **First run:** in System Settings › Privacy & Security, give diskmap **Full Disk Access** (for the full disk map),
-  click **Allow** when it asks to control Safari/Chrome/Finder/System Events, and allow its **Notifications**.
-  The **Diagnostics** tab checks everything and has Fix buttons.
-- **Works best on Apple silicon.** On Intel Macs a few sensors (GPU, some temperatures and power readings) show "n/a".
-- **Private:** everything runs and stays on your Mac. Nothing is sent anywhere.
-- **Uninstall:** quit diskmap, then delete `~/Applications/diskmap.app`, `~/.diskmap`,
-  `~/Library/Application Support/diskmap` and, if you turned on Open at Login, `~/Library/LaunchAgents/local.diskmap.app.plist`.
+- **"diskmap stopped"**: click **Restart**. If it keeps happening, run the install command again.
+- **The disk map is incomplete after an update**: macOS sometimes forgets Full Disk Access for a new version. In
+  System Settings › Privacy & Security › Full Disk Access, turn diskmap off and on again, then reopen diskmap.
+- **"Terminal was prevented from modifying apps"**: System Settings › Privacy & Security › App Management, turn on
+  Terminal, then run the install command again.
+- **"Couldn't reach GitHub"**: check your internet connection, VPN or firewall and try again.
+- **Some sensors say "n/a" on an Intel Mac**: GPU usage and a few temperature and power readings only exist on Apple silicon.
+- **Anything else**: Diagnostics tab › **Copy report**, and send it to whoever shared diskmap with you.
 
-## Run from source (no app)
+### Privacy
 
-```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/diskmap && cd diskmap
-python3 server.py          # opens http://127.0.0.1:7777 — Ctrl-C to stop
-```
+diskmap runs a small dashboard server on your Mac that only your Mac can reach, protected by a password that changes
+every launch. Your files, stats and history never leave your computer. The only things diskmap ever fetches from the
+internet are a once-a-day check for a new version on GitHub (turn it off in Settings) and, if you switch it on, your
+public IP address. Files you clean up go to the Trash, so you can put them back.
 
-Standard library only (Python 3.8+), no pip installs.
+---
 
-## Mac app
+## What's inside
 
-```bash
-bash ~/projects/diskmap/macapp/build.sh     # builds and installs ~/Applications/diskmap.app, then opens it
-```
+### City (the main page)
 
-- Native window plus a menu bar item with live CPU and temperature, alerts, Rescan Disk and Open at Login.
-- Closing the window keeps diskmap running in the menu bar so history keeps recording. ⌘Q quits it fully.
-- ⌘1 City, ⌘2 Today, ⌘3 Live … ⌘9 History; ⌘] / ⌘[ next / previous city; ⌘R reloads, ⇧⌘R restarts the dashboard, ⌘+ / ⌘− zoom.
-- Data lives in `~/Library/Application Support/diskmap` (app menu → Show Data Folder).
-- Re-run `build.sh` after changing any dashboard file; the app bundles its own copy.
-- Grant **Full Disk Access** to diskmap.app (not Terminal) for the complete disk map. After a rebuild macOS may ask again.
-- Native notifications with action buttons (Quit the runaway app, open Storage…) for heat, low disk/battery, memory pressure,
-  heavy swapping, runaway apps, crashes and finished jobs. Tune them in Settings.
-- **⌘K** opens the command bar: quit apps, stop ports, unload models, run tasks, open any tab or System Settings pane.
-- Click any app (Overview or History) for its own CPU / memory / energy history.
-- **Diagnostics** tab checks every sensor, permission and tool, with fix buttons and a "Copy report" button.
-- **Autopilot** (Settings, off by default): weekly safe cleanup, unload AI models or close duplicate tabs under memory pressure.
-- When the window is closed it samples less often (every 10 s by default), and every 4 s on battery.
-
-## Tabs
-
-| Tab | What's there |
-|---|---|
-| **Live** | CPU, GPU, memory, disk, temperature, power, network, disk activity (live); health cards (security score, updates, repos, crashes, battery, cleanable space); every suggested action from every tab; apps by memory / CPU / energy with Quit |
-| **Processes** | Every process with search, sort, Stop / Kill, full command line; browser tabs (close duplicates / heavy / single); what's keeping the Mac awake |
-| **Hardware** | Per-core load, power by component, fans, all temperature sensors, battery (health, cycles, watts), Bluetooth & USB devices, system & memory paging, full System Information inventory (serials masked) |
-| **Network** | Wi-Fi details, interfaces & IPs, router/internet ping, apps using the network, open connections per app, DNS, VPN, optional public IP, listening ports, sharing services |
-| **Storage** | Read/write & IOPS, volumes, SMART, Time Machine, biggest files, likely duplicates, the disk treemap and cleanup (Clean now or copy a script) |
-| **Software** | Every app with size, version, last opened, Intel-only flag (Trash / Show); macOS updates; Homebrew outdated + one-click upgrade/cleanup; login items & launch agents (flags leftovers from uninstalled apps) |
-| **Security** | FileVault, SIP, Gatekeeper, firewall, auto-updates, screen lock, XProtect, sharing, Find My — with a score and buttons to the right Settings pane; every open port |
-| **Developer** | Git repos with uncommitted/unpushed work, toolchain versions, Docker disk use + prune, Ollama models, maintenance tasks with live output |
-| **History** | CPU, memory, temperature, power, GPU, network, disk I/O, battery, free space, swap, ping over 1 h – 30 days; busiest apps; alerts & cleanups |
-| **Logs** | Crash / hang / panic reports, sleep & wake history, restarts |
-| **Settings** | macOS notifications (hot CPU, low disk, low battery, memory pressure), public IP lookup, history retention |
-
-History and settings live in `data/` next to the app. Leave the server running to build up history.
-
-## City (the main page)
-A full-window live skyline where every landmark is one of your Mac's stats. Pick a city from the button at the top right
-(or View › City in the menu bar, or press `[` / `]`): **New York, Dubai, Karachi, Paris, London, Tokyo**.
+Pick a city with the button at the top right (or press `[` / `]`): **New York, Dubai, Karachi, Paris, London, Tokyo**.
 
 | Stat | New York | Dubai | Karachi | Paris | London | Tokyo |
 |---|---|---|---|---|---|---|
@@ -89,45 +99,60 @@ A full-window live skyline where every landmark is one of your Mac's stats. Pick
 | Battery | Water tower | Wind tower | Clock tower | Moulin Rouge | Phone box | Vending machine |
 | Fans | Manhole steam | Dubai Fountain | Chai steam | Trocadéro fountains | Battersea smoke | Ramen steam |
 
-Plus: trains underground = disk reads/writes, vehicles (cabs, rickshaws, buses, bateaux-mouches) = open apps,
-the big screen = your to-dos. Anything in trouble gets a pulsing ring.
+Trains underground carry disk reads and writes, the vehicles are your open apps, and the big screen counts your to-dos.
+Anything in trouble gets a pulsing ring. Hover a landmark to see its value; click it for history, details, the apps
+responsible and fix buttons. The sky follows your clock (or the city's), with tonight's real moon phase.
 
-- **Hover** a landmark for its value; **click** it (or a tile in the dock) for the inspector: history, details, top apps and fix buttons.
-- **Sky**: Auto (your clock), City time (that city's clock), or pin dawn / day / dusk / night. Tonight's real moon phase.
-- **Labels**: Values / Names / Off (`L`). Choices are saved.
+### Tabs
 
-## Today
-The rundown: needs attention, focus modes, memory growth, storage, this week, battery, software & safety, right now.
+| Tab | What's there |
+|---|---|
+| **Today** | The rundown: what needs attention, focus modes, apps whose memory keeps growing, storage, your week, battery health |
+| **Live** | CPU, GPU, memory, disk, temperature, power, network and disk activity; every suggested fix; apps by memory, CPU or energy with Quit |
+| **Processes** | Every process with search, Stop and Kill; browser tabs (close duplicates or heavy ones); what's keeping the Mac awake |
+| **Hardware** | Per-core load, power by component, fans, every temperature sensor, battery health and cycles, Bluetooth and USB devices |
+| **Network** | Wi-Fi, ping, apps using the network, open connections, DNS, VPN, listening ports, sharing services |
+| **Storage** | The disk map (treemap) with safe cleanup, biggest files, likely duplicates, volumes, Time Machine |
+| **Software** | Every app with size, last opened and Intel-only flag; macOS and Homebrew updates; login items and leftovers |
+| **Security** | FileVault, firewall, Gatekeeper, SIP, screen lock, sharing, Find My, with a score and fix buttons |
+| **Developer** | Git repos with unpushed work, toolchain versions, Docker, local AI models, maintenance tasks |
+| **History** | Charts of everything over 1 hour to 30 days, busiest apps, alerts and cleanups |
+| **Logs** | Crashes, hangs, sleep and wake history |
 
-## Also
-- **Focus modes** (Home, menu bar): quit a set of apps, unload AI models, close heavy tabs; ending it reopens them. Optional Shortcuts to run on start/end (e.g. one that turns on a macOS Focus).
-- **Memory growth**: flags apps whose memory keeps climbing since launch, with a Restart button and a notification.
-- **Battery report**: health over time, cycles per week, typical drain and runtime, what drains it on battery.
-- **Weekly digest**: Sunday evening notification + "This week" card.
-- **Large-file watcher**: notices sudden drops in free space and finds the file or folder that grew.
-- **Desktop widget** (menu bar › Desktop Widget): small / medium / large, sits on your desktop; drag to move, double-click to open diskmap.
-- **Light / Auto / Dark** in the header or View › Appearance.
+Plus: a menu bar item with live CPU and temperature, notifications with fix buttons, a **⌘K** command bar, a desktop
+widget, focus modes that quit distracting apps and bring them back, a weekly digest, a large-file watcher, light and
+dark mode, and an optional autopilot (off by default).
 
-## Permissions macOS may ask for
-- **Automation** → Chrome/Safari (tabs), Finder (move to Trash), System Events (login items). Click Allow.
-- **Full Disk Access** for your terminal app gives a complete disk map and all logs.
-- **Notifications** for your terminal app, for alerts.
+Keyboard: ⌘1 City, ⌘2 Today, ⌘3 Live … ⌘9 History · ⌘K command bar · ⌘] / ⌘[ next / previous city · ⇧⌘R restart the dashboard.
 
-## Options
+---
+
+## For developers
+
+Everything is the Python standard library (3.9+) plus one Swift file. No pip, no npm.
+
+```bash
+git clone https://github.com/muhamrif/diskmap && cd diskmap
+python3 server.py                   # the dashboard in your browser at http://127.0.0.1:7777
+bash macapp/build.sh                # build the Mac app (Python built in) and install it to ~/Applications
+bash tests/smoke.sh                 # end-to-end test of the server
+bash tests/test_install.sh          # the installer against simulated Macs
+```
+
+Building the app needs Apple's Command Line Tools (`xcode-select --install`). See [RELEASING.md](RELEASING.md) for how
+releases are built and published.
+
 ```
 python3 server.py --port 8080         # different port
-python3 server.py --interval 5        # sample less often
 python3 server.py --rescan-min 0      # only rescan the disk when you click
-python3 server.py --lan               # view from phone / Mac mini on your Wi-Fi (read-only there)
-python3 macstats.py                   # print every hardware sensor reading (self-test)
+python3 server.py --lan               # view from your phone on the same Wi-Fi (read-only there)
+python3 server.py --demo              # fake data, works on any computer
+python3 macstats.py                   # print every hardware sensor reading
 python3 inventory.py security apps    # print any inventory section
-python3 diskmap.py                    # one-off static disk report, no server
+python3 diskmap.py                    # one-off static disk report
 ```
 
-## Safety
-Listens only on 127.0.0.1 (unless `--lan`), checks the Host header, and every action needs a per-run token only
-this Mac's page gets. The server re-checks every action: it only quits running non-system apps, stops your own
-processes, closes tabs it can see, moves to the Trash only files and apps it listed (via Finder, so you can put them
-back), removes only your own launch agents, and runs only its own whitelisted maintenance commands.
-# diskmap
-# diskmap
+**Safety:** the server listens only on 127.0.0.1 (unless `--lan`), checks the Host header, and every action needs a
+per-launch token. It re-checks every action itself: it only quits running non-system apps, stops your own processes,
+closes tabs it listed, moves to the Trash only files and apps it listed, removes only your own leftover launch agents,
+and runs only its own whitelisted maintenance commands.

@@ -31,24 +31,64 @@ final class ServerController {
         return base.appendingPathComponent("diskmap", isDirectory: true)
     }
 
+    /// True when Xcode or the Command Line Tools are installed. Without them, /usr/bin/python3 is only a
+    /// placeholder that pops up an "install developer tools" dialog, so we must never launch it.
+    static func developerToolsInstalled() -> Bool {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/xcode-select")
+        p.arguments = ["-p"]
+        let out = Pipe()
+        p.standardOutput = out
+        p.standardError = Pipe()
+        do { try p.run() } catch { return false }
+        p.waitUntilExit()
+        let path = String(data: out.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        var isDir: ObjCBool = false
+        return p.terminationStatus == 0 && !path.isEmpty && FileManager.default.fileExists(atPath: path, isDirectory: &isDir) && isDir.boolValue
+    }
+
+    /// The Python that runs the dashboard: the copy built into the app, or (developer builds) the Mac's own.
+    func pythonCommand() -> (URL, [String])? {
+        let fm = FileManager.default
+        let bundled = Bundle.main.resourceURL!.appendingPathComponent("python/bin/python3")
+        if fm.isExecutableFile(atPath: bundled.path) { return (bundled, ["-B", "-s"]) }
+        for path in ["/opt/homebrew/bin/python3", "/usr/local/bin/python3"] where fm.isExecutableFile(atPath: path) {
+            return (URL(fileURLWithPath: path), ["-B"])
+        }
+        if Self.developerToolsInstalled() { return (URL(fileURLWithPath: "/usr/bin/python3"), ["-B"]) }
+        return nil
+    }
+
     func start() {
         stopping = false
         port = 0
         stdoutBuffer = ""
+        logTail = ""
         try? FileManager.default.createDirectory(at: dataDir, withIntermediateDirectories: true)
 
+        guard let command = pythonCommand() else {
+            onExit?(-2, "PYTHON_MISSING")
+            return
+        }
+        let (python, flags) = command
         let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        p.arguments = ["python3", resourcesDir.appendingPathComponent("server.py").path,
-                       "--port", "0", "--no-open",
-                       "--parent-pid", String(ProcessInfo.processInfo.processIdentifier)]
+        p.executableURL = python
+        p.arguments = flags + [resourcesDir.appendingPathComponent("server.py").path,
+                               "--port", "0", "--no-open",
+                               "--parent-pid", String(ProcessInfo.processInfo.processIdentifier)]
         var env = ProcessInfo.processInfo.environment
+        // Don't let a user's Python settings (PYTHONPATH, PYTHONHOME, …) leak into the dashboard.
+        for key in env.keys where key.hasPrefix("PYTHON") || key.hasPrefix("VIRTUAL_ENV") || key.hasPrefix("CONDA") {
+            env.removeValue(forKey: key)
+        }
         let extraPath = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
         env["PATH"] = extraPath + ":" + (env["PATH"] ?? "")
         env["DISKMAP_DATA"] = dataDir.path
         env["DISKMAP_TOKEN"] = token
         env["PYTHONUNBUFFERED"] = "1"
         env["PYTHONDONTWRITEBYTECODE"] = "1"
+        env["PYTHONNOUSERSITE"] = "1"
         p.environment = env
         p.currentDirectoryURL = resourcesDir
 
@@ -79,7 +119,7 @@ final class ServerController {
             try p.run()
             process = p
         } catch {
-            onExit?(-1, "Couldn't start python3: \(error.localizedDescription)")
+            onExit?(-1, "Couldn't start Python (\(python.path)): \(error.localizedDescription)")
         }
     }
 
@@ -324,10 +364,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
             if UserDefaults.standard.bool(forKey: "widgetOn") { self.widget.show(port: port) }
         }
         server.onExit = { [weak self] status, log in
-            self?.showError(status: status, log: log)
+            guard let self = self else { return }
+            // A crash now and then shouldn't need the user: restart quietly up to 3 times in 10 minutes.
+            let now = Date()
+            self.crashTimes = self.crashTimes.filter { now.timeIntervalSince($0) < 600 } + [now]
+            if status != -2, self.crashTimes.count <= 3 {
+                self.webView.loadHTMLString(Self.statusPage(title: "Restarting…", body: "The dashboard stopped; starting it again."), baseURL: nil)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in self?.startServer() }
+            } else {
+                self.showError(status: status, log: log)
+            }
         }
         widget.onOpen = { [weak self] in self?.showView("city") }
-        server.start()
+        startServer()
+        warnIfNotInApplications()
 
         if startHidden {
             NSApp.setActivationPolicy(.accessory)
@@ -404,7 +454,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
         window.setFrameAutosaveName("diskmapMain")
     }
 
-    static func statusPage(title: String, body: String, pre: String = "") -> String {
+    static func statusPage(title: String, body: String, pre: String = "", extra: String = "") -> String {
         let esc = { (s: String) -> String in
             s.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;")
         }
@@ -418,25 +468,66 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
         pre{text-align:left;font:11px ui-monospace,Menlo;background:rgba(127,127,127,.12);padding:12px;border-radius:8px;max-height:300px;overflow:auto;white-space:pre-wrap}
         .s{width:18px;height:18px;border:2px solid rgba(127,127,127,.3);border-top-color:currentColor;border-radius:50%;margin:0 auto 14px;animation:r .8s linear infinite}
         @keyframes r{to{transform:rotate(360deg)}}
-        </style></head><body><div class="b">\(pre.isEmpty ? "<div class=\"s\"></div>" : "")<h1>\(esc(title))</h1><p>\(esc(body))</p>\(pre.isEmpty ? "" : "<pre>\(esc(pre))</pre>")</div></body></html>
+        .btn{display:inline-block;margin:4px;padding:7px 14px;border-radius:8px;background:#1b1b19;color:#fff;text-decoration:none;font-weight:600}
+        @media (prefers-color-scheme: dark){.btn{background:#ececea;color:#121211}}
+        </style></head><body><div class="b">\((pre.isEmpty && extra.isEmpty) ? "<div class=\"s\"></div>" : "")<h1>\(esc(title))</h1><p>\(esc(body))</p>\(extra)\(pre.isEmpty ? "" : "<pre>\(esc(pre))</pre>")</div></body></html>
         """
+    }
+
+    var crashTimes: [Date] = []
+    var startGeneration = 0
+
+    /// Starts the dashboard and shows an error if it hasn't come up within a minute.
+    func startServer() {
+        startGeneration += 1
+        let gen = startGeneration
+        server.start()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self] in
+            guard let self = self, gen == self.startGeneration, self.server.port == 0, !self.server.stopping,
+                  self.server.process?.isRunning == true else { return }
+            self.server.stop()
+            self.showError(status: -3, log: self.server.logTail)
+        }
     }
 
     func showError(status: Int32, log: String) {
         timer?.invalidate()
-        var hint = "The dashboard stopped unexpectedly. Choose View › Restart Dashboard to try again."
-        if log.contains("No such file") || log.contains("xcrun") || log.contains("python3: command not found") {
-            hint = "diskmap needs Python 3. Install it with: xcode-select --install"
+        var title = "diskmap stopped (code \(status))"
+        var hint = "The dashboard stopped unexpectedly. Click Restart to try again. If it keeps happening, reinstall diskmap with the same command you installed it with."
+        var details = log
+        if status == -2 || log == "PYTHON_MISSING" {
+            title = "diskmap is missing a piece"
+            hint = "This copy of diskmap doesn't include its built-in Python. Reinstall it with the one-line command from the download page; nothing else is needed."
+            details = ""
+        } else if status == -3 {
+            title = "diskmap didn't start"
+            hint = "The dashboard didn't respond within a minute. Click Restart. If that doesn't help, restart your Mac and try again."
         }
-        webView.loadHTMLString(Self.statusPage(title: "diskmap stopped (code \(status))", body: hint, pre: log), baseURL: nil)
+        let buttons = "<p><a class=\"btn\" href=\"diskmap-app://restart\">Restart</a> <a class=\"btn\" href=\"diskmap-app://datafolder\">Show data folder</a></p>"
+        webView.loadHTMLString(Self.statusPage(title: title, body: hint, pre: details, extra: buttons), baseURL: nil)
         statusItem.button?.title = " !"
         showMain()
     }
 
     @objc func restartServer() {
+        crashTimes = []
         server.stop()
         webView.loadHTMLString(Self.statusPage(title: "Restarting…", body: "Starting the dashboard again."), baseURL: nil)
-        server.start()
+        startServer()
+    }
+
+    /// Running straight from Downloads (or a translocated copy) breaks "Open at Login" and updates.
+    func warnIfNotInApplications() {
+        let path = Bundle.main.bundlePath
+        let ok = path.hasPrefix("/Applications/") || path.hasPrefix(NSHomeDirectory() + "/Applications/")
+        guard !ok, !UserDefaults.standard.bool(forKey: "skipMoveWarning") else { return }
+        let alert = NSAlert()
+        alert.messageText = "Move diskmap to your Applications folder"
+        alert.informativeText = "diskmap is running from \(path.contains("/AppTranslocation/") ? "a temporary location" : (path as NSString).deletingLastPathComponent). "
+            + "Quit it, drag diskmap into Applications, then open it from there so Open at Login and updates keep working."
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Don't Show Again")
+        if alert.runModal() == .alertSecondButtonReturn { UserDefaults.standard.set(true, forKey: "skipMoveWarning") }
     }
 
     // MARK: Appearance
@@ -1007,6 +1098,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         if navigationAction.shouldPerformDownload {
             decisionHandler(.download)
+            return
+        }
+        if let url = navigationAction.request.url, url.scheme == "diskmap-app" {
+            decisionHandler(.cancel)
+            if url.host == "restart" { restartServer() } else if url.host == "datafolder" { showDataFolder() }
             return
         }
         if let url = navigationAction.request.url, let scheme = url.scheme, scheme.hasPrefix("http"),

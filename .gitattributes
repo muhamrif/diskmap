@@ -1,0 +1,10 @@
+# Keep Unix line endings so the scripts always run.
+*.sh     text eol=lf
+*.py     text eol=lf
+*.swift  text eol=lf
+*.html   text eol=lf
+*.md     text eol=lf
+*.yml    text eol=lf
+*.plist  text eol=lf
+VERSION  text eol=lf
+*.png    binary

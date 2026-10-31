@@ -308,6 +308,7 @@ pre.out{margin:0;padding:12px 16px;font-size:11px;line-height:1.5;max-height:260
 .taskgrid .tk{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .taskgrid .tk b{font-size:12.5px;font-weight:600}
 .taskgrid .tk code{font-size:10.5px;color:var(--muted);word-break:break-all}
+.taskgrid .tk.off{opacity:.55}
 .form{padding:6px 16px 14px}
 .frow{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 0;border-bottom:1px solid var(--line2);font-size:12.5px}
 .frow:last-child{border-bottom:0}
@@ -1437,8 +1438,10 @@ let TASK = null;
 const TASKLIST = [["brew_update","Update Homebrew","brew update"],["brew_upgrade","Upgrade Homebrew packages","brew upgrade"],["brew_cleanup","Clean Homebrew cache","brew cleanup -s --prune=all"],
   ["docker_prune","Prune Docker","docker system prune -f"],["sim_unavailable","Delete old simulators","xcrun simctl delete unavailable"],["repos_fetch","Fetch all git repos","git fetch --all (each repo)"],
   ["flush_dns","Flush DNS cache","dscacheutil -flushcache"],["qlmanage_reset","Reset Quick Look cache","qlmanage -r cache"]];
+const taskWhy = k => (LIVE && LIVE.tasks && LIVE.tasks[k]) || null;
 function tasksHTML(){
-  return `<div class="taskgrid">${TASKLIST.map(([k, l, c]) => `<div class="tk"><b>${esc(l)}</b><code>${esc(c)}</code><div>${actBtn({label:"Run", kind:"task", task:k, confirm: k === "docker_prune" || k === "brew_upgrade" ? l + "?" : undefined})}</div></div>`).join("")}</div>` +
+  return `<div class="taskgrid">${TASKLIST.map(([k, l, c]) => { const why = taskWhy(k);
+    return `<div class="tk${why ? " off" : ""}"><b>${esc(l)}</b><code>${esc(c)}</code><div>${why ? `<span class="sub">${esc(why)}</span>` : actBtn({label:"Run", kind:"task", task:k, confirm: k === "docker_prune" || k === "brew_upgrade" ? l + "?" : undefined})}</div></div>`; }).join("")}</div>` +
     (TASK ? `<div class="subh">${esc(TASK.title)} ${TASK.done ? (TASK.rc === 0 ? "· finished" : "· exited with " + TASK.rc) : '<span class="spin"></span>'}</div><pre class="out mono" id="taskout">${esc(TASK.out || "")}</pre>` : "");
 }
 
@@ -1678,7 +1681,7 @@ function buildCommands(){
     (S.models || []).forEach(m => A(`Unload ${m.name}  ·  ${fmt(m.size)}`, "Models", {kind:"unload_model", model:m.name}));
     Object.entries(S.tabs || {}).forEach(([b, info]) => { const d = (info.tabs || []).filter(t => t.dup); if (d.length) A(`Close ${d.length} duplicate tabs in ${b}`, "Tabs", {kind:"close_tabs", browser:b, tabs:d.map(t => ({win:t.win, id:t.id, url:t.url}))}); });
   }
-  TASKLIST.forEach(([k, l]) => A(l, "Tasks", {kind:"task", task:k}, k === "docker_prune" || k === "brew_upgrade"));
+  TASKLIST.filter(([k]) => !taskWhy(k)).forEach(([k, l]) => A(l, "Tasks", {kind:"task", task:k}, k === "docker_prune" || k === "brew_upgrade"));
   A("Compact Cursor & VS Code databases", "Tasks", {kind:"task", task:"cursor_vacuum"});
   [["fda","Full Disk Access settings"],["automation","Automation settings"],["notifications","Notification settings"],["storage","Storage settings"],["login","Login Items settings"],["updates","Software Update"],["security","Privacy & Security"]]
     .forEach(([p, l]) => A("Open " + l, "System Settings", {kind:"open_settings", pane:p}));
@@ -1757,6 +1760,8 @@ function renderSettings(){
     <div class="subh" style="padding-left:0;margin-top:10px">General</div>
     ${nm("idle_interval", "Sample every … when hidden", "How often to measure while no window is open. History still records.", "s")}
     ${tg("public_ip", "Show public IP", "Looks up your public address via api.ipify.org once a minute.")}
+    ${tg("update_check", "Check for updates", "Once a day, asks GitHub whether a newer diskmap is out. Nothing about your Mac is sent.")}
+    <div class="frow"><div><div>Version</div><div class="fs">diskmap ${esc((LIVE && LIVE.version) || "dev")}${LIVE && LIVE.repo ? ` · <a href="https://github.com/${esc(LIVE.repo)}/releases" target="_blank" rel="noopener">release notes</a>` : ""}</div></div></div>
     ${nm("history_days", "Keep history for", "Older samples are deleted. Takes effect after restart.", "days")}
     <div class="frow"><div><div>Data folder</div><div class="fs">History database ${fmt(s.history_size || 0)} · settings.json</div></div><span class="mono sub">${esc(s.data_dir)}</span></div>
     <div class="frow"><div><div>Test</div><div class="fs">Make sure notifications reach you.</div></div>${actBtn({label:"Send test notification", kind:"notify_test"})}</div></div>`;

@@ -1,0 +1,119 @@
+# Builds and tests diskmap on every push, and publishes a release when you push a version tag:
+#   git tag v1.0.1 && git push origin v1.0.1
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  checks:
+    name: Code checks (Linux)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"     # the oldest Python that can run the dashboard (Apple's own)
+      - name: Python compiles on 3.9
+        run: python -m py_compile ./*.py
+      - name: JavaScript in the pages parses
+        run: |
+          for f in template.html home.html city.html widget.html; do
+            python3 - "$f" <<'PY'
+          import re, sys, pathlib
+          src = pathlib.Path(sys.argv[1]).read_text()
+          js = "\n;\n".join(re.findall(r"<script>(.*?)</script>", src, re.S))
+          pathlib.Path("/tmp/page.js").write_text(js)
+          PY
+            node --check /tmp/page.js && echo "ok $f"
+          done
+      - name: Shell scripts pass shellcheck
+        run: shellcheck --severity=warning install.sh macapp/build.sh macapp/fetch-python.sh tests/smoke.sh tests/test_install.sh
+      - name: Installer behaves on simulated Macs
+        run: bash tests/test_install.sh
+      - name: Dashboard smoke test (demo mode)
+        run: bash tests/smoke.sh python
+
+  mac:
+    name: Build & test on a Mac
+    runs-on: macos-15
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+      - name: Work out the version
+        id: v
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF_NAME#v}"; else v="$(cat VERSION)-dev.${GITHUB_RUN_NUMBER}"; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+      - name: Build the Apple silicon and Intel apps
+        run: bash macapp/build.sh --release --version "${{ steps.v.outputs.version }}"
+      - name: Smoke test with the Python built into the app
+        run: |
+          APP=macapp/build/arm64/diskmap.app
+          bash tests/smoke.sh "$APP/Contents/Resources/python/bin/python3" "$APP/Contents/Resources/diskmap"
+      - name: Intel app is really Intel and its Python runs under Rosetta
+        run: |
+          APP=macapp/build/x86_64/diskmap.app
+          file "$APP/Contents/MacOS/diskmap" | tee /dev/stderr | grep -q x86_64
+          file "$APP/Contents/Resources/python/bin/python3.12" | grep -q x86_64
+          if arch -x86_64 /usr/bin/true 2>/dev/null; then
+            arch -x86_64 "$APP/Contents/Resources/python/bin/python3" -B -s -c "import sqlite3, ssl, ctypes; print('Intel python ok')"
+          else
+            echo "Rosetta not available on this runner; skipped running the Intel Python."
+          fi
+      - name: Signatures are valid
+        run: |
+          for a in arm64 x86_64; do codesign --verify --deep --verbose=2 "macapp/build/$a/diskmap.app"; done
+          codesign --verify --deep --strict --verbose=2 macapp/build/arm64/diskmap.app || echo "::warning::strict signature check failed (fine for direct installs)"
+      - name: Install from the zip like a friend would, then launch it
+        run: |
+          export HOME="$RUNNER_TEMP/friend"; mkdir -p "$HOME"
+          bash install.sh --from-zip dist/diskmap-macos-arm64.zip
+          test -d "$HOME/Applications/diskmap.app"
+          sleep 20
+          pgrep -x diskmap >/dev/null && echo "app is running"
+          pgrep -f "Resources/python/bin/python3" >/dev/null && echo "dashboard is running"
+          bash install.sh --from-zip dist/diskmap-macos-arm64.zip     # update over a running copy
+          sleep 10
+          pgrep -x diskmap >/dev/null && echo "app is running after update"
+          bash install.sh --uninstall
+          test ! -e "$HOME/Applications/diskmap.app"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diskmap-${{ steps.v.outputs.version }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: Publish the release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: mac
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          ls -la dist
+          gh release create "$TAG" dist/diskmap-macos-arm64.zip dist/diskmap-macos-x86_64.zip dist/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --title "diskmap ${TAG#v}" --generate-notes ||
+          gh release upload "$TAG" dist/diskmap-macos-arm64.zip dist/diskmap-macos-x86_64.zip dist/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --clobber

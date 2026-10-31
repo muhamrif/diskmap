@@ -1,8 +1,14 @@
-# personal data: disk scans, history, settings, logs — never commit these
+# Personal data: disk scans, history, settings, logs. Never commit these.
 data/
 reports/
-# build output and caches
+*.db
+*.db-wal
+*.db-shm
+last-scan.json
+
+# Build output and caches
 macapp/build/
+dist/
 __pycache__/
 *.pyc
 .DS_Store

@@ -44,6 +44,60 @@ MYPID = os.getpid()
 HOME = dm.HOME
 CACHE = os.path.join(dm.HERE, "reports", "last-scan.json")
 MB, GB = 1000 ** 2, 1000 ** 3
+REPO = "muhamrif/diskmap"            # GitHub repo that publishes releases (used for the update check)
+
+
+def read_version():
+    try:
+        with open(os.path.join(dm.HERE, "VERSION")) as f:
+            return f.read().strip() or "dev"
+    except OSError:
+        return "dev"
+
+
+VERSION = read_version()
+BUNDLED_PY = ".app/Contents/Resources/python/" in sys.executable
+
+
+def _vtuple(v):
+    return tuple(int(x) for x in re.findall(r"\d+", v)[:3]) or (0,)
+
+
+class UpdateCheck:
+    """Once a day, ask GitHub for the latest release. Only the version number is fetched; nothing is sent."""
+    def __init__(self):
+        self.latest, self.url, self.checked = None, None, 0
+
+    def tick(self):
+        if not SETTINGS.get("update_check", True) or VERSION == "dev" or time.time() - self.checked < 86400:
+            return
+        self.checked = time.time()
+        threading.Thread(target=self._check, daemon=True).start()
+
+    def _check(self):
+        try:
+            req = urllib.request.Request("https://api.github.com/repos/%s/releases/latest" % REPO,
+                                         headers={"Accept": "application/vnd.github+json", "User-Agent": "diskmap/" + VERSION})
+            with urllib.request.urlopen(req, timeout=8, context=inv.https_context()) as r:
+                d = json.load(r)
+            tag = str(d.get("tag_name") or "")
+            if tag and _vtuple(tag) > _vtuple(VERSION):
+                self.latest, self.url = tag.lstrip("v"), "https://github.com/%s/releases/latest" % REPO
+                NOTIFIER.push("update:" + self.latest, "diskmap %s is available" % self.latest,
+                              "To update, paste the install command into Terminal again.",
+                              {"label": "Download page", "act": {"kind": "open_url", "url": self.url}},
+                              cooldown=7 * 86400, setting="update_check")
+            else:
+                self.latest = None
+        except Exception:
+            self.checked = time.time() - 86400 + 3600   # offline or rate-limited: try again in an hour
+
+    @property
+    def available(self):
+        return self.latest
+
+
+UPDATES = UpdateCheck()
 
 # Apps never suggested for quitting (the terminal running this server, system UI…)
 PROTECTED = {"Finder", "Dock", "WindowServer", "loginwindow", "SystemUIServer", "Control Center",
@@ -184,7 +238,7 @@ DEFAULT_SETTINGS = {"notify": True, "notify_temp": 95, "notify_disk_gb": 10, "no
                     "idle_interval": 10, "notify_growth": True, "growth_gb": 2,
                     "digest_on": True, "digest_day": 6, "digest_hour": 18, "last_digest": 0,
                     "watch_on": True, "watch_drop_gb": 5,
-                    "ui_city": "nyc", "ui_sky": "auto", "ui_labels": "values", "ui_theme": "auto",
+                    "ui_city": "nyc", "ui_sky": "auto", "ui_labels": "values", "ui_theme": "auto", "update_check": True,
                     "profiles": [
                         {"name": "Deep work", "icon": "🎧", "quit": ["Slack", "Discord", "Messages", "WhatsApp", "Telegram", "Music", "Spotify", "Mail", "News", "TV"],
                          "unload_models": False, "close_heavy_tabs": False, "shortcut_on": "", "shortcut_off": ""},
@@ -636,12 +690,28 @@ class Tasks:
         "repos_fetch": ("Fetch all git repos", None),
     }
 
+    NEEDS = {"brew_upgrade": ("brew", "Needs Homebrew"), "brew_cleanup": ("brew", "Needs Homebrew"),
+             "brew_update": ("brew", "Needs Homebrew"), "sim_unavailable": ("xcrun", "Needs Xcode"),
+             "docker_prune": ("docker", "Needs Docker"), "cursor_vacuum": ("sqlite3", "Needs sqlite3"),
+             "repos_fetch": ("git", "Needs Git (Xcode Command Line Tools)")}
+
     def __init__(self):
         self.cur = None
+
+    def available(self):
+        """{task: None if it can run here, else the reason it can't}."""
+        out = {}
+        for name in self.DEFS:
+            tool, why = self.NEEDS.get(name, (None, None))
+            out[name] = None if tool is None or inv.tool_path(tool) else why
+        return out
 
     def start(self, name):
         if name not in self.DEFS:
             raise ValueError("Unknown task.")
+        why = self.available().get(name)
+        if why:
+            raise ValueError(why + ".")
         if self.cur and not self.cur.get("done"):
             raise ValueError("Another task is running: %s" % self.cur["title"])
         title, cmd = self.DEFS[name]
@@ -654,7 +724,8 @@ class Tasks:
         env = dict(os.environ, PATH=os.pathsep.join([os.environ.get("PATH", "")] + inv.PATHS), HOMEBREW_NO_ANALYTICS="1")
         if cmd is None:  # repos_fetch
             repos = (INV.data.get("repos") if INV else None) or []
-            cmd = " ; ".join("echo '→ %s' && git -C %s fetch --all --prune -q" % (r["name"].replace("'", ""), shlex.quote(os.path.expanduser(r["path"])))
+            git = shlex.quote(inv.tool_path("git") or "git")
+            cmd = " ; ".join("echo '→ %s' && %s -C %s fetch --all --prune -q" % (r["name"].replace("'", ""), git, shlex.quote(os.path.expanduser(r["path"])))
                              for r in repos[:80]) or "echo 'no repos found'"
         try:
             p = subprocess.Popen(["bash", "-lc", cmd], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
@@ -978,6 +1049,8 @@ class Sampler:
         AUTOPILOT.tick(snap, self, groups)
         WATCHER.tick(snap)
         GROWTH.tick(self, groups)
+        if not self.demo:
+            UPDATES.tick()
         HUB.send("live", snap)
 
     @staticmethod
@@ -1383,6 +1456,12 @@ def suggest(s, groups):
     if s.get("uptime") and s["uptime"] > 21 * 86400 and mem["swap"] > 2 * GB:
         add("restart", "info", "mem", "Restart when convenient",
             "Up %d days with %s of swap. A restart resets memory and swap." % (s["uptime"] // 86400, fmt(mem["swap"])))
+
+    if UPDATES.available:
+        add("update", "low", "update", "diskmap %s is available" % UPDATES.available,
+            "You have %s. To update, paste the install command into Terminal again (it's on the download page). "
+            "Your history and settings are kept." % VERSION,
+            [{"label": "Open download page", "kind": "open_url", "url": UPDATES.url}])
 
     out_.sort(key=lambda x: SEV[x["sev"]])
     return out_[:18]
@@ -1799,7 +1878,11 @@ def diagnostics(sampler, disk):
     open_pane = lambda pane, label="Open Settings": {"label": label, "kind": "open_settings", "pane": pane}
 
     # Basics
-    add("Basics", "python", "Python", "ok", "Python %s at %s" % (sys.version.split()[0], sys.executable))
+    add("Basics", "version", "diskmap", "ok", "Version %s%s" % (VERSION, " · %s available" % UPDATES.available if UPDATES.available else ""),
+        {"label": "Download page", "kind": "open_url", "url": "https://github.com/%s/releases/latest" % REPO} if UPDATES.available else None)
+    add("Basics", "python", "Python", "ok", "Python %s (%s)" % (sys.version.split()[0], "built into the app" if BUNDLED_PY else dm.tilde(sys.executable)))
+    add("Basics", "devtools", "Apple developer tools", "ok" if inv.dev_tools_installed() else "info",
+        "Installed" if inv.dev_tools_installed() else "Not installed. Only the Git and toolchain panels need them; everything else works.")
     add("Basics", "mode", "Running as", "ok", "Mac app" if APP_MODE else "Browser dashboard (server.py)")
     add("Basics", "top", "Process stats (top)", "ok" if sampler.top_ok else ("fail" if MAC else "unknown"),
         "Per-process CPU, memory, threads and energy" if sampler.top_ok else "Couldn't read top; using ps instead (less accurate).")
@@ -1869,7 +1952,7 @@ def diagnostics(sampler, disk):
     env_path = os.pathsep.join([os.environ.get("PATH", "")] + inv.PATHS)
     for tool, why in (("brew", "Homebrew panel and upgrades"), ("git", "Git repos panel"), ("docker", "Docker panel"),
                       ("ollama", "Local AI models"), ("sqlite3", "Compacting editor databases"), ("lsof", "Ports and connections")):
-        w = shutil.which(tool, path=env_path)
+        w = inv.tool_path(tool)
         add("Tools", tool, tool, "ok" if w else "info", (dm.tilde(w) + " · " + why) if w else "Not installed · " + why)
     # Sections
     for name, (fn, ttl) in inv.SECTIONS.items():
@@ -2003,6 +2086,12 @@ def act(body, sampler, disk):
             tabs.sort(key=lambda t: (t["win"], -int(t["id"])))
         n = close_tabs(b, tabs)
         return "Closed %d tab%s in %s." % (n, "" if n == 1 else "s", b)
+    if kind == "open_url":
+        url = str(body.get("url") or "")
+        if not url.startswith("https://github.com/%s/" % REPO):
+            raise ValueError("Only diskmap's own download page can be opened.")
+        subprocess.Popen(["open", url])
+        return "Opened the download page in your browser."
     if kind == "unload_model":
         name = body.get("model")
         if name not in {m["name"] for m in sampler.models}:
@@ -2218,7 +2307,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, html, "text/html; charset=utf-8")
         if u.path == "/":
             live = {"token": self.token if self._local() else "", "readonly": not self._local(),
-                    "prefs": {k: v for k, v in SETTINGS.items() if k.startswith("ui_")}}
+                    "prefs": {k: v for k, v in SETTINGS.items() if k.startswith("ui_")},
+                    "version": VERSION, "repo": REPO, "tasks": TASKS.available()}
             return self._send(200, dm.render_html(None, live=live), "text/html; charset=utf-8")
         if u.path == "/api/icon":
             return self._icon(q.get("p", [""])[0])

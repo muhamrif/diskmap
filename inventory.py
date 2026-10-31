@@ -14,6 +14,8 @@ import os
 import plistlib
 import re
 import shutil
+import ssl
+import struct
 import subprocess
 import sys
 import threading
@@ -147,13 +149,45 @@ def _mdls_last_used(paths):
     return out
 
 
+_CPU = {7: "i386", 0x01000007: "x86_64", 12: "arm", 0x0100000c: "arm64", 0x0200000c: "arm64_32", 18: "ppc", 0x01000012: "ppc64"}
+
+
+def macho_archs(path):
+    """CPU architectures in a Mach-O file (thin or universal), read straight from the header. None if unreadable."""
+    try:
+        with open(path, "rb") as f:
+            head = f.read(4096)
+    except OSError:
+        return None
+    if len(head) < 8:
+        return None
+    magic = struct.unpack(">I", head[:4])[0]
+    if magic in (0xCAFEBABE, 0xCAFEBABF):            # universal binary (32- or 64-bit fat headers)
+        n = struct.unpack(">I", head[4:8])[0]
+        size = 20 if magic == 0xCAFEBABE else 32
+        if n > 20:                                   # 0xCAFEBABE is also a Java class file; real fat files have a few archs
+            return None
+        out = []
+        for i in range(n):
+            off = 8 + i * size
+            if off + 4 > len(head):
+                break
+            cpu = struct.unpack(">i", head[off:off + 4])[0] & 0xFFFFFFFF
+            out.append(_CPU.get(cpu, hex(cpu)))
+        return out or None
+    for fmt in ("<I", ">I"):                         # thin binary, either byte order
+        m = struct.unpack(fmt, head[:4])[0]
+        if m in (0xFEEDFACE, 0xFEEDFACF):
+            cpu = struct.unpack(fmt[0] + "i", head[4:8])[0] & 0xFFFFFFFF
+            return [_CPU.get(cpu, hex(cpu))]
+    return None
+
+
 def _archs(app, info):
     exe = info.get("CFBundleExecutable")
     if not exe:
         return None
-    path = os.path.join(app, "Contents", "MacOS", exe)
-    o = run(["lipo", "-archs", path], timeout=5)
-    return o.split() if o else None
+    return macho_archs(os.path.join(app, "Contents", "MacOS", exe))
 
 
 def apps_inventory(sizes=True):
@@ -254,17 +288,62 @@ TOOLS = [("git", ["--version"]), ("node", ["--version"]), ("npm", ["--version"])
          ("docker", ["--version"]), ("kubectl", ["version", "--client"]), ("terraform", ["--version"]),
          ("aws", ["--version"]), ("gcloud", ["--version"]), ("az", ["--version"]), ("databricks", ["--version"]),
          ("gh", ["--version"]), ("brew", ["--version"]), ("ollama", ["--version"]), ("claude", ["--version"]),
-         ("code", ["--version"]), ("cursor", ["--version"]), ("pod", ["--version"]), ("flutter", ["--version"]),
-         ("kestra", ["--version"])]
+         ("code", ["--version"]), ("cursor", ["--version"]), ("pod", ["--version"]), ("flutter", ["--version"])]
 PATHS = ["/opt/homebrew/bin", "/usr/local/bin", os.path.join(HOME, ".local/bin"), os.path.join(HOME, ".cargo/bin"),
          os.path.join(HOME, ".bun/bin"), os.path.join(HOME, "go/bin")]
+
+# On a Mac without Apple's Command Line Tools, these names in /usr/bin are placeholders: running one pops up
+# an "Install Command Line Developer Tools?" dialog. Never run them unless the tools are really installed.
+CLT_SHIMS = {"git", "python3", "pip3", "pydoc3", "2to3", "swift", "swiftc", "xcodebuild", "xcrun", "clang", "clang++",
+             "gcc", "g++", "cc", "c++", "make", "lipo", "otool", "strip", "nm", "ld", "lldb", "svn", "xed", "gitk",
+             "python3-config"}
+_devtools = {"t": 0, "ok": False}
+
+
+def dev_tools_installed():
+    """True when Xcode or the Command Line Tools are installed (so /usr/bin/git etc. really work)."""
+    if os.environ.get("DISKMAP_ASSUME_NO_DEVTOOLS"):      # tests: behave like a Mac without them
+        return False
+    if time.time() - _devtools["t"] < 300:
+        return _devtools["ok"]
+    ok = False
+    try:
+        r = subprocess.run(["/usr/bin/xcode-select", "-p"], capture_output=True, text=True, timeout=5,
+                           stdin=subprocess.DEVNULL)
+        path = r.stdout.strip()
+        ok = r.returncode == 0 and bool(path) and os.path.isdir(path)
+    except (OSError, subprocess.SubprocessError):
+        ok = False
+    _devtools.update(t=time.time(), ok=ok)
+    return ok
+
+
+def tool_path(name):
+    """Full path of a command-line tool, or None. Skips Apple's placeholder tools when the developer tools are missing."""
+    env_path = os.pathsep.join([os.environ.get("PATH", "")] + PATHS)
+    exe = shutil.which(name, path=env_path)
+    if not exe:
+        return None
+    if exe.startswith("/usr/bin/") or os.path.realpath(exe).startswith("/usr/bin/"):
+        if name in ("java", "javac", "jar"):
+            # /usr/bin/java is a placeholder that asks to install Java unless a JDK is present.
+            if os.environ.get("DISKMAP_ASSUME_NO_DEVTOOLS"):
+                return None
+            try:
+                if subprocess.run(["/usr/libexec/java_home"], capture_output=True, timeout=5, stdin=subprocess.DEVNULL).returncode != 0:
+                    return None
+            except (OSError, subprocess.SubprocessError):
+                return None
+        elif name in CLT_SHIMS and not dev_tools_installed():
+            return None
+    return exe
 
 
 def dev_tools():
     env_path = os.pathsep.join([os.environ.get("PATH", "")] + PATHS)
     out = []
     for name, args in TOOLS:
-        exe = shutil.which(name, path=env_path)
+        exe = tool_path(name)
         if not exe:
             continue
         v = run([exe] + args, timeout=6, err=True, env={"PATH": env_path})
@@ -295,9 +374,12 @@ def git_repos(roots=None, max_depth=4, limit=150):
             dirnames[:] = [d for d in dirnames if not d.startswith(".") and d not in ("node_modules", "Library", "venv", "build", "dist", "target", "Pods")]
             if depth >= max_depth or len(found) >= limit:
                 dirnames[:] = []
+    git = tool_path("git")
+    if not git:
+        return []
     repos = []
     for d in found:
-        g = lambda *a: run(["git", "-C", d] + list(a), timeout=8)
+        g = lambda *a: run([git, "-C", d] + list(a), timeout=8)
         branch = g("rev-parse", "--abbrev-ref", "HEAD")
         dirty = [l for l in g("status", "--porcelain").splitlines() if l.strip()]
         ab = g("rev-list", "--left-right", "--count", "@{upstream}...HEAD")
@@ -314,6 +396,14 @@ def git_repos(roots=None, max_depth=4, limit=150):
                       "remote": re.sub(r"https://[^@/]+@", "https://", remote)[:100], "stashes": stashes})
     repos.sort(key=lambda r: -(r["last_commit"] or 0))
     return repos
+
+
+def https_context():
+    """SSL context that works with Apple's Python, Homebrew's and the bundled one alike."""
+    for ca in ("/etc/ssl/cert.pem", "/private/etc/ssl/cert.pem"):
+        if os.path.exists(ca):
+            return ssl.create_default_context(cafile=ca)
+    return ssl.create_default_context()
 
 
 def docker_info():
@@ -449,7 +539,7 @@ def network_extras(public_ip=False):
     pub = None
     if public_ip:
         try:
-            with urllib.request.urlopen("https://api.ipify.org?format=json", timeout=4) as r:
+            with urllib.request.urlopen("https://api.ipify.org?format=json", timeout=4, context=https_context()) as r:
                 pub = json.load(r).get("ip")
         except Exception:
             pub = None
